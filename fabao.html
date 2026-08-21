@@ -131,7 +131,7 @@
     <div class="card pad">
       <div>
         <label>匹配规则（正则，可编辑）</label>
-        <input id="regex" type="text" value="^(?:[OTRSM](?:[A-I]|N|0|UN))" />
+        <input id="regex" type="text" value="^(?:[OTRSM](?:[A-J]|N|0|UN))" />
         <div class="toolbar" style="margin-top:8px">
           <label class="muted" style="margin:0;display:flex;align-items:center;gap:8px">
             <input id="ignoreCase" type="checkbox" checked /> 忽略大小写
@@ -749,9 +749,9 @@
   $('#btnAll').onclick = () => { document.querySelectorAll('.hitcb').forEach(cb => cb.checked = true); renderHits(); };
   $('#btnNone').onclick = () => { document.querySelectorAll('.hitcb').forEach(cb => cb.checked = false); renderHits(); };
   $('#btnInvert').onclick = () => { document.querySelectorAll('.hitcb').forEach(cb => cb.checked = !cb.checked); renderHits(); };
-  $('#btnPresetDefault').onclick = () => { regexInput.value = '^(?:[OTRSM](?:[A-I]|N|0|UN))'; };
-  $('#btnPresetO').onclick = () => { regexInput.value = '^(?:O(?:[A-I]|N|0|UN))'; };
-  $('#btnPresetTRSM').onclick = () => { regexInput.value = '^(?:[TRSM](?:[A-I]|N|0|UN))'; };
+  $('#btnPresetDefault').onclick = () => { regexInput.value = '^(?:[OTRSM](?:[A-J]|N|0|UN))'; };
+  $('#btnPresetO').onclick = () => { regexInput.value = '^(?:O(?:[A-J]|N|0|UN))'; };
+  $('#btnPresetTRSM').onclick = () => { regexInput.value = '^(?:[TRSM](?:[A-J]|N|0|UN))'; };
   $('#deptAll').onclick = () => { $$('.dept').forEach(cb => cb.checked = true); };
   $('#deptNone').onclick = () => { $$('.dept').forEach(cb => cb.checked = false); };
 
