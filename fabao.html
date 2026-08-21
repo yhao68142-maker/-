@@ -213,8 +213,8 @@
         <div class="helpbox">
           <strong>当前逻辑</strong>
           <div class="muted" style="margin-top:6px">
-            先在 A 里找二级文件夹 → 再找每个二级文件夹里面带编码的文件夹 → 可点击“一键改名”修正二级文件夹名 →
-            开始复制时只复制这些带编码的文件夹到目标目录。
+            从源目录开始识别编码文件夹（支持源目录本身、一级目录及更深层级） → 普通业务目录中的编码文件夹仍可用于“一键改名”修正业务目录名 →
+            开始复制时只复制命中的编码文件夹到目标目录。
           </div>
         </div>
       </div>
@@ -444,15 +444,26 @@
     }
   }
 
+  function isEncodedDirName(name, re, lettersSet){
+    const rawName = String(name || '');
+    const normalizedName = rawName.trim();
+    if (!normalizedName) return false;
+    const first = normalizedName.charAt(0).toUpperCase();
+    return lettersSet.has(first) && re.test(normalizedName);
+  }
+
   async function iterEncodedDirsUnder(parentHandle, re, lettersSet){
     const results = [];
     async function walk(dirHandle){
       for await (const [name, handle] of dirHandle.entries()){
         if (handle.kind !== 'directory') continue;
-        const first = (name || '').charAt(0).toUpperCase();
-        if (lettersSet.has(first) && re.test(name)){
+
+        if (isEncodedDirName(name, re, lettersSet)){
           results.push({ name, handle });
+          // 已经命中一个编码目录后，不再继续进入其内部扫描，避免重复命中。
+          continue;
         }
+
         await walk(handle);
       }
     }
@@ -466,8 +477,15 @@
     const tasks = [];
 
     for (const root of srcDirs){
+      // 如果用户直接选择的源目录本身就是编码目录，则它没有可自动改名的上级业务目录。
+      // 这种情况交给预览/复制处理，这里不生成改名任务。
+      if (isEncodedDirName(root.name, re, lettersSet)) continue;
+
       for await (const [parentName, parentHandle] of root.entries()){
         if (parentHandle.kind !== 'directory') continue;
+
+        // 一级目录本身就是编码目录时，不应把它误当成“需要改名的二级业务文件夹”。
+        if (isEncodedDirName(parentName, re, lettersSet)) continue;
 
         const encodedDirs = await iterEncodedDirsUnder(parentHandle, re, lettersSet);
         if (encodedDirs.length === 0) continue;
@@ -531,36 +549,55 @@
     const lettersSet = selectedLetters();
     let idx = 0;
 
+    function addPreviewMatch(item, parentLabel){
+      const lab = document.createElement('label');
+      lab.className = 'item';
+
+      const cb = document.createElement('input');
+      cb.type = 'checkbox';
+      cb.checked = true;
+      cb.className = 'hitcb';
+      cb.dataset.idx = String(idx);
+      cb.onchange = renderHits;
+
+      const span = document.createElement('span');
+      span.textContent = parentLabel
+        ? `${prettyFolderTitle(parentLabel)} / ${item.name}`
+        : item.name;
+
+      lab.appendChild(cb);
+      lab.appendChild(span);
+      hitList.appendChild(lab);
+
+      previewMatches.push({
+        handle: item.handle,
+        targetName: item.name,
+        displayName: item.name,
+        sourceParentName: parentLabel || ''
+      });
+      idx++;
+    }
+
     for (const root of srcDirs){
+      // 场景 1：用户直接选择的源目录本身就是编码目录。
+      if (isEncodedDirName(root.name, re, lettersSet)){
+        addPreviewMatch({ name: root.name, handle: root }, '');
+        continue;
+      }
+
       for await (const [parentName, parentHandle] of root.entries()){
         if (parentHandle.kind !== 'directory') continue;
 
+        // 场景 2：源目录的一级子目录本身就是编码目录。
+        if (isEncodedDirName(parentName, re, lettersSet)){
+          addPreviewMatch({ name: parentName, handle: parentHandle }, root.name || '源目录');
+          continue;
+        }
+
+        // 场景 3：编码目录位于普通业务目录的更深层级。
         const encodedDirs = await iterEncodedDirsUnder(parentHandle, re, lettersSet);
         for (const item of encodedDirs){
-          const lab = document.createElement('label');
-          lab.className = 'item';
-
-          const cb = document.createElement('input');
-          cb.type = 'checkbox';
-          cb.checked = true;
-          cb.className = 'hitcb';
-          cb.dataset.idx = String(idx);
-          cb.onchange = renderHits;
-
-          const span = document.createElement('span');
-          span.textContent = `${prettyFolderTitle(parentName)} / ${item.name}`;
-
-          lab.appendChild(cb);
-          lab.appendChild(span);
-          hitList.appendChild(lab);
-
-          previewMatches.push({
-            handle: item.handle,
-            targetName: item.name,
-            displayName: item.name,
-            sourceParentName: parentName
-          });
-          idx++;
+          addPreviewMatch(item, parentName);
         }
       }
     }
