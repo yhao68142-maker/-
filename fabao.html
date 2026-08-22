@@ -131,7 +131,7 @@
     <div class="card pad">
       <div>
         <label>匹配规则（正则，可编辑）</label>
-        <input id="regex" type="text" value="^(?:[OTRSM](?:[A-J]|N|0|UN))(?=\d)" />
+        <input id="regex" type="text" value="^(?:O(?:(?:(?:ER|[ADEFIO])\d+)(?:[ADEFIO]\d+)*[A-Z]{2}[A-Z0-9]+|UN[A-Z]{2}\d+|TE\d+|\d+)|S(?:(?:[A-JOP]\d+)+[A-Z]{2}[A-Z0-9]+|UN[A-Z]{2}\d+|\d+)|[TRM](?:[A-J]|N|0|UN)(?=\d))" />
         <div class="toolbar" style="margin-top:8px">
           <label class="muted" style="margin:0;display:flex;align-items:center;gap:8px">
             <input id="ignoreCase" type="checkbox" checked /> 忽略大小写
@@ -213,7 +213,7 @@
         <div class="helpbox">
           <strong>当前逻辑</strong>
           <div class="muted" style="margin-top:6px">
-            从源目录开始识别编码文件夹（支持源目录本身、一级目录及更深层级） → 普通业务目录中的编码文件夹仍可用于“一键改名”修正业务目录名 →
+            按 OB / 单模真实系统编码规则识别文件夹（兼容历史编号、通用编号及复合机种编号） → 支持源目录本身、一级目录及更深层级 → 普通业务目录中的编码文件夹仍可用于“一键改名”修正业务目录名 →
             开始复制时只复制命中的编码文件夹到目标目录。
           </div>
         </div>
@@ -786,9 +786,9 @@
   $('#btnAll').onclick = () => { document.querySelectorAll('.hitcb').forEach(cb => cb.checked = true); renderHits(); };
   $('#btnNone').onclick = () => { document.querySelectorAll('.hitcb').forEach(cb => cb.checked = false); renderHits(); };
   $('#btnInvert').onclick = () => { document.querySelectorAll('.hitcb').forEach(cb => cb.checked = !cb.checked); renderHits(); };
-  $('#btnPresetDefault').onclick = () => { regexInput.value = '^(?:[OTRSM](?:[A-J]|N|0|UN))(?=\\d)'; };
-  $('#btnPresetO').onclick = () => { regexInput.value = '^(?:O(?:[A-J]|N|0|UN))(?=\\d)'; };
-  $('#btnPresetTRSM').onclick = () => { regexInput.value = '^(?:[TRSM](?:[A-J]|N|0|UN))(?=\\d)'; };
+  $('#btnPresetDefault').onclick = () => { regexInput.value = '^(?:O(?:(?:(?:ER|[ADEFIO])\\d+)(?:[ADEFIO]\\d+)*[A-Z]{2}[A-Z0-9]+|UN[A-Z]{2}\\d+|TE\\d+|\\d+)|S(?:(?:[A-JOP]\\d+)+[A-Z]{2}[A-Z0-9]+|UN[A-Z]{2}\\d+|\\d+)|[TRM](?:[A-J]|N|0|UN)(?=\\d))'; };
+  $('#btnPresetO').onclick = () => { regexInput.value = '^(?:O(?:(?:(?:ER|[ADEFIO])\\d+)(?:[ADEFIO]\\d+)*[A-Z]{2}[A-Z0-9]+|UN[A-Z]{2}\\d+|TE\\d+|\\d+))'; };
+  $('#btnPresetTRSM').onclick = () => { regexInput.value = '^(?:S(?:(?:[A-JOP]\\d+)+[A-Z]{2}[A-Z0-9]+|UN[A-Z]{2}\\d+|\\d+)|[TRM](?:[A-J]|N|0|UN)(?=\\d))'; };
   $('#deptAll').onclick = () => { $$('.dept').forEach(cb => cb.checked = true); };
   $('#deptNone').onclick = () => { $$('.dept').forEach(cb => cb.checked = false); };
 
