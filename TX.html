@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>TX台账处理</title>
+<style>
+  :root{
+    --bg:#f5f7fb; --card:#fff; --ink:#172033; --muted:#6b7487; --line:#e5e9f2;
+    --brand:#3567e5; --brand2:#244fc0; --ok:#16835b; --okbg:#eaf8f2;
+    --warn:#b46800; --warnbg:#fff5e6; --bad:#c23b45; --badbg:#fff0f1;
+    --shadow:0 12px 32px rgba(27,46,94,.08); --radius:18px;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei",Arial,sans-serif;font-size:14px}
+  .shell{max-width:1480px;margin:0 auto;padding:30px 28px 56px}
+  .hero{display:flex;align-items:flex-start;justify-content:space-between;gap:24px;margin-bottom:22px}
+  .hero h1{margin:0 0 9px;font-size:28px;line-height:1.25;letter-spacing:-.5px}
+  .hero p{margin:0;color:var(--muted);line-height:1.7;max-width:860px}
+  .offline{display:inline-flex;align-items:center;gap:8px;white-space:nowrap;background:#eef5ff;color:#2456c5;border:1px solid #d8e5ff;border-radius:999px;padding:9px 13px;font-weight:700}
+  .offline i{width:8px;height:8px;border-radius:50%;background:#28a36b;box-shadow:0 0 0 4px rgba(40,163,107,.12)}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:22px}
+  .card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:16px}
+  .step{display:flex;align-items:flex-start;gap:12px}
+  .step-no{width:31px;height:31px;border-radius:10px;background:#edf2ff;color:var(--brand);display:grid;place-items:center;font-weight:800;flex:0 0 auto}
+  .step h2{font-size:17px;margin:1px 0 5px}.step p{margin:0;color:var(--muted);font-size:13px;line-height:1.55}
+  .drop{position:relative;border:1.5px dashed #b8c4de;border-radius:14px;background:#fafcff;padding:25px 18px;min-height:138px;display:flex;align-items:center;justify-content:center;text-align:center;cursor:pointer;transition:.18s}
+  .drop:hover,.drop.drag{border-color:var(--brand);background:#f4f7ff;transform:translateY(-1px)}
+  .drop.ready{border-style:solid;border-color:#b8dfcf;background:#f7fcfa}
+  .drop input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+  .upload-icon{width:42px;height:42px;border-radius:13px;background:#edf2ff;color:var(--brand);display:grid;place-items:center;margin:0 auto 10px;font-size:21px;font-weight:800}
+  .drop strong{display:block;font-size:14px;margin-bottom:5px}.drop small{color:var(--muted);line-height:1.55}
+  .file-info{display:none;align-items:center;justify-content:space-between;gap:12px;text-align:left;width:100%}
+  .ready .file-info{display:flex}.ready .empty-info{display:none}
+  .file-main{min-width:0}.file-name{font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-bottom:6px}.file-meta{font-size:12px;color:var(--muted);line-height:1.55}
+  .check{width:38px;height:38px;border-radius:50%;background:var(--okbg);color:var(--ok);display:grid;place-items:center;font-size:20px;font-weight:900;flex:0 0 auto}
+  .control-card{margin-top:18px;display:grid;grid-template-columns:260px 1fr auto;align-items:end;gap:16px}
+  label.field{display:block;font-size:12px;color:var(--muted);font-weight:700;margin-bottom:7px}
+  input[type=text],select{width:100%;height:42px;border:1px solid #cfd6e5;border-radius:10px;background:#fff;padding:0 12px;font:inherit;outline:none}
+  input[type=text]:focus,select:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(53,103,229,.10)}
+  .rule-note{background:#f7f9fd;border:1px solid var(--line);border-radius:12px;padding:11px 13px;color:#596277;line-height:1.6;font-size:12.5px}
+  .btn{height:42px;border-radius:10px;border:1px solid transparent;padding:0 16px;font-weight:800;font-size:13px;cursor:pointer;transition:.15s;white-space:nowrap}
+  .btn:disabled{opacity:.42;cursor:not-allowed}.btn.primary{background:var(--brand);color:#fff}.btn.primary:hover:not(:disabled){background:var(--brand2)}
+  .btn.light{background:#fff;color:#364157;border-color:#d7ddea}.btn.light:hover:not(:disabled){background:#f7f9fc}
+  .btn.ghost{background:#eef3ff;color:#2d59c5}.btn.danger{background:#fff4f4;color:#b9333f;border-color:#f1c9cd}
+  .statusbar{display:none;margin-top:18px;border-radius:12px;padding:12px 14px;line-height:1.55}.statusbar.show{display:block}.statusbar.info{background:#eef4ff;color:#3056a7;border:1px solid #d7e4ff}.statusbar.ok{background:var(--okbg);color:#176849;border:1px solid #caecdf}.statusbar.bad{background:var(--badbg);color:#9d3039;border:1px solid #f3cbd0}
+  .result{display:none;margin-top:18px}.result.show{display:block}
+  .result-card{background:#fff;border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
+  .toolbar{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:16px 18px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+  .toolbar-left,.toolbar-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.toolbar h3{font-size:16px;margin:0 5px 0 0}.countnote{font-size:12px;color:var(--muted)}
+  .search{height:38px!important;width:260px!important;font-size:13px!important}
+  .table-wrap{overflow:auto;max-height:620px;scrollbar-gutter:stable}
+  table{border-collapse:separate;border-spacing:0;width:100%;min-width:1180px;table-layout:fixed}
+  th{position:sticky;top:0;z-index:3;background:#f7f9fc;color:#4d5870;font-size:12px;text-align:left;padding:13px 14px;border-bottom:1px solid var(--line);white-space:nowrap}
+  td{padding:13px 14px;border-bottom:1px solid #edf0f5;vertical-align:top;line-height:1.6;font-size:12.5px;background:#fff}
+  tbody tr:hover td{background:#fbfcff}
+  .name-cell{width:34%;white-space:normal;word-break:break-word;overflow-wrap:anywhere}
+  .person-cell{width:11%;white-space:nowrap}
+  .owner-cell{width:11%;white-space:nowrap}
+  .combined-cell{width:35%;font-weight:700;color:#27334a;white-space:normal;word-break:break-word;overflow-wrap:anywhere}
+  .status-col{width:9%;white-space:nowrap}
+  .pill{display:inline-flex;align-items:center;border-radius:999px;padding:4px 8px;font-size:11px;font-weight:800;white-space:nowrap}.pill.ok{background:var(--okbg);color:var(--ok)}.pill.warn{background:var(--warnbg);color:var(--warn)}.pill.bad{background:var(--badbg);color:var(--bad)}
+  .empty-state{padding:54px 20px;text-align:center;color:var(--muted)}.empty-state b{display:block;color:#49546a;margin-bottom:5px}
+  .foot{margin-top:14px;color:#8a92a3;font-size:11.5px;line-height:1.65;text-align:center}
+  .modal-bg{display:none;position:fixed;inset:0;background:rgba(18,27,45,.45);z-index:30;padding:35px;align-items:center;justify-content:center}.modal-bg.show{display:flex}
+  .modal{background:#fff;border-radius:18px;max-width:980px;width:100%;max-height:82vh;overflow:auto;box-shadow:0 28px 80px rgba(0,0,0,.22)}.modal-head{position:sticky;top:0;background:#fff;padding:18px 20px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;z-index:2}.modal-body{padding:18px 20px}.modal h3{margin:0;font-size:17px}.close{border:0;background:#f1f3f8;border-radius:9px;width:34px;height:34px;cursor:pointer;font-size:18px}
+  .audit-item{padding:13px 14px;border:1px solid var(--line);border-radius:12px;margin-bottom:10px}.audit-item b{display:block;margin-bottom:6px}.audit-item p{margin:0;color:var(--muted);line-height:1.55;font-size:12.5px}
+  @media (max-width:900px){.shell{padding:20px 14px}.hero{display:block}.offline{margin-top:14px}.grid{grid-template-columns:1fr}.control-card{grid-template-columns:1fr}.toolbar{align-items:flex-start}.search{width:100%!important}.modal-bg{padding:12px}}
+</style>
+</head>
+<body>
+<div class="shell">
+  <div class="hero">
+    <div>
+      <h1>TX台账处理</h1>
+      <p>把第一个审核表中的「治具名称+型号」与第二个申请表中的「治工具名称」严格对应，并生成「治工具编号+名称」。结果与导出只保留 5 个必要字段。</p>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><a href="index.html" style="text-decoration:none;color:#3567e5;font-weight:700">← 返回工具集</a><div class="offline"><i></i>浏览器本地处理 · 文件不上传</div></div>
+  </div>
+
+  <div class="grid">
+    <section class="card">
+      <div class="card-head"><div class="step"><div class="step-no">1</div><div><h2>上传审核表（第一个 Excel）</h2><p>需要包含「治具名称+型号」「设计负责人」列。</p></div></div></div>
+      <div class="drop" id="dropA">
+        <input id="fileA" type="file" accept=".xlsx" />
+        <div class="empty-info"><div class="upload-icon">↑</div><strong>点击或拖拽上传审核表</strong><small>支持 .xlsx；页面会自动寻找包含所需列的工作表</small></div>
+        <div class="file-info"><div class="file-main"><div class="file-name" id="nameA"></div><div class="file-meta" id="metaA"></div></div><div class="check">✓</div></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-head"><div class="step"><div class="step-no">2</div><div><h2>上传治工具申请表（第二个 Excel）</h2><p>需要包含「治工具名称 / tool name」和「治工具编号 / tool number」列。</p></div></div></div>
+      <div class="drop" id="dropB">
+        <input id="fileB" type="file" accept=".xlsx" />
+        <div class="empty-info"><div class="upload-icon">↑</div><strong>点击或拖拽上传申请表</strong><small>编号与名称始终从第二表同一行绑定提取，不会分开匹配</small></div>
+        <div class="file-info"><div class="file-main"><div class="file-name" id="nameB"></div><div class="file-meta" id="metaB"></div></div><div class="check">✓</div></div>
+      </div>
+    </section>
+  </div>
+
+  <section class="card control-card">
+    <div><label class="field" for="owner">设计负责人筛选</label><select id="owner" disabled><option value="">请先上传审核表</option></select></div>
+    <div class="rule-note"><b>安全匹配规则：</b>名称仅做全/半角与空白标准化，不做模糊猜测；同名多条时再用厂区、数量、申请人/需求人、期望交期做唯一确认。无法唯一确认或关键字段冲突时，不自动填写编号。</div>
+    <button class="btn primary" id="runBtn" disabled>开始匹配</button>
+  </section>
+  <div class="statusbar" id="statusbar"></div>
+
+  <section class="result" id="resultArea">
+    <div class="result-card" id="resultCard">
+      <div class="toolbar">
+        <div class="toolbar-left"><h3>匹配结果</h3><span class="countnote" id="tableCount"></span></div>
+        <div class="toolbar-right"><input class="search" id="searchInput" type="text" placeholder="搜索名称 / 申请人 / 编号 / 状态" /><button class="btn primary" id="xlsxBtn">下载匹配结果 Excel</button><button class="btn danger" id="resetBtn">重置</button></div>
+      </div>
+      <div class="table-wrap" id="tableWrap">
+        <table id="resultTable">
+          <thead><tr><th>治具名称+型号</th><th>申请人</th><th>设计负责人</th><th>治工具编号+名称</th><th>匹配状态</th></tr></thead>
+          <tbody id="tbody"></tbody>
+        </table>
+        <div class="empty-state" id="empty"><b>暂无结果</b>上传两个 Excel 后点击“开始匹配”。</div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script>
+"use strict";
+
+/* ---------- tiny ZIP + XLSX reader/writer (no network, no external library) ---------- */
+const td = new TextDecoder("utf-8"), te = new TextEncoder();
+function u16(v,o){return v.getUint16(o,true)} function u32(v,o){return v.getUint32(o,true)}
+function concatBytes(parts){let n=parts.reduce((s,p)=>s+p.length,0), out=new Uint8Array(n),o=0;for(const p of parts){out.set(p,o);o+=p.length}return out}
+function xmlText(s){return String(s??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&apos;")}
+async function inflateRaw(bytes){if(typeof DecompressionStream==="undefined") throw new Error("当前浏览器不支持本地解压，请使用最新版 Chrome / Edge。"); const ds=new DecompressionStream("deflate-raw"); return new Uint8Array(await new Response(new Blob([bytes]).stream().pipeThrough(ds)).arrayBuffer())}
+async function unzip(buffer){const bytes=new Uint8Array(buffer), dv=new DataView(buffer);let e=-1;for(let i=bytes.length-22;i>=Math.max(0,bytes.length-65557);i--){if(u32(dv,i)===0x06054b50){e=i;break}}if(e<0)throw new Error("不是有效的 .xlsx 文件（找不到 ZIP 目录）。");let count=u16(dv,e+10), p=u32(dv,e+16), files=new Map();for(let k=0;k<count;k++){if(u32(dv,p)!==0x02014b50)throw new Error("Excel ZIP 目录损坏。");let method=u16(dv,p+10),cs=u32(dv,p+20),nl=u16(dv,p+28),el=u16(dv,p+30),cl=u16(dv,p+32),lo=u32(dv,p+42);let name=td.decode(bytes.slice(p+46,p+46+nl));let ldv=new DataView(buffer,lo);if(ldv.getUint32(0,true)!==0x04034b50)throw new Error("Excel ZIP 文件头损坏。");let lnl=ldv.getUint16(26,true),lel=ldv.getUint16(28,true),start=lo+30+lnl+lel;files.set(name,{method,bytes:bytes.slice(start,start+cs)});p+=46+nl+el+cl}
+  return {async text(name){let f=files.get(name);if(!f)return null;let b=f.method===0?f.bytes:f.method===8?await inflateRaw(f.bytes):(()=>{throw new Error("不支持的 ZIP 压缩方式："+f.method)})();return td.decode(b)}, has:n=>files.has(n)};
+}
+function parseXML(text){return new DOMParser().parseFromString(text,"application/xml")}
+function localNameChildren(el,name){return Array.from(el.getElementsByTagNameNS("*",name))}
+function colIndex(ref){let m=String(ref||"").match(/^([A-Z]+)/i),n=0;if(!m)return 0;for(const c of m[1].toUpperCase())n=n*26+(c.charCodeAt(0)-64);return n-1}
+async function parseXlsx(file){let zip=await unzip(await file.arrayBuffer());let wbxml=await zip.text("xl/workbook.xml"), relxml=await zip.text("xl/_rels/workbook.xml.rels");if(!wbxml||!relxml)throw new Error("Excel 缺少 workbook.xml。");let shared=[];if(zip.has("xl/sharedStrings.xml")){let sx=parseXML(await zip.text("xl/sharedStrings.xml"));for(const si of localNameChildren(sx,"si")){shared.push(localNameChildren(si,"t").map(x=>x.textContent||"").join(""))}}
+  let relDoc=parseXML(relxml), rels={};for(const r of localNameChildren(relDoc,"Relationship")){rels[r.getAttribute("Id")]=r.getAttribute("Target")}
+  let wbDoc=parseXML(wbxml), sheets=[];for(const s of localNameChildren(wbDoc,"sheet")){let name=s.getAttribute("name")||"Sheet", rid=s.getAttributeNS("http://schemas.openxmlformats.org/officeDocument/2006/relationships","id")||s.getAttribute("r:id"), target=rels[rid];if(!target)continue;target=target.replace(/^\//,"");let path=target.startsWith("xl/")?target:"xl/"+target.replace(/^\.\//,"");let sh=await zip.text(path);if(!sh)continue;let doc=parseXML(sh), rows=[];for(const r of localNameChildren(doc,"row")){let arr=[];for(const c of Array.from(r.children).filter(x=>x.localName==="c")){let idx=colIndex(c.getAttribute("r")),type=c.getAttribute("t")||"",vEl=Array.from(c.children).find(x=>x.localName==="v"), val="";if(type==="inlineStr"){let is=Array.from(c.children).find(x=>x.localName==="is");val=is?localNameChildren(is,"t").map(x=>x.textContent||"").join(""):""}else if(type==="s")val=shared[Number(vEl?.textContent||0)]??"";else if(type==="b")val=(vEl?.textContent==="1");else if(type==="str")val=vEl?.textContent??"";else if(vEl){let raw=vEl.textContent??"";val=raw!==""&&!Number.isNaN(Number(raw))?Number(raw):raw}arr[idx]=val}let rn=Number(r.getAttribute("r"))||rows.length+1;while(rows.length<rn-1)rows.push([]);rows[rn-1]=arr}sheets.push({name,rows})}
+  return {sheets};
+}
+
+let crcTable=null;function getCrcTable(){if(crcTable)return crcTable;crcTable=[];for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=(c&1)?0xedb88320^(c>>>1):c>>>1;crcTable[n]=c>>>0}return crcTable}
+function crc32(bytes){let c=0xffffffff,t=getCrcTable();for(const b of bytes)c=t[(c^b)&255]^(c>>>8);return (c^0xffffffff)>>>0}
+function le16(n){return new Uint8Array([n&255,(n>>>8)&255])} function le32(n){return new Uint8Array([n&255,(n>>>8)&255,(n>>>16)&255,(n>>>24)&255])}
+function zipStore(entries){let locals=[],centrals=[],offset=0;for(const [name,content] of entries){let nb=te.encode(name),data=typeof content==="string"?te.encode(content):content,crc=crc32(data),flag=0x0800;let local=concatBytes([le32(0x04034b50),le16(20),le16(flag),le16(0),le16(0),le16(0),le32(crc),le32(data.length),le32(data.length),le16(nb.length),le16(0),nb,data]);locals.push(local);let central=concatBytes([le32(0x02014b50),le16(20),le16(20),le16(flag),le16(0),le16(0),le16(0),le32(crc),le32(data.length),le32(data.length),le16(nb.length),le16(0),le16(0),le16(0),le16(0),le32(0),le32(offset),nb]);centrals.push(central);offset+=local.length}let cd=concatBytes(centrals),body=concatBytes(locals),eocd=concatBytes([le32(0x06054b50),le16(0),le16(0),le16(entries.length),le16(entries.length),le32(cd.length),le32(body.length),le16(0)]);return new Blob([body,cd,eocd],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"})}
+function xlsxCell(v,ref,style=0){if(v===null||v===undefined||v==="")return `<c r="${ref}" s="${style}"/>`;if(typeof v==="number"&&Number.isFinite(v))return `<c r="${ref}" s="${style}"><v>${v}</v></c>`;if(typeof v==="boolean")return `<c r="${ref}" s="${style}" t="b"><v>${v?1:0}</v></c>`;return `<c r="${ref}" s="${style}" t="inlineStr"><is><t xml:space="preserve">${xmlText(v)}</t></is></c>`}
+function colName(i){let s="";for(i++;i;i=Math.floor((i-1)/26))s=String.fromCharCode(65+(i-1)%26)+s;return s}
+function makeXlsx(rows, widths=[]){let maxCols=Math.max(...rows.map(r=>r.length),1),sheetRows=rows.map((r,ri)=>`<row r="${ri+1}"${ri===0?' ht="30" customHeight="1"':''}>${Array.from({length:maxCols},(_,ci)=>xlsxCell(r[ci],colName(ci)+(ri+1),ri===0?1:0)).join("")}</row>`).join("");let cols=widths.length?`<cols>${widths.map((w,i)=>`<col min="${i+1}" max="${i+1}" width="${w}" customWidth="1"/>`).join("")}</cols>`:"";let sheet=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetViews><sheetView workbookViewId="0"><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews><sheetFormatPr defaultRowHeight="18"/>${cols}<sheetData>${sheetRows}</sheetData><autoFilter ref="A1:${colName(maxCols-1)}${rows.length}"/></worksheet>`;
+  let styles=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><fonts count="2"><font><sz val="11"/><name val="Microsoft YaHei"/></font><font><b/><color rgb="FFFFFFFF"/><sz val="11"/><name val="Microsoft YaHei"/></font></fonts><fills count="3"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FF3567E5"/><bgColor indexed="64"/></patternFill></fill></fills><borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="2"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0" applyAlignment="1"><alignment vertical="top" wrapText="1"/></xf><xf numFmtId="0" fontId="1" fillId="2" borderId="0" xfId="0" applyFill="1" applyFont="1" applyAlignment="1"><alignment vertical="center" wrapText="1"/></xf></cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>`;
+  let entries=[
+    ["[Content_Types].xml",`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/><Override PartName="/docProps/core.xml" ContentType="application/vnd.openxmlformats-package.core-properties+xml"/><Override PartName="/docProps/app.xml" ContentType="application/vnd.openxmlformats-officedocument.extended-properties+xml"/></Types>`],
+    ["_rels/.rels",`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties" Target="docProps/core.xml"/><Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/extended-properties" Target="docProps/app.xml"/></Relationships>`],
+    ["xl/workbook.xml",`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="匹配结果" sheetId="1" r:id="rId1"/></sheets></workbook>`],
+    ["xl/_rels/workbook.xml.rels",`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>`],
+    ["xl/worksheets/sheet1.xml",sheet],["xl/styles.xml",styles],
+    ["docProps/core.xml",`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><cp:coreProperties xmlns:cp="http://schemas.openxmlformats.org/package/2006/metadata/core-properties" xmlns:dc="http://purl.org/dc/elements/1.1/"><dc:creator>Offline Fixture Matcher</dc:creator><dc:title>治工具编码匹配结果</dc:title></cp:coreProperties>`],
+    ["docProps/app.xml",`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Properties xmlns="http://schemas.openxmlformats.org/officeDocument/2006/extended-properties"><Application>Offline Fixture Matcher</Application></Properties>`]
+  ];return zipStore(entries)}
+
+/* ---------- app ---------- */
+const S={a:null,b:null,results:[],exportHeaders:[],exportRows:[]};
+const $=id=>document.getElementById(id);
+function norm(v){return String(v??"").normalize("NFKC").replace(/\r/g,"\n").replace(/[\t\n\f\v ]+/g," ").trim()}
+function hkey(v){return norm(String(v??"").split(/\n/)[0]).replace(/\s+/g,"")}
+function nameKey(v){return norm(v)}
+function dateKey(v){if(v===null||v===undefined||v==="")return "";if(typeof v==="number"&&v>20000&&v<100000){let d=new Date(Date.UTC(1899,11,30)+v*86400000);return d.toISOString().slice(0,10)}let s=norm(v);let m=s.match(/(20\d{2})[\/.\-年](\d{1,2})[\/.\-月](\d{1,2})/);return m?`${m[1]}-${m[2].padStart(2,"0")}-${m[3].padStart(2,"0")}`:s}
+function numKey(v){if(v===null||v===undefined||v==="")return "";let n=Number(v);return Number.isFinite(n)?String(n):norm(v)}
+function findCol(headers,cands){let ks=headers.map(hkey);for(const c of cands){let i=ks.indexOf(hkey(c));if(i>=0)return i}return -1}
+function locateSheet(book, required){for(const sh of book.sheets){if(!sh.rows.length)continue;for(let ri=0;ri<Math.min(8,sh.rows.length);ri++){let h=sh.rows[ri]||[];if(required.every(c=>findCol(h,c)>=0))return {sheet:sh,headerRow:ri,headers:h.map(x=>String(x??""))}}}return null}
+function pickColumns(headers,side){let f=(...c)=>findCol(headers,c);return side==="a"?{name:f("治具名称+型号"),owner:f("设计负责人"),factory:f("厂区"),qty:f("数量"),person:f("申请人"),date:f("期望交期")}:{name:f("治工具名称"),code:f("治工具编号"),factory:f("厂区"),qty:f("数量"),person:f("需求人"),date:f("期望交期")}}
+function cleanDataRows(sheet,headerRow){return sheet.rows.slice(headerRow+1).map((r,i)=>({row:r,rowNo:headerRow+2+i})).filter(x=>x.row.some(v=>v!==null&&v!==undefined&&String(v).trim()!==""))}
+function setStatus(text,type="info"){let el=$("statusbar");el.className=`statusbar show ${type}`;el.textContent=text}
+function updateRun(){ $("runBtn").disabled=!(S.a&&S.b&&norm($("owner").value)) }
+function clearResults(){S.results=[];S.exportRows=[];S.exportHeaders=[];$("resultArea").classList.remove("show");$("tbody").innerHTML="";$("searchInput").value=""}
+function refreshOwners(){let sel=$("owner");sel.innerHTML="";if(!S.a||S.a.cols.owner<0){sel.disabled=true;sel.innerHTML='<option value="">请先上传审核表</option>';updateRun();return}let values=[...new Set(S.a.data.map(x=>norm(x.row[S.a.cols.owner])).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"zh-CN"));if(!values.length){sel.disabled=true;sel.innerHTML='<option value="">未读取到设计负责人</option>';updateRun();return}for(const v of values){let o=document.createElement("option");o.value=v;o.textContent=v;sel.appendChild(o)}sel.disabled=false;sel.value=values.includes("杨昊")?"杨昊":values[0];updateRun()}
+function fileSize(n){return n<1024?`${n} B`:n<1048576?`${(n/1024).toFixed(1)} KB`:`${(n/1048576).toFixed(1)} MB`}
+async function loadFile(file,side){if(!file)return;if(!/\.xlsx$/i.test(file.name)){setStatus("仅支持 .xlsx 文件。请重新选择。","bad");return}try{clearResults();setStatus(`正在本地解析：${file.name} …`,"info");let book=await parseXlsx(file);let req=side==="a"?[["治具名称+型号"],["设计负责人"]]:[["治工具名称"],["治工具编号"]];let found=locateSheet(book,req);if(!found)throw new Error(side==="a"?"未找到同时包含“治具名称+型号、设计负责人”的工作表。":"未找到同时包含“治工具名称、治工具编号”的工作表。");let cols=pickColumns(found.headers,side);let obj={file,book,...found,cols,data:cleanDataRows(found.sheet,found.headerRow)};S[side]=obj;let cap=side==="a"?"A":"B";$("drop"+cap).classList.add("ready");$("name"+cap).textContent=file.name;$("meta"+cap).textContent=`工作表：${found.sheet.name} · ${obj.data.length} 条数据 · ${fileSize(file.size)}`;if(side==="a"){refreshOwners();let owners=[...new Set(obj.data.map(x=>norm(x.row[cols.owner])).filter(Boolean))];setStatus(`${file.name} 解析成功：${obj.data.length} 条记录，识别到 ${owners.length} 个设计负责人。`,"ok")}else{setStatus(`${file.name} 解析成功：${obj.data.filter(x=>norm(x.row[cols.name])&&norm(x.row[cols.code])).length} 条有效治工具记录。`,"ok")}updateRun()}catch(e){S[side]=null;if(side==="a")refreshOwners();updateRun();setStatus("解析失败："+(e.message||e),"bad")}}
+function setupDrop(dropId,inputId,side){let d=$(dropId),inp=$(inputId);inp.addEventListener("change",()=>loadFile(inp.files[0],side));["dragenter","dragover"].forEach(ev=>d.addEventListener(ev,e=>{e.preventDefault();d.classList.add("drag")}));["dragleave","drop"].forEach(ev=>d.addEventListener(ev,e=>{e.preventDefault();d.classList.remove("drag")}));d.addEventListener("drop",e=>{let f=e.dataTransfer.files[0];if(f)loadFile(f,side)})}
+setupDrop("dropA","fileA","a");setupDrop("dropB","fileB","b");
+function sameNonEmpty(a,b,kind="text"){let A=kind==="date"?dateKey(a):kind==="num"?numKey(a):norm(a),B=kind==="date"?dateKey(b):kind==="num"?numKey(b):norm(b);if(!A||!B)return {checked:false,ok:true};return {checked:true,ok:A===B,A,B}}
+function compareCandidate(ar,br){let A=S.a.cols,B=S.b.cols, checks=[
+  ["厂区",sameNonEmpty(ar[A.factory],br[B.factory])],
+  ["数量",sameNonEmpty(ar[A.qty],br[B.qty],"num")],
+  ["申请人/需求人",sameNonEmpty(ar[A.person],br[B.person])],
+  ["期望交期",sameNonEmpty(ar[A.date],br[B.date],"date")]
+];let score=0,conflicts=[];for(const [label,c] of checks){if(!c.checked)continue;if(c.ok)score+=label==="厂区"?4:label==="数量"?3:2;else conflicts.push(`${label}：第1表「${c.A}」≠ 第2表「${c.B}」`)}return {score,conflicts}}
+function matchAll(){let owner=norm($("owner").value);if(!owner){setStatus("请选择设计负责人。","bad");return}let A=S.a.cols,B=S.b.cols;if(A.name<0||A.owner<0||B.name<0||B.code<0){setStatus("必要列识别失败，请检查表头。","bad");return}
+  let first=S.a.data.filter(x=>norm(x.row[A.owner])===owner), second=S.b.data.filter(x=>norm(x.row[B.name])&&norm(x.row[B.code]));let map=new Map();for(const x of second){let k=nameKey(x.row[B.name]);if(!map.has(k))map.set(k,[]);map.get(k).push(x)}let results=[];
+  for(const a of first){let name=String(a.row[A.name]??"").trim(),cands=map.get(nameKey(name))||[],res={a,name,status:"unmatched",label:"未匹配",reason:"第二表未找到同名治工具。",b:null,code:"",bname:"",combined:""};
+    if(!name){res.status="issue";res.label="待确认";res.reason="第一个表的治具名称为空。"}
+    else if(cands.length===1){let b=cands[0],cmp=compareCandidate(a.row,b.row);if(cmp.conflicts.length){res.status="issue";res.label="字段冲突";res.reason=`名称相同，但关键字段存在冲突：${cmp.conflicts.join("；")}`}
+      else{res.status="ok";res.label="已匹配";res.b=b;res.code=String(b.row[B.code]??"").trim();res.bname=String(b.row[B.name]??"").trim();res.combined=`${res.code} ${res.bname}`.trim();res.reason="名称唯一一致；编号与名称来自第二表同一行。"}}
+    else if(cands.length>1){let ranked=cands.map(b=>({b,...compareCandidate(a.row,b.row)})).sort((x,y)=>y.score-x.score);let top=ranked[0],secondScore=ranked[1]?.score??-1;if(top.score>secondScore&&top.score>=3&&top.conflicts.length===0){res.status="ok";res.label="已匹配";res.b=top.b;res.code=String(top.b.row[B.code]??"").trim();res.bname=String(top.b.row[B.name]??"").trim();res.combined=`${res.code} ${res.bname}`.trim();res.reason=`第二表存在 ${cands.length} 条同名记录；已用厂区/数量/人员/交期唯一确认第 ${top.b.rowNo} 行。`}
+      else{res.status="issue";res.label="同名待确认";res.reason=`第二表存在 ${cands.length} 条同名记录，辅助字段不足以唯一确认；为避免错配，未自动填写编号。`}}
+    results.push(res)}
+  S.results=results;buildExport(owner);renderResults(owner,second.length);setStatus(`匹配完成：${first.length} 条中 ${results.filter(r=>r.status==="ok").length} 条已安全匹配，${results.filter(r=>r.status!=="ok").length} 条需要检查。`,results.every(r=>r.status==="ok")?"ok":"info")}
+function buildExport(owner){let A=S.a.cols;S.exportHeaders=["治具名称+型号","申请人","设计负责人","治工具编号+名称","匹配状态"];S.exportRows=S.results.map(r=>{let row=r.a.row;return [r.name,row[A.person]??"",row[A.owner]??"",r.combined,r.label]})}
+function esc(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
+function renderResults(owner,refCount){$("resultArea").classList.add("show");$("tableCount").textContent=`共 ${S.results.length} 条`;$("empty").style.display=S.results.length?"none":"block";renderTable()}
+function renderTable(){let q=norm($("searchInput").value).toLowerCase(),A=S.a.cols;let arr=S.results.filter(r=>{let row=r.a.row;return !q||[r.name,row[A.person]??"",row[A.owner]??"",r.combined,r.label].join(" ").toLowerCase().includes(q)});$("tbody").innerHTML=arr.map(r=>{let pill=r.status==="ok"?"ok":r.status==="issue"?"warn":"bad",row=r.a.row;return `<tr><td class="name-cell" title="${esc(r.name)}">${esc(r.name)}</td><td class="person-cell">${esc(row[A.person]??"")}</td><td class="owner-cell">${esc(row[A.owner]??"")}</td><td class="combined-cell" title="${esc(r.combined)}">${esc(r.combined)}</td><td class="status-col"><span class="pill ${pill}">${esc(r.label)}</span></td></tr>`}).join("");$("tableCount").textContent=`显示 ${arr.length} / ${S.results.length} 条`}
+$("searchInput").addEventListener("input",renderTable);$("runBtn").addEventListener("click",matchAll);$("owner").addEventListener("change",()=>{clearResults();updateRun()});
+function downloadBlob(blob,name){let a=document.createElement("a"),url=URL.createObjectURL(blob);a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500)}
+function outName(ext){let d=new Date(),ds=`${d.getFullYear()}${String(d.getMonth()+1).padStart(2,"0")}${String(d.getDate()).padStart(2,"0")}`,owner=norm($("owner").value)||"全部";return `治工具编码匹配结果_${owner}_${ds}.${ext}`}
+$("xlsxBtn").addEventListener("click",()=>{if(!S.exportRows.length)return;let rows=[S.exportHeaders,...S.exportRows],widths=[42,16,16,58,16];downloadBlob(makeXlsx(rows,widths),outName("xlsx"))});
+function reset(){S.a=S.b=null;clearResults();["A","B"].forEach(x=>{$("drop"+x).classList.remove("ready");$("file"+x).value="";$("name"+x).textContent="";$("meta"+x).textContent=""});$("statusbar").className="statusbar";refreshOwners();updateRun()}$("resetBtn").addEventListener("click",reset);
+</script>
+</body>
+</html>
