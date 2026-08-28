@@ -1,53 +1,5256 @@
 <!doctype html>
-<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="zh-CN">
+
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+
 <title>编码比对工具 · 离线测试版</title>
+
 <style>
-:root{--bg:#0d1117;--card:#161b22;--input:#0d1117;--line:#30363d;--text:#e6edf3;--muted:#8b949e;--blue:#58a6ff;--green:#3fb950;--red:#ff7b72;--orange:#d29922}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:14px/1.55 "Microsoft YaHei",sans-serif}.page{max-width:1320px;margin:auto;padding:26px 18px 70px}.head{display:flex;gap:13px;align-items:center;border-bottom:1px solid var(--line);padding-bottom:18px;margin-bottom:18px}.logo{background:#1f6feb;border-radius:10px;padding:10px;font-size:20px}.head h1{font-size:20px;margin:0}.sub,.hint{color:var(--muted);font-size:12px}.layout{display:grid;grid-template-columns:350px 1fr;gap:15px}@media(max-width:900px){.layout{grid-template-columns:1fr}}.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:15px;margin-bottom:12px}.title{font-size:12px;color:var(--muted);font-weight:700;letter-spacing:.7px;margin-bottom:11px}.title b{color:var(--blue)}label{display:block;color:var(--muted);font-size:12px;margin:9px 0 4px}.input,select{width:100%;background:var(--input);color:var(--text);border:1px solid var(--line);border-radius:7px;padding:8px}.dz{border:1.5px dashed var(--line);border-radius:8px;text-align:center;padding:17px;cursor:pointer;background:#0d1117;margin-bottom:9px}.dz:hover{border-color:var(--blue)}.dz.ok{border-style:solid;border-color:var(--green)}.row{display:flex;gap:7px;margin-top:9px}.btn{border:1px solid var(--line);border-radius:7px;padding:9px 12px;color:var(--text);background:#21262d;cursor:pointer;font-weight:600}.btn:disabled{opacity:.45;cursor:not-allowed}.blue{background:#1f6feb;border-color:#1f6feb}.green{background:#238636;border-color:#238636}.danger{background:#5d2528;border-color:#8e3539}.grow{flex:1}.checks label{display:flex;gap:7px;align-items:center;color:var(--text);margin:6px 0}.checks input{accent-color:var(--blue)}.folders{max-height:180px;overflow:auto}.folder{display:flex;gap:7px;align-items:center;background:#0d1117;border:1px solid var(--line);padding:7px;margin-top:5px;border-radius:6px}.folder span{flex:1;overflow:hidden;text-overflow:ellipsis}.folder button{background:none;border:0;color:var(--red);cursor:pointer}.status{padding:8px 10px;border-radius:7px;background:#0d2744;color:var(--blue);margin-top:9px;font-size:12px}.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px}@media(max-width:700px){.metrics{grid-template-columns:repeat(2,1fr)}}.metric{background:var(--card);border:1px solid var(--line);border-radius:9px;padding:14px}.metric span{color:var(--muted);font-size:11px}.metric strong{display:block;font-size:28px}.tabs{display:flex;gap:5px;margin-bottom:10px;flex-wrap:wrap}.tab{padding:7px 10px;border:1px solid var(--line);background:#21262d;color:var(--muted);border-radius:6px;cursor:pointer}.tab.active{color:var(--blue);border-color:var(--blue)}.panel{display:none}.panel.active{display:block}.table{border:1px solid var(--line);border-radius:8px;overflow:auto;max-height:560px}table{width:100%;border-collapse:collapse}th,td{padding:8px 11px;text-align:left;border-bottom:1px solid #21262d}th{position:sticky;top:0;background:#21262d;color:var(--muted);font-size:11px}.bad{color:var(--red)}.warn{color:var(--orange)}.good{color:var(--green)}.notice{border-left:3px solid var(--orange);padding:9px;background:#2b2110;color:#d7b96d;font-size:12px;margin-bottom:12px}.hidden{display:none}
-.dz.over{border-color:var(--blue);background:#0d2744}
-</style></head><body><div class="page">
-<div class="head"><div class="logo">📋</div><div><h1>编码比对工具</h1><div class="sub">单模申请表 / OB请购单 / TX发包文档 · 离线单文件测试版</div></div></div>
-<div class="notice">建议使用最新版 Edge 或 Chrome。真实整理仅在“系统选择器（读写权限）”下可用；兼容模式只能比对，不能移动磁盘文件夹。</div>
-<div class="layout"><aside>
-<div class="card"><div class="title"><b>01</b> EXCEL 文件</div><div class="dz" id="excelDz">📊<br><b>点击或拖入 Excel</b><div class="hint">离线读取 .xlsx（无需联网）</div></div><input id="excelInput" type="file" accept=".xlsx" hidden>
-<label>工作表</label><select id="sheetSel"><option>请先选择 Excel</option></select><label>表格识别模式</label><select id="mode"><option value="single">单模申请表</option><option value="ob">OB请购单</option><option value="tx">TX发包文档</option></select><div id="modeHint" class="hint"></div>
-<label>起始行</label><input class="input" id="startRow" type="number" min="1" value="2"><label id="colLabel">比对列</label><input class="input" id="dataCol" value="C">
-<div id="factoryBox"><label><input id="factoryOn" type="checkbox" checked> 启用厂区 / 工厂筛选</label><label>厂区 / 工厂列（留空自动识别）</label><input class="input" id="factoryCol" placeholder="自动寻找：厂区 / 工厂"><div class="checks"><label><input class="factory" type="checkbox" value="suzhou" checked>苏州 / 1000</label><label><input class="factory" type="checkbox" value="tongling" checked>铜陵 / 2000</label><label><input class="factory" type="checkbox" value="thailand" checked>泰国 / 5000</label></div></div>
-<div id="txOwnerBox" class="hidden"><label>设计负责人筛选</label><select id="txOwner"><option value="">全部设计负责人</option></select><div class="hint" id="txOwnerHint">自动寻找“设计负责人”表头；未选择时不限制负责人。</div></div>
-<label>允许的编码首字母（逗号分隔）</label><input class="input" id="prefixes" value="O,T,R,S,M"><label><input id="contains" type="checkbox" checked> 启用包含匹配</label><div id="excelStatus" class="status">尚未读取 Excel</div></div>
-<div class="card"><div class="title"><b>02</b> 发包文件夹（可多次累积）</div><div class="dz" id="folderDz">📁<br><b>选择发包根目录</b><div class="hint">根目录本身不参与比对</div></div><input id="folderInput" type="file" webkitdirectory multiple hidden><div class="row"><button class="btn blue grow" id="pick">系统选择器（可整理）</button><button class="btn" id="compat">兼容模式</button></div><div class="folders" id="folders"></div><div id="folderStatus" class="status">尚未添加文件夹</div></div>
-<div class="card"><button class="btn blue grow" style="width:100%" id="run">▶ 开始比对</button><div class="row"><button class="btn green grow" id="csv" disabled>⬇ 导出 CSV</button></div><button class="btn danger" style="width:100%;margin-top:8px" id="move" disabled>📦 整理多余文件夹</button><div class="hint" id="moveHint">比对后，如存在可移动的多余目录，此按钮将启用。</div></div>
-</aside><main><div class="metrics"><div class="metric"><span>EXCEL 期望</span><strong id="mExpected">0</strong></div><div class="metric"><span>识别文件夹</span><strong id="mFolders">0</strong></div><div class="metric"><span>缺少项</span><strong class="bad" id="mMissing">0</strong></div><div class="metric"><span>多余目录</span><strong class="warn" id="mExtras">0</strong></div></div>
-<div class="card"><div class="tabs"><button class="tab active" data-tab="missing">缺少项</button><button class="tab" data-tab="extras">多余目录</button><button class="tab" data-tab="expected">Excel识别结果</button><button class="tab" data-tab="all">文件夹列表</button></div><div id="result"><div class="hint" style="padding:55px;text-align:center">请先加载 Excel 和文件夹，然后开始比对。</div></div></div></main></div></div>
+:root{
+  --bg:#0d1117;
+  --card:#161b22;
+  --input:#0d1117;
+  --line:#30363d;
+  --text:#e6edf3;
+  --muted:#8b949e;
+  --blue:#58a6ff;
+  --green:#3fb950;
+  --red:#ff7b72;
+  --orange:#d29922
+}
+
+*{
+  box-sizing:border-box
+}
+
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  font:14px/1.55 "Microsoft YaHei",sans-serif
+}
+
+.page{
+  max-width:1320px;
+  margin:auto;
+  padding:26px 18px 70px
+}
+
+.head{
+  display:flex;
+  gap:13px;
+  align-items:center;
+  border-bottom:1px solid var(--line);
+  padding-bottom:18px;
+  margin-bottom:18px
+}
+
+.logo{
+  background:#1f6feb;
+  border-radius:10px;
+  padding:10px;
+  font-size:20px
+}
+
+.head h1{
+  font-size:20px;
+  margin:0
+}
+
+.sub,
+.hint{
+  color:var(--muted);
+  font-size:12px
+}
+
+.layout{
+  display:grid;
+  grid-template-columns:350px 1fr;
+  gap:15px
+}
+
+@media(max-width:900px){
+  .layout{
+    grid-template-columns:1fr
+  }
+}
+
+.card{
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:10px;
+  padding:15px;
+  margin-bottom:12px
+}
+
+.title{
+  font-size:12px;
+  color:var(--muted);
+  font-weight:700;
+  letter-spacing:.7px;
+  margin-bottom:11px
+}
+
+.title b{
+  color:var(--blue)
+}
+
+label{
+  display:block;
+  color:var(--muted);
+  font-size:12px;
+  margin:9px 0 4px
+}
+
+.input,
+select{
+  width:100%;
+  background:var(--input);
+  color:var(--text);
+  border:1px solid var(--line);
+  border-radius:7px;
+  padding:8px
+}
+
+.dz{
+  border:1.5px dashed var(--line);
+  border-radius:8px;
+  text-align:center;
+  padding:17px;
+  cursor:pointer;
+  background:#0d1117;
+  margin-bottom:9px
+}
+
+.dz:hover{
+  border-color:var(--blue)
+}
+
+.dz.ok{
+  border-style:solid;
+  border-color:var(--green)
+}
+
+.dz.over{
+  border-color:var(--blue);
+  background:#0d2744
+}
+
+.row{
+  display:flex;
+  gap:7px;
+  margin-top:9px
+}
+
+.btn{
+  border:1px solid var(--line);
+  border-radius:7px;
+  padding:9px 12px;
+  color:var(--text);
+  background:#21262d;
+  cursor:pointer;
+  font-weight:600
+}
+
+.btn:hover:not(:disabled){
+  filter:brightness(1.08)
+}
+
+.btn:disabled{
+  opacity:.45;
+  cursor:not-allowed
+}
+
+.blue{
+  background:#1f6feb;
+  border-color:#1f6feb
+}
+
+.green{
+  background:#238636;
+  border-color:#238636
+}
+
+.danger{
+  background:#5d2528;
+  border-color:#8e3539
+}
+
+.grow{
+  flex:1
+}
+
+.checks label{
+  display:flex;
+  gap:7px;
+  align-items:center;
+  color:var(--text);
+  margin:6px 0
+}
+
+.checks input{
+  accent-color:var(--blue)
+}
+
+.folders{
+  max-height:180px;
+  overflow:auto
+}
+
+.folder{
+  display:flex;
+  gap:7px;
+  align-items:center;
+  background:#0d1117;
+  border:1px solid var(--line);
+  padding:7px;
+  margin-top:5px;
+  border-radius:6px
+}
+
+.folder span{
+  flex:1;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap
+}
+
+.folder small{
+  color:var(--muted);
+  white-space:nowrap
+}
+
+.folder button{
+  background:none;
+  border:0;
+  color:var(--red);
+  cursor:pointer;
+  font-size:16px
+}
+
+.status{
+  padding:8px 10px;
+  border-radius:7px;
+  background:#0d2744;
+  color:var(--blue);
+  margin-top:9px;
+  font-size:12px
+}
+
+.metrics{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:10px;
+  margin-bottom:12px
+}
+
+@media(max-width:700px){
+  .metrics{
+    grid-template-columns:repeat(2,1fr)
+  }
+}
+
+.metric{
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:9px;
+  padding:14px
+}
+
+.metric span{
+  color:var(--muted);
+  font-size:11px
+}
+
+.metric strong{
+  display:block;
+  font-size:28px
+}
+
+.tabs{
+  display:flex;
+  gap:5px;
+  margin-bottom:10px;
+  flex-wrap:wrap
+}
+
+.tab{
+  padding:7px 10px;
+  border:1px solid var(--line);
+  background:#21262d;
+  color:var(--muted);
+  border-radius:6px;
+  cursor:pointer
+}
+
+.tab.active{
+  color:var(--blue);
+  border-color:var(--blue)
+}
+
+.table{
+  border:1px solid var(--line);
+  border-radius:8px;
+  overflow:auto;
+  max-height:560px
+}
+
+table{
+  width:100%;
+  border-collapse:collapse
+}
+
+th,
+td{
+  padding:8px 11px;
+  text-align:left;
+  border-bottom:1px solid #21262d
+}
+
+th{
+  position:sticky;
+  top:0;
+  background:#21262d;
+  color:var(--muted);
+  font-size:11px;
+  z-index:2
+}
+
+.bad{
+  color:var(--red)
+}
+
+.warn{
+  color:var(--orange)
+}
+
+.good{
+  color:var(--green)
+}
+
+.notice{
+  border-left:3px solid var(--orange);
+  padding:9px;
+  background:#2b2110;
+  color:#d7b96d;
+  font-size:12px;
+  margin-bottom:12px
+}
+
+.hidden{
+  display:none !important
+}
+</style>
+</head>
+
+
+<body>
+
+<div class="page">
+
+<div class="head">
+
+  <div class="logo">📋</div>
+
+  <div>
+    <h1>编码比对工具</h1>
+
+    <div class="sub">
+      单模申请表 / OB请购单 / TX发包文档 · 离线单文件测试版
+    </div>
+  </div>
+
+</div>
+
+
+<div class="notice">
+⚠️ 建议使用最新版 Edge 或 Chrome。
+真实整理文件夹仅在“系统选择器（可整理）”下可用。
+“兼容模式”只能读取和比对，浏览器不会获得删除或移动本地文件夹的权限。
+</div>
+
+
+<div class="layout">
+
+
+<!-- 左侧 -->
+<aside>
+
+
+<div class="card">
+
+<div class="title">
+<b>01</b> EXCEL 文件
+</div>
+
+
+<div class="dz" id="excelDz">
+
+📊
+<br>
+
+<b>点击或拖入 Excel</b>
+
+<div class="hint">
+离线读取 .xlsx，无需联网
+</div>
+
+</div>
+
+
+<input
+  id="excelInput"
+  type="file"
+  accept=".xlsx"
+  hidden
+>
+
+
+<label>
+工作表
+</label>
+
+<select id="sheetSel">
+<option value="">
+请先选择 Excel
+</option>
+</select>
+
+
+<label>
+表格识别模式
+</label>
+
+<select id="mode">
+
+<option value="single">
+单模申请表
+</option>
+
+<option value="ob">
+OB请购单
+</option>
+
+<option value="tx">
+TX发包文档
+</option>
+
+</select>
+
+
+<div
+  id="modeHint"
+  class="hint"
+  style="margin-top:6px">
+</div>
+
+
+<label>
+起始行
+</label>
+
+<input
+  class="input"
+  id="startRow"
+  type="number"
+  min="1"
+  value="2"
+>
+
+
+<label id="colLabel">
+比对列
+</label>
+
+<input
+  class="input"
+  id="dataCol"
+  value="C"
+>
+
+
+<div id="factoryBox">
+
+<label>
+<input
+  id="factoryOn"
+  type="checkbox"
+  checked
+>
+启用厂区 / 工厂筛选
+</label>
+
+
+<label>
+厂区 / 工厂列
+</label>
+
+<input
+  class="input"
+  id="factoryCol"
+  placeholder="留空自动寻找：厂区 / 工厂"
+>
+
+
+<div class="checks">
+
+<label>
+<input
+  class="factory"
+  type="checkbox"
+  value="suzhou"
+  checked
+>
+苏州 / 1000
+</label>
+
+
+<label>
+<input
+  class="factory"
+  type="checkbox"
+  value="tongling"
+  checked
+>
+铜陵 / 2000
+</label>
+
+
+<label>
+<input
+  class="factory"
+  type="checkbox"
+  value="thailand"
+  checked
+>
+泰国 / 5000
+</label>
+
+</div>
+
+</div>
+
+
+<!-- TX专用 -->
+<div id="txOwnerBox" class="hidden">
+
+<label>
+设计负责人筛选
+</label>
+
+<select id="txOwner">
+
+<option value="">
+全部设计负责人
+</option>
+
+</select>
+
+<div
+  class="hint"
+  id="txOwnerHint">
+自动寻找“设计负责人”表头；
+未选择时不限制负责人。
+</div>
+
+</div>
+
+
+<label>
+允许的编码首字母
+</label>
+
+<input
+  class="input"
+  id="prefixes"
+  value="O,T,R,S,M"
+>
+
+<div class="hint">
+用英文逗号分隔，例如：
+O,T,R,S,M
+</div>
+
+
+<label>
+<input
+  id="contains"
+  type="checkbox"
+  checked
+>
+启用包含匹配
+</label>
+
+
+<div
+  id="excelStatus"
+  class="status">
+尚未读取 Excel
+</div>
+
+</div>
+
+
+
+<div class="card">
+
+<div class="title">
+<b>02</b> 发包文件夹（可多次累积）
+</div>
+
+
+<div
+  class="dz"
+  id="folderDz">
+
+📁
+<br>
+
+<b>拖入文件夹或使用下方按钮</b>
+
+<div class="hint">
+根目录本身不参与比对
+</div>
+
+</div>
+
+
+<input
+  id="folderInput"
+  type="file"
+  webkitdirectory
+  directory
+  multiple
+  hidden
+>
+
+
+<div class="row">
+
+<button
+  class="btn blue grow"
+  id="pick">
+📂 系统选择器（可整理）
+</button>
+
+
+<button
+  class="btn"
+  id="compat">
+🔧 兼容模式
+</button>
+
+</div>
+
+
+<div
+  class="folders"
+  id="folders">
+</div>
+
+
+<div
+  id="folderStatus"
+  class="status">
+尚未添加文件夹
+</div>
+
+
+<div class="row">
+
+<button
+  class="btn grow"
+  id="clearFolders">
+🗑 清空已加载目录
+</button>
+
+</div>
+
+</div>
+
+
+
+<div class="card">
+
+<button
+  class="btn blue grow"
+  style="width:100%"
+  id="run">
+
+▶ 开始比对
+
+</button>
+
+
+<div class="row">
+
+<button
+  class="btn green grow"
+  id="csv"
+  disabled>
+
+⬇ 导出 CSV
+
+</button>
+
+</div>
+
+
+<button
+  class="btn danger"
+  style="width:100%;margin-top:8px"
+  id="move"
+  disabled>
+
+📦 整理多余文件夹
+
+</button>
+
+
+<div
+  class="hint"
+  id="moveHint"
+  style="margin-top:7px">
+
+比对完成后，如存在具有读写权限的多余目录，此按钮会启用。
+
+</div>
+
+</div>
+
+
+</aside>
+
+
+
+<!-- 右侧 -->
+<main>
+
+
+<div class="metrics">
+
+
+<div class="metric">
+
+<span>
+EXCEL 期望
+</span>
+
+<strong id="mExpected">
+0
+</strong>
+
+</div>
+
+
+<div class="metric">
+
+<span>
+识别文件夹
+</span>
+
+<strong id="mFolders">
+0
+</strong>
+
+</div>
+
+
+<div class="metric">
+
+<span>
+缺少项
+</span>
+
+<strong
+  class="bad"
+  id="mMissing">
+0
+</strong>
+
+</div>
+
+
+<div class="metric">
+
+<span>
+多余目录
+</span>
+
+<strong
+  class="warn"
+  id="mExtras">
+0
+</strong>
+
+</div>
+
+
+</div>
+
+
+
+<div class="card">
+
+<div class="tabs">
+
+<button
+  class="tab active"
+  data-tab="missing">
+缺少项
+</button>
+
+<button
+  class="tab"
+  data-tab="extras">
+多余目录
+</button>
+
+<button
+  class="tab"
+  data-tab="expected">
+Excel识别结果
+</button>
+
+<button
+  class="tab"
+  data-tab="all">
+文件夹列表
+</button>
+
+</div>
+
+
+<div id="result">
+
+<div
+  class="hint"
+  style="padding:55px;text-align:center">
+
+请先加载 Excel 和文件夹，然后开始比对。
+
+</div>
+
+</div>
+
+</div>
+
+
+</main>
+
+</div>
+</div>
+
+
+
 <script>
-'use strict';const $=id=>document.getElementById(id);const S={book:null,sets:[],result:null};let nextId=1;
-const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const canon=s=>String(s??'').normalize('NFKC').toUpperCase().replace(/[\\/＿_—–－\-·•,，。.:：;；()（）\[\]【】{}\s]+/g,'');
-function colIdx(v){v=String(v||'').trim().toUpperCase();let n=0;for(const c of v)if(c>='A'&&c<='Z')n=n*26+c.charCodeAt(0)-64;return n-1}
-function colName(n){let s='';for(n++;n;n=Math.floor((n-1)/26))s=String.fromCharCode(65+(n-1)%26)+s;return s}
-function modeUI(){const m=$('mode').value,isTX=m==='tx';$('factoryBox').classList.toggle('hidden',isTX);$('txOwnerBox').classList.toggle('hidden',!isTX);$('dataCol').classList.toggle('hidden',isTX);$('colLabel').classList.toggle('hidden',isTX);if(m==='single'){$('dataCol').value='C';$('modeHint').textContent='读取指定列；默认 C 列，可按厂区筛选。'}else if(m==='ob'){$('dataCol').value='F';$('modeHint').textContent='读取指定列；默认 F 列，可按工厂 1000/2000/5000 筛选。'}else{$('modeHint').textContent='自动筛选 F列“需求部门”包含 TX；读取 T列编号 + C列名称，优先按编号匹配；支持设计负责人筛选。';refreshOwners()}}$('mode').onchange=modeUI;modeUI();
-async function unzip(buf){const u=new Uint8Array(buf),v=new DataView(buf);let e=-1;for(let i=u.length-22;i>=Math.max(0,u.length-65557);i--)if(v.getUint32(i,true)===0x06054b50){e=i;break}if(e<0)throw Error('不是有效的 xlsx 文件');const count=v.getUint16(e+10,true),off=v.getUint32(e+16,true),out={};let p=off;for(let k=0;k<count;k++){if(v.getUint32(p,true)!==0x02014b50)break;const method=v.getUint16(p+10,true),size=v.getUint32(p+20,true),nl=v.getUint16(p+28,true),el=v.getUint16(p+30,true),cl=v.getUint16(p+32,true),lo=v.getUint32(p+42,true),name=new TextDecoder().decode(u.slice(p+46,p+46+nl));const lnl=v.getUint16(lo+26,true),lel=v.getUint16(lo+28,true),dat=u.slice(lo+30+lnl+lel,lo+30+lnl+lel+size);if(!name.endsWith('/')){if(method===0)out[name]=dat;else if(method===8){const ds=new DecompressionStream('deflate-raw');out[name]=new Uint8Array(await new Response(new Blob([dat]).stream().pipeThrough(ds)).arrayBuffer())}}p+=46+nl+el+cl}return out}
-function xml(u){return new DOMParser().parseFromString(new TextDecoder('utf-8').decode(u),'application/xml')}
-async function readXlsx(file){if(!file.name.toLowerCase().endsWith('.xlsx'))throw Error('此离线测试版仅支持 .xlsx 文件');const z=await unzip(await file.arrayBuffer()),ss=[];if(z['xl/sharedStrings.xml'])xml(z['xl/sharedStrings.xml']).querySelectorAll('si').forEach(si=>ss.push([...si.querySelectorAll('t')].map(x=>x.textContent).join('')));const wb=xml(z['xl/workbook.xml']),rels=xml(z['xl/_rels/workbook.xml.rels']),rm={};rels.querySelectorAll('Relationship').forEach(r=>rm[r.getAttribute('Id')]=r.getAttribute('Target'));const sheets=[];wb.querySelectorAll('sheet').forEach(sh=>{const id=sh.getAttribute('r:id')||sh.getAttributeNS('http://schemas.openxmlformats.org/officeDocument/2006/relationships','id'),target=rm[id];if(!target)return;const path=target.startsWith('/')?target.slice(1):'xl/'+target.replace(/^\.\//,'');const doc=xml(z[path]),rows=[];doc.querySelectorAll('row').forEach(row=>{const a=[];row.querySelectorAll('c').forEach(c=>{const ref=c.getAttribute('r')||'',ci=colIdx((ref.match(/[A-Z]+/)||['A'])[0]),t=c.getAttribute('t'),ve=c.querySelector('v'),is=c.querySelector('is');let val='';if(t==='s')val=ss[Number(ve?.textContent)]??'';else if(t==='inlineStr')val=[...(is?.querySelectorAll('t')||[])].map(x=>x.textContent).join('');else val=ve?.textContent??'';a[ci]=val});rows[Number(row.getAttribute('r')||rows.length+1)-1]=a});sheets.push({name:sh.getAttribute('name'),rows})});return sheets}
-function findHeader(rows,names){for(let r=0;r<Math.min(rows.length,20);r++)for(let c=0;c<(rows[r]||[]).length;c++){const v=canon(rows[r][c]);if(names.some(n=>v.includes(canon(n))))return{row:r,col:c}}return null}
-function refreshOwners(){const sel=$('txOwner'),old=sel.value;sel.innerHTML='<option value="">全部设计负责人</option>';if(!S.book)return;const sheet=S.book[+$('sheetSel').value];if(!sheet)return;const h=findHeader(sheet.rows,['设计负责人']);if(!h){$('txOwnerHint').textContent='当前工作表未找到“设计负责人”表头，因此暂不限制负责人。';return}const names=[...new Set(sheet.rows.slice(h.row+1).map(r=>String((r||[])[h.col]||'').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'zh-CN'));sel.insertAdjacentHTML('beforeend',names.map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join(''));if(names.includes(old))sel.value=old;$('txOwnerHint').textContent=`已自动识别 ${colName(h.col)} 列“设计负责人”，共 ${names.length} 人；未选择时不限制。`}
-async function loadExcel(file){$('excelStatus').textContent='正在读取…';try{S.book=await readXlsx(file);$('sheetSel').innerHTML=S.book.map((s,i)=>`<option value="${i}">${esc(s.name)}</option>`).join('');$('excelDz').classList.add('ok');$('excelDz').querySelector('b').textContent=file.name;$('excelStatus').textContent=`已读取 ${S.book.length} 个工作表`;refreshOwners()}catch(e){$('excelStatus').textContent='读取失败：'+e.message;alert(e.message)}}
-$('sheetSel').onchange=refreshOwners;
-$('excelDz').onclick=()=>$('excelInput').click();$('excelInput').onchange=e=>e.target.files[0]&&loadExcel(e.target.files[0]);$('excelDz').ondragover=e=>e.preventDefault();$('excelDz').ondrop=e=>{e.preventDefault();e.dataTransfer.files[0]&&loadExcel(e.dataTransfer.files[0])};
-async function readTree(handle,parent=null,path=''){const out=[];for await(const [,child]of handle.entries())if(child.kind==='directory'&&!child.name.startsWith('_比对多余文件_')){const p=path?path+'/'+child.name:child.name;out.push({name:child.name,path:p,handle:child,parentHandle:handle});out.push(...await readTree(child,handle,p))}return out}
-function addSet(name,dirs,handle=null,write=false){S.sets.push({id:nextId++,name,dirs,handle,write});renderSets()}
-function renderSets(){$('folders').innerHTML=S.sets.map(s=>`<div class="folder">📁 <span title="${esc(s.name)}">${esc(s.name)}</span><small>${s.dirs.length} 个 ${s.write?'· 可整理':'· 只读'}</small><button data-id="${s.id}">×</button></div>`).join('');$('folders').querySelectorAll('button').forEach(b=>b.onclick=()=>{S.sets=S.sets.filter(s=>s.id!=b.dataset.id);renderSets()});$('folderStatus').textContent=S.sets.length?`已累积 ${S.sets.length} 个根目录，共 ${S.sets.reduce((n,s)=>n+s.dirs.length,0)} 个子目录`:'尚未添加文件夹'}
-async function pick(){if(!window.showDirectoryPicker){alert('当前浏览器不支持系统选择器，请使用 Edge/Chrome 或兼容模式。');return}try{const h=await showDirectoryPicker({mode:'readwrite'}),perm=await h.queryPermission({mode:'readwrite'}),dirs=await readTree(h);addSet(h.name,dirs,h,perm==='granted')}catch(e){if(e.name!=='AbortError')alert('读取失败：'+e.message)}}$('pick').onclick=pick;$('folderDz').onclick=pick;
-async function handleFolderDrop(e){e.preventDefault();e.stopPropagation();$('folderDz').classList.remove('over');const items=[...(e.dataTransfer?.items||[])],handles=[];try{for(const item of items){if(item.kind!=='file'||typeof item.getAsFileSystemHandle!=='function')continue;const h=await item.getAsFileSystemHandle();if(h?.kind==='directory')handles.push(h)}if(!handles.length){alert('已阻止浏览器打开文件夹，但当前浏览器无法直接读取这个拖入的目录。\n\n请点击“系统选择器（可整理）”或“兼容模式”按钮选择文件夹。');return}for(const h of handles){let write=false;try{let perm=await h.queryPermission({mode:'readwrite'});if(perm==='prompt')perm=await h.requestPermission({mode:'readwrite'});write=perm==='granted'}catch{}const dirs=await readTree(h);addSet(h.name,dirs,h,write)}$('folderDz').classList.add('ok')}catch(err){alert('拖入文件夹读取失败：'+err.message+'\n\n请改用下方“系统选择器（可整理）”。')}}
-$('folderDz').addEventListener('dragenter',e=>{e.preventDefault();e.stopPropagation();$('folderDz').classList.add('over')});$('folderDz').addEventListener('dragover',e=>{e.preventDefault();e.stopPropagation();if(e.dataTransfer)e.dataTransfer.dropEffect='copy';$('folderDz').classList.add('over')});$('folderDz').addEventListener('dragleave',e=>{e.preventDefault();e.stopPropagation();if(!e.currentTarget.contains(e.relatedTarget))$('folderDz').classList.remove('over')});$('folderDz').addEventListener('drop',handleFolderDrop);
-window.addEventListener('dragover',e=>{if([...(e.dataTransfer?.types||[])].includes('Files'))e.preventDefault()});window.addEventListener('drop',e=>{if([...(e.dataTransfer?.types||[])].includes('Files'))e.preventDefault()});
-$('compat').onclick=()=>$('folderInput').click();$('folderInput').onchange=e=>{const fs=[...e.target.files],root=(fs[0]?.webkitRelativePath||'兼容模式').split('/')[0],m=new Map();for(const f of fs){const ps=f.webkitRelativePath.split('/');for(let i=1;i<ps.length-1;i++){const path=ps.slice(1,i+1).join('/');if(!m.has(path))m.set(path,{name:ps[i],path})}}addSet(root,[...m.values()],null,false);e.target.value='';alert('兼容模式已加载：可以比对和导出，但浏览器未授予写权限，不能移动文件夹。')};
-function selectedFactory(v){const c=canon(v),sel=[...document.querySelectorAll('.factory:checked')].map(x=>x.value);return(sel.includes('suzhou')&&(c.includes('苏州')||c==='1000'||c.includes('SUZHOU')))||(sel.includes('tongling')&&(c.includes('铜陵')||c==='2000'||c.includes('TONGLING')))||(sel.includes('thailand')&&(c.includes('泰国')||c==='5000'||c.includes('THAILAND')||c.includes('TERAHOP')))}
-function autoFactory(rows){for(let r=0;r<Math.min(rows.length,15);r++)for(let c=0;c<(rows[r]||[]).length;c++)if(/厂区|工厂/.test(String(rows[r][c]||'')))return c;return -1}
-function extract(){if(!S.book)throw Error('请先选择 Excel');const rows=S.book[+$('sheetSel').value].rows,start=Math.max(0,+$('startRow').value-1),m=$('mode').value,prefs=$('prefixes').value.toUpperCase().split(/[,，\s]+/).filter(Boolean),out=[],ownerHeader=m==='tx'?findHeader(rows,['设计负责人']):null,deptHeader=m==='tx'?findHeader(rows,['需求部门','制程段']):null,codeHeader=m==='tx'?findHeader(rows,['治工具编号','治具编号']):null,nameHeader=m==='tx'?findHeader(rows,['治工具名称','治具名称','治具名称+型号']):null,owner=$('txOwner').value;let fcol=colIdx($('factoryCol').value);if(fcol<0)fcol=autoFactory(rows);for(let r=start;r<rows.length;r++){const row=rows[r]||[];let code='',name='',display='',hasCode=false;if(m==='tx'){const dept=String(row[deptHeader?deptHeader.col:5]||'');if(!canon(dept).includes('TX'))continue;if(owner&&ownerHeader&&String(row[ownerHeader.col]||'').trim()!==owner)continue;code=String(row[codeHeader?codeHeader.col:19]||'').trim();name=String(row[nameHeader?nameHeader.col:2]||'').trim();hasCode=!!code;if(!code&&!name)continue;display=hasCode?(code+' '+name).trim():name}else{if($('factoryOn').checked&&fcol>=0&&!selectedFactory(row[fcol]))continue;display=String(row[colIdx($('dataCol').value)]||'').trim();code=display;hasCode=true;if(!display)continue}if(hasCode&&prefs.length&&!prefs.some(p=>canon(code).startsWith(p)))continue;out.push({row:r+1,display,code,hasCode,owner:ownerHeader?String(row[ownerHeader.col]||'').trim():'',canon:canon(display),codeCanon:canon(code)})}const seen=new Set;return out.filter(x=>x.canon&&!seen.has(x.canon)&&seen.add(x.canon))}
-function compare(){try{const expected=extract(),folders=[];for(const s of S.sets)for(const d of s.dirs)folders.push({...d,root:s,canon:canon(d.name)});if(!folders.length)throw Error('请先选择发包根目录');const used=new Set,matched=new Set;for(let i=0;i<expected.length;i++){const e=expected[i];let j=-1;if($('mode').value==='tx'&&e.hasCode&&e.codeCanon)j=folders.findIndex((f,k)=>!used.has(k)&&f.canon.includes(e.codeCanon));if(j<0)j=folders.findIndex((f,k)=>!used.has(k)&&(f.canon===e.canon||($('contains').checked&&(f.canon.includes(e.canon)||e.canon.includes(f.canon)))));if(j>=0){used.add(j);matched.add(i);e.match=folders[j].name}}const missing=expected.filter((e,i)=>!matched.has(i)),extras=folders.filter((f,i)=>!used.has(i));S.result={expected,folders,missing,extras};renderResult('missing');$('csv').disabled=false;const movable=extras.filter(x=>x.handle&&x.parentHandle&&x.root.write);$('move').disabled=!movable.length;$('moveHint').textContent=extras.length?`多余 ${extras.length} 个，其中 ${movable.length} 个具备读写权限。兼容模式目录不会被移动。`:'没有多余目录。';}catch(e){alert(e.message)}}$('run').onclick=compare;
-function renderResult(tab){const r=S.result;if(!r)return;$('mExpected').textContent=r.expected.length;$('mFolders').textContent=r.folders.length;$('mMissing').textContent=r.missing.length;$('mExtras').textContent=r.extras.length;document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));let arr,heads,vals;if(tab==='missing'){arr=r.missing;heads=['Excel行','设计负责人','缺少项'];vals=x=>[x.row,x.owner||'—',x.display]}else if(tab==='extras'){arr=r.extras;heads=['根目录','相对路径','权限'];vals=x=>[x.root.name,x.path,x.root.write?'可整理':'只读']}else if(tab==='expected'){arr=r.expected;heads=['Excel行','设计负责人','识别内容','匹配目录'];vals=x=>[x.row,x.owner||'—',x.display,x.match||'—']}else{arr=r.folders;heads=['根目录','相对路径'];vals=x=>[x.root.name,x.path]}$('result').innerHTML=`<div class="table"><table><thead><tr>${heads.map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>${arr.map(x=>`<tr>${vals(x).map(v=>`<td>${esc(v)}</td>`).join('')}</tr>`).join('')||`<tr><td colspan="${heads.length}" class="good">无项目</td></tr>`}</tbody></table></div>`}document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>S.result&&renderResult(b.dataset.tab));
-function csv(){const r=S.result,rows=[['类型','Excel行/根目录','设计负责人','内容','匹配结果/权限']];r.missing.forEach(x=>rows.push(['缺少',x.row,x.owner||'',x.display,'']));r.extras.forEach(x=>rows.push(['多余',x.root.name,'',x.path,x.root.write?'可整理':'只读']));r.expected.forEach(x=>rows.push(['Excel识别',x.row,x.owner||'',x.display,x.match||'未匹配']));const text='\ufeff'+rows.map(a=>a.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(',')).join('\r\n'),a=document.createElement('a');a.href=URL.createObjectURL(new Blob([text],{type:'text/csv'}));a.download='编码比对结果_'+stamp()+'.csv';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}$('csv').onclick=csv;
-function stamp(){const d=new Date(),p=n=>String(n).padStart(2,'0');return d.getFullYear()+p(d.getMonth()+1)+p(d.getDate())+'_'+p(d.getHours())+p(d.getMinutes())}
-async function copyDir(src,dst){for await(const[name,e]of src.entries())if(e.kind==='file'){const f=await e.getFile(),h=await dst.getFileHandle(name,{create:true}),w=await h.createWritable();await w.write(f);await w.close()}else{const d=await dst.getDirectoryHandle(name,{create:true});await copyDir(e,d)}}
-async function moveExtras(){const list=S.result.extras.filter(x=>x.handle&&x.parentHandle&&x.root.write);if(!list.length)return alert('没有具备读写权限的多余目录。');const folder='_比对多余文件_'+stamp();if(!confirm(`二次确认：即将在相应发包根目录创建“${folder}”，并整理 ${list.length} 个多余目录。\n\n程序会先完整复制，成功后才删除原目录。是否继续？`))return;$('move').disabled=true;let ok=0,fail=[];const targets=new Map;for(const x of list)try{let dstRoot=targets.get(x.root.id);if(!dstRoot){dstRoot=await x.root.handle.getDirectoryHandle(folder,{create:true});targets.set(x.root.id,dstRoot)}let name=x.name,n=2;while(true)try{await dstRoot.getDirectoryHandle(name);name=x.name+'_'+n++}catch{break}const dst=await dstRoot.getDirectoryHandle(name,{create:true});await copyDir(x.handle,dst);await x.parentHandle.removeEntry(x.name,{recursive:true});ok++}catch(e){fail.push(x.path+': '+e.message)}alert(`整理完成。成功 ${ok} 个，失败 ${fail.length} 个。${fail.length?'\n\n'+fail.join('\n'):''}\n\n请重新选择目录后再次比对。`);S.result=null;$('moveHint').textContent='文件系统已变化，请重新加载相关根目录并比对。'}$('move').onclick=moveExtras;
-</script></body></html>
+
+'use strict';
+
+
+
+/* ============================================================
+   状态
+============================================================ */
+
+const $ = id =>
+  document.getElementById(id);
+
+
+const S = {
+
+  book:null,
+
+  sets:[],
+
+  result:null
+
+};
+
+
+let nextId = 1;
+
+
+
+/* ============================================================
+   通用工具
+============================================================ */
+
+const esc = s =>
+  String(s ?? '')
+    .replace(
+      /[&<>"']/g,
+      c => ({
+        '&':'&amp;',
+        '<':'&lt;',
+        '>':'&gt;',
+        '"':'&quot;',
+        "'":'&#39;'
+      }[c])
+    );
+
+
+
+/*
+ * 用于比对的字符串标准化。
+ *
+ * 会：
+ * - 全角转半角
+ * - 转大写
+ * - 去掉空格
+ * - 去掉 / \ _ - 等常见符号
+ *
+ * 因此：
+ *
+ * PSM8/DR8
+ * PSM8DR8
+ *
+ * 可以认为相同。
+ */
+
+const canon = s =>
+  String(s ?? '')
+    .normalize('NFKC')
+    .toUpperCase()
+    .replace(
+      /[\\\/＿_—–－\-·•,，。.:：;；()（）\[\]【】{}\s]+/g,
+      ''
+    );
+
+
+
+function colIdx(v){
+
+  v =
+    String(v || '')
+      .trim()
+      .toUpperCase();
+
+
+  if(!/^[A-Z]+$/.test(v))
+    return -1;
+
+
+  let n = 0;
+
+
+  for(const c of v){
+
+    n =
+      n * 26 +
+      c.charCodeAt(0) -
+      64;
+
+  }
+
+
+  return n - 1;
+
+}
+
+
+
+function colName(n){
+
+  let s = '';
+
+
+  for(
+    n++;
+    n;
+    n = Math.floor((n - 1) / 26)
+  ){
+
+    s =
+      String.fromCharCode(
+        65 + (n - 1) % 26
+      )
+      + s;
+
+  }
+
+
+  return s;
+
+}
+
+
+
+function stamp(){
+
+  const d = new Date();
+
+
+  const p =
+    n =>
+      String(n)
+        .padStart(2,'0');
+
+
+  return (
+
+    d.getFullYear()
+
+    + p(d.getMonth() + 1)
+
+    + p(d.getDate())
+
+    + '_'
+
+    + p(d.getHours())
+
+    + p(d.getMinutes())
+
+    + p(d.getSeconds())
+
+  );
+
+}
+
+
+
+/* ============================================================
+   模式界面
+============================================================ */
+
+function modeUI(){
+
+  const m =
+    $('mode').value;
+
+
+  const isTX =
+    m === 'tx';
+
+
+  $('factoryBox')
+    .classList
+    .toggle(
+      'hidden',
+      isTX
+    );
+
+
+  $('txOwnerBox')
+    .classList
+    .toggle(
+      'hidden',
+      !isTX
+    );
+
+
+  $('dataCol')
+    .classList
+    .toggle(
+      'hidden',
+      isTX
+    );
+
+
+  $('colLabel')
+    .classList
+    .toggle(
+      'hidden',
+      isTX
+    );
+
+
+  if(m === 'single'){
+
+    $('dataCol').value =
+      'C';
+
+
+    $('modeHint').textContent =
+      '单模申请表：默认读取 C 列完整内容，并可按“厂区”筛选。';
+
+  }
+
+
+  else if(m === 'ob'){
+
+    $('dataCol').value =
+      'F';
+
+
+    $('modeHint').textContent =
+      'OB请购单：默认读取 F 列完整内容，并可按工厂 1000 / 2000 / 5000 筛选。';
+
+  }
+
+
+  else{
+
+    $('modeHint').textContent =
+      'TX发包文档：自动筛选“需求部门”包含 TX 的数据，读取“治工具编号 + 治工具名称”，优先按治工具编号匹配文件夹。';
+
+
+    refreshOwners();
+
+  }
+
+}
+
+
+$('mode')
+  .addEventListener(
+    'change',
+    modeUI
+  );
+
+
+
+/* ============================================================
+   ZIP / XLSX 离线读取
+============================================================ */
+
+/*
+ * xlsx 本质上是 ZIP 文件。
+ *
+ * 为了真正做到单 HTML 离线使用，
+ * 这里不调用外部 SheetJS CDN。
+ */
+
+async function unzip(buf){
+
+  const u =
+    new Uint8Array(buf);
+
+
+  const v =
+    new DataView(buf);
+
+
+  let e = -1;
+
+
+  for(
+    let i = u.length - 22;
+    i >= Math.max(
+      0,
+      u.length - 65557
+    );
+    i--
+  ){
+
+    if(
+      v.getUint32(
+        i,
+        true
+      )
+      ===
+      0x06054b50
+    ){
+
+      e = i;
+
+      break;
+
+    }
+
+  }
+
+
+  if(e < 0){
+
+    throw Error(
+      '不是有效的 xlsx 文件。'
+    );
+
+  }
+
+
+  const count =
+    v.getUint16(
+      e + 10,
+      true
+    );
+
+
+  const off =
+    v.getUint32(
+      e + 16,
+      true
+    );
+
+
+  const out = {};
+
+
+  let p = off;
+
+
+  for(
+    let k = 0;
+    k < count;
+    k++
+  ){
+
+    if(
+      v.getUint32(
+        p,
+        true
+      )
+      !==
+      0x02014b50
+    ){
+
+      break;
+
+    }
+
+
+    const method =
+      v.getUint16(
+        p + 10,
+        true
+      );
+
+
+    const size =
+      v.getUint32(
+        p + 20,
+        true
+      );
+
+
+    const nl =
+      v.getUint16(
+        p + 28,
+        true
+      );
+
+
+    const el =
+      v.getUint16(
+        p + 30,
+        true
+      );
+
+
+    const cl =
+      v.getUint16(
+        p + 32,
+        true
+      );
+
+
+    const lo =
+      v.getUint32(
+        p + 42,
+        true
+      );
+
+
+    const name =
+      new TextDecoder()
+        .decode(
+          u.slice(
+            p + 46,
+            p + 46 + nl
+          )
+        );
+
+
+    const lnl =
+      v.getUint16(
+        lo + 26,
+        true
+      );
+
+
+    const lel =
+      v.getUint16(
+        lo + 28,
+        true
+      );
+
+
+    const dat =
+      u.slice(
+        lo + 30 + lnl + lel,
+        lo + 30 + lnl + lel + size
+      );
+
+
+    if(
+      !name.endsWith('/')
+    ){
+
+      if(method === 0){
+
+        out[name] =
+          dat;
+
+      }
+
+
+      else if(method === 8){
+
+        if(
+          typeof DecompressionStream
+          ===
+          'undefined'
+        ){
+
+          throw Error(
+            '当前浏览器不支持离线解压 xlsx，请使用最新版 Edge 或 Chrome。'
+          );
+
+        }
+
+
+        const ds =
+          new DecompressionStream(
+            'deflate-raw'
+          );
+
+
+        out[name] =
+          new Uint8Array(
+            await new Response(
+              new Blob([dat])
+                .stream()
+                .pipeThrough(ds)
+            )
+            .arrayBuffer()
+          );
+
+      }
+
+    }
+
+
+    p +=
+      46 +
+      nl +
+      el +
+      cl;
+
+  }
+
+
+  return out;
+
+}
+
+
+
+function xml(u){
+
+  if(!u)
+    return null;
+
+
+  return new DOMParser()
+    .parseFromString(
+      new TextDecoder(
+        'utf-8'
+      )
+      .decode(u),
+      'application/xml'
+    );
+
+}
+
+
+
+function normalizeZipPath(path){
+
+  const parts = [];
+
+
+  for(
+    const part of
+    String(path || '')
+      .replace(/\\/g,'/')
+      .split('/')
+  ){
+
+    if(
+      !part ||
+      part === '.'
+    )
+      continue;
+
+
+    if(part === '..'){
+
+      parts.pop();
+
+      continue;
+
+    }
+
+
+    parts.push(part);
+
+  }
+
+
+  return parts.join('/');
+
+}
+
+
+
+async function readXlsx(file){
+
+  if(
+    !file.name
+      .toLowerCase()
+      .endsWith('.xlsx')
+  ){
+
+    throw Error(
+      '此离线版目前仅支持 .xlsx 文件。'
+    );
+
+  }
+
+
+  const z =
+    await unzip(
+      await file.arrayBuffer()
+    );
+
+
+  const shared = [];
+
+
+  if(
+    z['xl/sharedStrings.xml']
+  ){
+
+    const sdoc =
+      xml(
+        z['xl/sharedStrings.xml']
+      );
+
+
+    sdoc
+      .querySelectorAll('si')
+      .forEach(si => {
+
+        shared.push(
+
+          [
+            ...si.querySelectorAll('t')
+          ]
+          .map(
+            x =>
+              x.textContent
+          )
+          .join('')
+
+        );
+
+      });
+
+  }
+
+
+  const wb =
+    xml(
+      z['xl/workbook.xml']
+    );
+
+
+  const rels =
+    xml(
+      z[
+        'xl/_rels/workbook.xml.rels'
+      ]
+    );
+
+
+  if(
+    !wb ||
+    !rels
+  ){
+
+    throw Error(
+      'Excel 工作簿结构不完整。'
+    );
+
+  }
+
+
+  const relMap = {};
+
+
+  rels
+    .querySelectorAll(
+      'Relationship'
+    )
+    .forEach(r => {
+
+      relMap[
+        r.getAttribute('Id')
+      ] =
+        r.getAttribute(
+          'Target'
+        );
+
+    });
+
+
+  const sheets = [];
+
+
+  wb
+    .querySelectorAll('sheet')
+    .forEach(sh => {
+
+      const rid =
+        sh.getAttribute(
+          'r:id'
+        )
+        ||
+        sh.getAttributeNS(
+          'http://schemas.openxmlformats.org/officeDocument/2006/relationships',
+          'id'
+        );
+
+
+      const target =
+        relMap[rid];
+
+
+      if(!target)
+        return;
+
+
+      let path;
+
+
+      if(
+        target.startsWith('/')
+      ){
+
+        path =
+          normalizeZipPath(
+            target.slice(1)
+          );
+
+      }
+
+      else{
+
+        path =
+          normalizeZipPath(
+            'xl/' + target
+          );
+
+      }
+
+
+      const raw =
+        z[path];
+
+
+      if(!raw)
+        return;
+
+
+      const doc =
+        xml(raw);
+
+
+      const rows = [];
+
+
+      doc
+        .querySelectorAll('row')
+        .forEach(row => {
+
+          const a = [];
+
+
+          row
+            .querySelectorAll('c')
+            .forEach(c => {
+
+              const ref =
+                c.getAttribute('r')
+                || '';
+
+
+              const letter =
+                (
+                  ref.match(
+                    /[A-Z]+/
+                  )
+                  ||
+                  ['A']
+                )[0];
+
+
+              const ci =
+                colIdx(letter);
+
+
+              const t =
+                c.getAttribute('t');
+
+
+              const ve =
+                c.querySelector('v');
+
+
+              const is =
+                c.querySelector('is');
+
+
+              let val = '';
+
+
+              if(t === 's'){
+
+                val =
+                  shared[
+                    Number(
+                      ve?.textContent
+                    )
+                  ]
+                  ??
+                  '';
+
+              }
+
+
+              else if(
+                t === 'inlineStr'
+              ){
+
+                val =
+                  [
+                    ...(
+                      is?.querySelectorAll(
+                        't'
+                      )
+                      ||
+                      []
+                    )
+                  ]
+                  .map(
+                    x =>
+                      x.textContent
+                  )
+                  .join('');
+
+              }
+
+
+              else{
+
+                val =
+                  ve?.textContent
+                  ??
+                  '';
+
+              }
+
+
+              a[ci] =
+                val;
+
+            });
+
+
+          const rn =
+            Number(
+              row.getAttribute('r')
+              ||
+              rows.length + 1
+            );
+
+
+          rows[
+            rn - 1
+          ] =
+            a;
+
+        });
+
+
+      sheets.push({
+
+        name:
+          sh.getAttribute(
+            'name'
+          ),
+
+        rows
+
+      });
+
+    });
+
+
+  if(
+    !sheets.length
+  ){
+
+    throw Error(
+      '没有读取到任何工作表。'
+    );
+
+  }
+
+
+  return sheets;
+
+}
+
+
+
+/* ============================================================
+   Excel 表头
+============================================================ */
+
+function findHeader(
+  rows,
+  names
+){
+
+  for(
+    let r = 0;
+    r < Math.min(
+      rows.length,
+      30
+    );
+    r++
+  ){
+
+    const row =
+      rows[r] || [];
+
+
+    for(
+      let c = 0;
+      c < row.length;
+      c++
+    ){
+
+      const v =
+        canon(
+          row[c]
+        );
+
+
+      if(
+        names.some(
+          n =>
+            v.includes(
+              canon(n)
+            )
+        )
+      ){
+
+        return {
+          row:r,
+          col:c
+        };
+
+      }
+
+    }
+
+  }
+
+
+  return null;
+
+}
+
+
+
+/* ============================================================
+   TX负责人
+============================================================ */
+
+function refreshOwners(){
+
+  const sel =
+    $('txOwner');
+
+
+  const old =
+    sel.value;
+
+
+  sel.innerHTML =
+    '<option value="">全部设计负责人</option>';
+
+
+  if(
+    !S.book
+  )
+    return;
+
+
+  const index =
+    Number(
+      $('sheetSel').value
+    );
+
+
+  const sheet =
+    S.book[index];
+
+
+  if(!sheet)
+    return;
+
+
+  const h =
+    findHeader(
+      sheet.rows,
+      [
+        '设计负责人'
+      ]
+    );
+
+
+  if(!h){
+
+    $('txOwnerHint').textContent =
+      '当前工作表未找到“设计负责人”表头，因此不限制负责人。';
+
+    return;
+
+  }
+
+
+  const names =
+    [
+      ...new Set(
+
+        sheet.rows
+          .slice(
+            h.row + 1
+          )
+          .map(
+            r =>
+              String(
+                (r || [])[h.col]
+                ||
+                ''
+              )
+              .trim()
+          )
+          .filter(Boolean)
+
+      )
+    ]
+    .sort(
+      (a,b) =>
+        a.localeCompare(
+          b,
+          'zh-CN'
+        )
+    );
+
+
+  for(
+    const name of names
+  ){
+
+    const option =
+      document.createElement(
+        'option'
+      );
+
+
+    option.value =
+      name;
+
+
+    option.textContent =
+      name;
+
+
+    sel.appendChild(
+      option
+    );
+
+  }
+
+
+  if(
+    names.includes(old)
+  ){
+
+    sel.value =
+      old;
+
+  }
+
+
+  $('txOwnerHint').textContent =
+    '已自动识别 '
+    +
+    colName(h.col)
+    +
+    ' 列“设计负责人”，共 '
+    +
+    names.length
+    +
+    ' 人；未选择时不限制。';
+
+}
+
+
+
+/* ============================================================
+   Excel加载
+============================================================ */
+
+async function loadExcel(
+  file
+){
+
+  $('excelStatus').textContent =
+    '正在读取 Excel…';
+
+
+  try{
+
+    S.book =
+      await readXlsx(
+        file
+      );
+
+
+    $('sheetSel').innerHTML =
+      '';
+
+
+    S.book.forEach(
+      (
+        sheet,
+        i
+      ) => {
+
+        const o =
+          document.createElement(
+            'option'
+          );
+
+
+        o.value =
+          i;
+
+
+        o.textContent =
+          sheet.name;
+
+
+        $('sheetSel')
+          .appendChild(o);
+
+      }
+    );
+
+
+    $('excelDz')
+      .classList
+      .add('ok');
+
+
+    $('excelDz')
+      .querySelector('b')
+      .textContent =
+        file.name;
+
+
+    $('excelStatus').textContent =
+      '已读取 '
+      +
+      S.book.length
+      +
+      ' 个工作表';
+
+
+    refreshOwners();
+
+  }
+
+
+  catch(e){
+
+    console.error(e);
+
+
+    $('excelStatus').textContent =
+      '读取失败：'
+      +
+      e.message;
+
+
+    alert(
+      e.message
+    );
+
+  }
+
+}
+
+
+
+$('sheetSel')
+  .addEventListener(
+    'change',
+    refreshOwners
+  );
+
+
+$('excelDz')
+  .addEventListener(
+    'click',
+    () =>
+      $('excelInput')
+        .click()
+  );
+
+
+$('excelInput')
+  .addEventListener(
+    'change',
+    e => {
+
+      const file =
+        e.target
+          .files?.[0];
+
+
+      if(file)
+        loadExcel(file);
+
+
+      e.target.value =
+        '';
+
+    }
+  );
+
+
+$('excelDz')
+  .addEventListener(
+    'dragover',
+    e => {
+
+      e.preventDefault();
+
+      e.stopPropagation();
+
+      $('excelDz')
+        .classList
+        .add('over');
+
+    }
+  );
+
+
+$('excelDz')
+  .addEventListener(
+    'dragleave',
+    e => {
+
+      e.stopPropagation();
+
+      $('excelDz')
+        .classList
+        .remove('over');
+
+    }
+  );
+
+
+$('excelDz')
+  .addEventListener(
+    'drop',
+    e => {
+
+      e.preventDefault();
+
+      e.stopPropagation();
+
+
+      $('excelDz')
+        .classList
+        .remove('over');
+
+
+      const file =
+        e.dataTransfer
+          .files?.[0];
+
+
+      if(file)
+        loadExcel(file);
+
+    }
+  );
+
+
+
+/* ============================================================
+   文件夹读取
+============================================================ */
+
+/*
+ * path 是相对于用户选择的发包根目录。
+ *
+ * 根目录自己不会加入 dirs，
+ * 所以根目录本身不会参与比对。
+ */
+
+async function readTree(
+  handle,
+  path = ''
+){
+
+  const out = [];
+
+
+  for await(
+    const [,child]
+    of handle.entries()
+  ){
+
+    if(
+      child.kind !==
+      'directory'
+    )
+      continue;
+
+
+    /*
+     * 已经整理过的目录不要再次参与比对。
+     */
+
+    if(
+      child.name.startsWith(
+        '_比对多余文件_'
+      )
+    )
+      continue;
+
+
+    const p =
+      path
+        ?
+        path
+        +
+        '/'
+        +
+        child.name
+        :
+        child.name;
+
+
+    out.push({
+
+      name:
+        child.name,
+
+      path:
+        p,
+
+      handle:
+        child,
+
+      parentHandle:
+        handle
+
+    });
+
+
+    const deeper =
+      await readTree(
+        child,
+        p
+      );
+
+
+    out.push(
+      ...deeper
+    );
+
+  }
+
+
+  return out;
+
+}
+
+
+
+function addSet(
+  name,
+  dirs,
+  handle = null,
+  write = false
+){
+
+  S.sets.push({
+
+    id:
+      nextId++,
+
+    name,
+
+    dirs,
+
+    handle,
+
+    write
+
+  });
+
+
+  renderSets();
+
+}
+
+
+
+function renderSets(){
+
+  $('folders').innerHTML =
+    '';
+
+
+  for(
+    const s of S.sets
+  ){
+
+    const div =
+      document.createElement(
+        'div'
+      );
+
+
+    div.className =
+      'folder';
+
+
+    div.innerHTML =
+
+      '📁 '
+
+      +
+
+      '<span></span>'
+
+      +
+
+      '<small></small>'
+
+      +
+
+      '<button title="移除">×</button>';
+
+
+    div.querySelector(
+      'span'
+    )
+    .textContent =
+      s.name;
+
+
+    div.querySelector(
+      'span'
+    )
+    .title =
+      s.name;
+
+
+    div.querySelector(
+      'small'
+    )
+    .textContent =
+      s.dirs.length
+      +
+      ' 个 · '
+      +
+      (
+        s.write
+          ?
+          '可整理'
+          :
+          '只读'
+      );
+
+
+    div.querySelector(
+      'button'
+    )
+    .addEventListener(
+      'click',
+      () => {
+
+        S.sets =
+          S.sets.filter(
+            x =>
+              x.id !== s.id
+          );
+
+
+        S.result =
+          null;
+
+
+        renderSets();
+
+
+        resetResult();
+
+      }
+    );
+
+
+    $('folders')
+      .appendChild(div);
+
+  }
+
+
+  if(
+    S.sets.length
+  ){
+
+    const total =
+      S.sets.reduce(
+        (
+          n,
+          s
+        ) =>
+          n
+          +
+          s.dirs.length,
+        0
+      );
+
+
+    $('folderStatus').textContent =
+      '已累积 '
+      +
+      S.sets.length
+      +
+      ' 个根目录，共 '
+      +
+      total
+      +
+      ' 个子目录';
+
+  }
+
+
+  else{
+
+    $('folderStatus').textContent =
+      '尚未添加文件夹';
+
+  }
+
+}
+
+
+
+async function pick(){
+
+  if(
+    !window.showDirectoryPicker
+  ){
+
+    alert(
+      '当前浏览器不支持系统文件夹选择器。\n\n请使用最新版 Edge / Chrome，或者使用“兼容模式”。'
+    );
+
+    return;
+
+  }
+
+
+  try{
+
+    const h =
+      await window.showDirectoryPicker({
+        mode:'readwrite'
+      });
+
+
+    let write =
+      false;
+
+
+    try{
+
+      let perm =
+        await h.queryPermission({
+          mode:'readwrite'
+        });
+
+
+      if(
+        perm === 'prompt'
+      ){
+
+        perm =
+          await h.requestPermission({
+            mode:'readwrite'
+          });
+
+      }
+
+
+      write =
+        perm ===
+        'granted';
+
+    }
+
+
+    catch{
+
+      write =
+        false;
+
+    }
+
+
+    const dirs =
+      await readTree(h);
+
+
+    addSet(
+      h.name,
+      dirs,
+      h,
+      write
+    );
+
+  }
+
+
+  catch(e){
+
+    if(
+      e.name !==
+      'AbortError'
+    ){
+
+      console.error(e);
+
+
+      alert(
+        '读取失败：'
+        +
+        e.message
+      );
+
+    }
+
+  }
+
+}
+
+
+
+$('pick')
+  .addEventListener(
+    'click',
+    pick
+  );
+
+
+
+/* ============================================================
+   拖入文件夹
+============================================================ */
+
+async function handleFolderDrop(e){
+
+  e.preventDefault();
+
+  e.stopPropagation();
+
+
+  $('folderDz')
+    .classList
+    .remove('over');
+
+
+  const items =
+    [
+      ...(
+        e.dataTransfer
+          ?.items
+        ||
+        []
+      )
+    ];
+
+
+  const handles = [];
+
+
+  try{
+
+    for(
+      const item
+      of items
+    ){
+
+      if(
+        item.kind !==
+        'file'
+      )
+        continue;
+
+
+      if(
+        typeof item.getAsFileSystemHandle
+        !==
+        'function'
+      )
+        continue;
+
+
+      const h =
+        await item
+          .getAsFileSystemHandle();
+
+
+      if(
+        h?.kind ===
+        'directory'
+      ){
+
+        handles.push(h);
+
+      }
+
+    }
+
+
+    if(
+      !handles.length
+    ){
+
+      alert(
+        '当前浏览器无法直接读取拖入的文件夹。\n\n请点击“系统选择器（可整理）”或者“兼容模式”选择文件夹。'
+      );
+
+      return;
+
+    }
+
+
+    for(
+      const h
+      of handles
+    ){
+
+      let write =
+        false;
+
+
+      try{
+
+        let perm =
+          await h.queryPermission({
+            mode:'readwrite'
+          });
+
+
+        if(
+          perm ===
+          'prompt'
+        ){
+
+          perm =
+            await h.requestPermission({
+              mode:'readwrite'
+            });
+
+        }
+
+
+        write =
+          perm ===
+          'granted';
+
+      }
+
+
+      catch{
+
+        write =
+          false;
+
+      }
+
+
+      const dirs =
+        await readTree(h);
+
+
+      addSet(
+        h.name,
+        dirs,
+        h,
+        write
+      );
+
+    }
+
+
+    $('folderDz')
+      .classList
+      .add('ok');
+
+  }
+
+
+  catch(err){
+
+    console.error(err);
+
+
+    alert(
+      '拖入文件夹读取失败：'
+      +
+      err.message
+      +
+      '\n\n请改用“系统选择器（可整理）”。'
+    );
+
+  }
+
+}
+
+
+
+$('folderDz')
+  .addEventListener(
+    'click',
+    pick
+  );
+
+
+$('folderDz')
+  .addEventListener(
+    'dragenter',
+    e => {
+
+      e.preventDefault();
+
+      e.stopPropagation();
+
+
+      $('folderDz')
+        .classList
+        .add('over');
+
+    }
+  );
+
+
+$('folderDz')
+  .addEventListener(
+    'dragover',
+    e => {
+
+      e.preventDefault();
+
+      e.stopPropagation();
+
+
+      if(
+        e.dataTransfer
+      ){
+
+        e.dataTransfer.dropEffect =
+          'copy';
+
+      }
+
+
+      $('folderDz')
+        .classList
+        .add('over');
+
+    }
+  );
+
+
+$('folderDz')
+  .addEventListener(
+    'dragleave',
+    e => {
+
+      e.preventDefault();
+
+      e.stopPropagation();
+
+
+      $('folderDz')
+        .classList
+        .remove('over');
+
+    }
+  );
+
+
+$('folderDz')
+  .addEventListener(
+    'drop',
+    handleFolderDrop
+  );
+
+
+
+window
+  .addEventListener(
+    'dragover',
+    e => {
+
+      if(
+        [
+          ...(
+            e.dataTransfer
+              ?.types
+            ||
+            []
+          )
+        ]
+        .includes('Files')
+      ){
+
+        e.preventDefault();
+
+      }
+
+    }
+  );
+
+
+window
+  .addEventListener(
+    'drop',
+    e => {
+
+      if(
+        [
+          ...(
+            e.dataTransfer
+              ?.types
+            ||
+            []
+          )
+        ]
+        .includes('Files')
+      ){
+
+        e.preventDefault();
+
+      }
+
+    }
+  );
+
+
+
+/* ============================================================
+   兼容模式
+============================================================ */
+
+$('compat')
+  .addEventListener(
+    'click',
+    e => {
+
+      e.stopPropagation();
+
+      $('folderInput')
+        .click();
+
+    }
+  );
+
+
+
+$('folderInput')
+  .addEventListener(
+    'change',
+    e => {
+
+      const files =
+        [
+          ...e.target.files
+        ];
+
+
+      if(
+        !files.length
+      )
+        return;
+
+
+      const root =
+        (
+          files[0]
+            ?.webkitRelativePath
+          ||
+          '兼容模式'
+        )
+        .split('/')[0];
+
+
+      const map =
+        new Map();
+
+
+      for(
+        const f
+        of files
+      ){
+
+        const ps =
+          f.webkitRelativePath
+            .split('/')
+            .filter(Boolean);
+
+
+        /*
+         * ps:
+         *
+         * 根目录/一级目录/二级目录/文件
+         *
+         * 只收集目录，
+         * 不收集根目录和文件名。
+         */
+
+        for(
+          let i = 1;
+          i < ps.length - 1;
+          i++
+        ){
+
+          const path =
+            ps.slice(
+              1,
+              i + 1
+            )
+            .join('/');
+
+
+          if(
+            !map.has(path)
+          ){
+
+            /*
+             * 整理目录本身不重新参与比对
+             */
+
+            if(
+              ps[i]
+                .startsWith(
+                  '_比对多余文件_'
+                )
+            ){
+
+              continue;
+
+            }
+
+
+            map.set(
+              path,
+              {
+
+                name:
+                  ps[i],
+
+                path
+
+              }
+            );
+
+          }
+
+        }
+
+      }
+
+
+      addSet(
+        root,
+        [
+          ...map.values()
+        ],
+        null,
+        false
+      );
+
+
+      e.target.value =
+        '';
+
+
+      alert(
+        '兼容模式已加载。\n\n可以正常比对和导出 CSV，但是浏览器没有获得文件夹写入权限，因此不能自动移动多余文件夹。'
+      );
+
+    }
+  );
+
+
+
+$('clearFolders')
+  .addEventListener(
+    'click',
+    () => {
+
+      if(
+        !S.sets.length
+      )
+        return;
+
+
+      if(
+        !confirm(
+          '确定清空当前已经加载的所有文件夹吗？\n\n不会删除电脑中的任何真实文件。'
+        )
+      )
+        return;
+
+
+      S.sets =
+        [];
+
+
+      S.result =
+        null;
+
+
+      renderSets();
+
+
+      resetResult();
+
+    }
+  );
+
+
+
+/* ============================================================
+   厂区判断
+============================================================ */
+
+function selectedFactory(v){
+
+  const c =
+    canon(v);
+
+
+  const selected =
+    [
+      ...document
+        .querySelectorAll(
+          '.factory:checked'
+        )
+    ]
+    .map(
+      x =>
+        x.value
+    );
+
+
+  if(
+    selected.includes(
+      'suzhou'
+    )
+  ){
+
+    if(
+      c.includes('苏州')
+      ||
+      c === '1000'
+      ||
+      c.includes('SUZHOU')
+    ){
+
+      return true;
+
+    }
+
+  }
+
+
+  if(
+    selected.includes(
+      'tongling'
+    )
+  ){
+
+    if(
+      c.includes('铜陵')
+      ||
+      c === '2000'
+      ||
+      c.includes('TONGLING')
+    ){
+
+      return true;
+
+    }
+
+  }
+
+
+  if(
+    selected.includes(
+      'thailand'
+    )
+  ){
+
+    if(
+      c.includes('泰国')
+      ||
+      c === '5000'
+      ||
+      c.includes('THAILAND')
+      ||
+      c.includes('TERAHOP')
+    ){
+
+      return true;
+
+    }
+
+  }
+
+
+  return false;
+
+}
+
+
+
+function autoFactory(rows){
+
+  const h =
+    findHeader(
+      rows,
+      [
+        '厂区',
+        '工厂',
+        'FACTORY'
+      ]
+    );
+
+
+  return h
+    ?
+    h.col
+    :
+    -1;
+
+}
+
+
+
+/* ============================================================
+   Excel提取
+============================================================ */
+
+function extract(){
+
+  if(
+    !S.book
+  ){
+
+    throw Error(
+      '请先选择 Excel 文件。'
+    );
+
+  }
+
+
+  const sheet =
+    S.book[
+      Number(
+        $('sheetSel').value
+      )
+    ];
+
+
+  if(
+    !sheet
+  ){
+
+    throw Error(
+      '没有找到当前工作表。'
+    );
+
+  }
+
+
+  const rows =
+    sheet.rows;
+
+
+  const start =
+    Math.max(
+      0,
+      Number(
+        $('startRow').value
+      )
+      -
+      1
+    );
+
+
+  const mode =
+    $('mode').value;
+
+
+  const prefixes =
+    $('prefixes')
+      .value
+      .toUpperCase()
+      .split(
+        /[,，\s]+/
+      )
+      .map(
+        x =>
+          x.trim()
+      )
+      .filter(Boolean);
+
+
+  const out = [];
+
+
+  /*
+   * TX表头
+   */
+
+  const ownerHeader =
+    mode === 'tx'
+      ?
+      findHeader(
+        rows,
+        ['设计负责人']
+      )
+      :
+      null;
+
+
+  const deptHeader =
+    mode === 'tx'
+      ?
+      findHeader(
+        rows,
+        [
+          '需求部门'
+        ]
+      )
+      :
+      null;
+
+
+  const codeHeader =
+    mode === 'tx'
+      ?
+      findHeader(
+        rows,
+        [
+          '治工具编号',
+          '治具编号'
+        ]
+      )
+      :
+      null;
+
+
+  const nameHeader =
+    mode === 'tx'
+      ?
+      findHeader(
+        rows,
+        [
+          '治工具名称',
+          '治具名称',
+          '治具名称+型号'
+        ]
+      )
+      :
+      null;
+
+
+  const selectedOwner =
+    $('txOwner').value;
+
+
+  let factoryCol =
+    colIdx(
+      $('factoryCol').value
+    );
+
+
+  if(
+    mode !== 'tx'
+    &&
+    $('factoryOn').checked
+  ){
+
+    if(
+      factoryCol < 0
+    ){
+
+      factoryCol =
+        autoFactory(rows);
+
+    }
+
+
+    if(
+      factoryCol < 0
+    ){
+
+      throw Error(
+        '已启用厂区 / 工厂筛选，但没有找到“厂区”或“工厂”表头。\n\n请在“厂区 / 工厂列”手动填写列字母，例如 B 或 K。'
+      );
+
+    }
+
+
+    if(
+      !document.querySelector(
+        '.factory:checked'
+      )
+    ){
+
+      throw Error(
+        '请至少选择一个厂区 / 工厂。'
+      );
+
+    }
+
+  }
+
+
+  const dataCol =
+    colIdx(
+      $('dataCol').value
+    );
+
+
+  if(
+    mode !== 'tx'
+    &&
+    dataCol < 0
+  ){
+
+    throw Error(
+      '比对列填写错误，例如 C、F、AA。'
+    );
+
+  }
+
+
+
+  for(
+    let r = start;
+    r < rows.length;
+    r++
+  ){
+
+    const row =
+      rows[r] || [];
+
+
+    let code = '';
+
+    let name = '';
+
+    let display = '';
+
+    let hasCode =
+      false;
+
+
+    if(
+      mode === 'tx'
+    ){
+
+      /*
+       * 如果自动找到表头就使用表头，
+       * 找不到则使用用户提供这张表对应的固定列：
+       *
+       * F列 需求部门
+       * T列 治工具编号
+       * C列 治工具名称
+       */
+
+      const deptCol =
+        deptHeader
+          ?
+          deptHeader.col
+          :
+          5;
+
+
+      const codeCol =
+        codeHeader
+          ?
+          codeHeader.col
+          :
+          19;
+
+
+      const nameCol =
+        nameHeader
+          ?
+          nameHeader.col
+          :
+          2;
+
+
+      const dept =
+        String(
+          row[deptCol]
+          ||
+          ''
+        )
+        .trim();
+
+
+      /*
+       * 只有需求部门里带 TX 的才参与。
+       *
+       * 例如：
+       *
+       * 制造部_制造工程_TX制程
+       * 制造部_制造工程_TX制程_NPI
+       * 制造部_制造工程_TX制程_苏州
+       */
+
+      if(
+        !canon(dept)
+          .includes('TX')
+      ){
+
+        continue;
+
+      }
+
+
+      if(
+        selectedOwner
+        &&
+        ownerHeader
+      ){
+
+        const currentOwner =
+          String(
+            row[
+              ownerHeader.col
+            ]
+            ||
+            ''
+          )
+          .trim();
+
+
+        if(
+          currentOwner !==
+          selectedOwner
+        ){
+
+          continue;
+
+        }
+
+      }
+
+
+      code =
+        String(
+          row[codeCol]
+          ||
+          ''
+        )
+        .trim();
+
+
+      name =
+        String(
+          row[nameCol]
+          ||
+          ''
+        )
+        .trim();
+
+
+      hasCode =
+        !!code;
+
+
+      if(
+        !code
+        &&
+        !name
+      ){
+
+        continue;
+
+      }
+
+
+      display =
+        code
+          ?
+          (
+            code
+            +
+            ' '
+            +
+            name
+          )
+          .trim()
+          :
+          name;
+
+    }
+
+
+    else{
+
+      if(
+        $('factoryOn').checked
+        &&
+        !selectedFactory(
+          row[factoryCol]
+        )
+      ){
+
+        continue;
+
+      }
+
+
+      display =
+        String(
+          row[dataCol]
+          ||
+          ''
+        )
+        .trim();
+
+
+      code =
+        display;
+
+
+      hasCode =
+        true;
+
+
+      if(
+        !display
+      ){
+
+        continue;
+
+      }
+
+    }
+
+
+    /*
+     * 首字母过滤
+     */
+
+    if(
+      hasCode
+      &&
+      prefixes.length
+    ){
+
+      const cc =
+        canon(code);
+
+
+      if(
+        !prefixes.some(
+          prefix =>
+            cc.startsWith(
+              canon(prefix)
+            )
+        )
+      ){
+
+        continue;
+
+      }
+
+    }
+
+
+    const item = {
+
+      row:
+        r + 1,
+
+      display,
+
+      code,
+
+      hasCode,
+
+      owner:
+        ownerHeader
+          ?
+          String(
+            row[
+              ownerHeader.col
+            ]
+            ||
+            ''
+          )
+          .trim()
+          :
+          '',
+
+      canon:
+        canon(display),
+
+      codeCanon:
+        canon(code)
+
+    };
+
+
+    if(
+      item.canon
+    ){
+
+      out.push(item);
+
+    }
+
+  }
+
+
+
+  /*
+   * 去除 Excel 自身重复项。
+   *
+   * TX 优先按治工具编号判定重复。
+   */
+
+  const seen =
+    new Set();
+
+
+  return out.filter(
+    item => {
+
+      const key =
+        mode === 'tx'
+        &&
+        item.codeCanon
+          ?
+          'CODE:'
+          +
+          item.codeCanon
+          :
+          'TEXT:'
+          +
+          item.canon;
+
+
+      if(
+        seen.has(key)
+      ){
+
+        return false;
+
+      }
+
+
+      seen.add(key);
+
+
+      return true;
+
+    }
+  );
+
+}
+
+
+
+/* ============================================================
+   比对
+============================================================ */
+
+function compare(){
+
+  try{
+
+    const expected =
+      extract();
+
+
+    const folders = [];
+
+
+    for(
+      const s
+      of S.sets
+    ){
+
+      for(
+        const d
+        of s.dirs
+      ){
+
+        folders.push({
+
+          ...d,
+
+          root:s,
+
+          canon:
+            canon(d.name)
+
+        });
+
+      }
+
+    }
+
+
+    if(
+      !folders.length
+    ){
+
+      throw Error(
+        '请先选择发包根目录。'
+      );
+
+    }
+
+
+    const used =
+      new Set();
+
+
+    const matched =
+      new Set();
+
+
+    /*
+     * Excel 每一项寻找一个文件夹。
+     */
+
+    for(
+      let i = 0;
+      i < expected.length;
+      i++
+    ){
+
+      const e =
+        expected[i];
+
+
+      let foundIndex =
+        -1;
+
+
+      /*
+       * TX：
+       *
+       * 最优先通过治工具编号匹配。
+       *
+       * Excel：
+       * TI6ZZ64002001~TI6ZZ64002024
+       *
+       * 文件夹：
+       * TI6ZZ64002001~TI6ZZ64002024 800G...
+       *
+       * 直接算匹配。
+       */
+
+      if(
+        $('mode').value ===
+        'tx'
+        &&
+        e.hasCode
+        &&
+        e.codeCanon
+      ){
+
+        foundIndex =
+          folders.findIndex(
+            (
+              f,
+              k
+            ) => {
+
+              if(
+                used.has(k)
+              )
+                return false;
+
+
+              return f.canon
+                .includes(
+                  e.codeCanon
+                );
+
+            }
+          );
+
+      }
+
+
+      /*
+       * 普通完整内容比对。
+       */
+
+      if(
+        foundIndex < 0
+      ){
+
+        foundIndex =
+          folders.findIndex(
+            (
+              f,
+              k
+            ) => {
+
+              if(
+                used.has(k)
+              )
+                return false;
+
+
+              if(
+                f.canon ===
+                e.canon
+              )
+                return true;
+
+
+              if(
+                !$('contains').checked
+              )
+                return false;
+
+
+              return (
+
+                f.canon
+                  .includes(
+                    e.canon
+                  )
+
+                ||
+
+                e.canon
+                  .includes(
+                    f.canon
+                  )
+
+              );
+
+            }
+          );
+
+      }
+
+
+      if(
+        foundIndex >= 0
+      ){
+
+        used.add(
+          foundIndex
+        );
+
+
+        matched.add(i);
+
+
+        e.match =
+          folders[
+            foundIndex
+          ]
+          .name;
+
+
+        e.matchPath =
+          folders[
+            foundIndex
+          ]
+          .path;
+
+      }
+
+    }
+
+
+    const missing =
+      expected.filter(
+        (
+          e,
+          i
+        ) =>
+          !matched.has(i)
+      );
+
+
+    const extras =
+      folders.filter(
+        (
+          f,
+          i
+        ) =>
+          !used.has(i)
+      );
+
+
+    const matchedFolders =
+      folders.filter(
+        (
+          f,
+          i
+        ) =>
+          used.has(i)
+      );
+
+
+    S.result = {
+
+      expected,
+
+      folders,
+
+      missing,
+
+      extras,
+
+      matchedFolders
+
+    };
+
+
+    renderResult(
+      'missing'
+    );
+
+
+    $('csv').disabled =
+      false;
+
+
+    updateMoveButton();
+
+  }
+
+
+  catch(e){
+
+    console.error(e);
+
+    alert(
+      e.message
+    );
+
+  }
+
+}
+
+
+
+$('run')
+  .addEventListener(
+    'click',
+    compare
+  );
+
+
+
+/* ============================================================
+   可安全移动的多余目录
+============================================================ */
+
+/*
+ * 特别重要：
+ *
+ * 假设目录结构是：
+ *
+ * 项目A
+ * ├─ 正常文件夹
+ * └─ 多余文件夹
+ *
+ * 如果“项目A”本身被判定为多余，
+ * 但它内部存在已经成功匹配的文件夹，
+ * 我们不能直接把整个项目A移动走。
+ *
+ * 所以只有：
+ *
+ * 1. 目录自身是多余
+ * 2. 目录下没有任何已匹配目录
+ *
+ * 才允许整理。
+ */
+
+function getSafeMovableExtras(){
+
+  if(
+    !S.result
+  )
+    return [];
+
+
+  const result =
+    S.result;
+
+
+  const candidates =
+    result.extras.filter(
+      x =>
+
+        x.handle
+        &&
+        x.parentHandle
+        &&
+        x.root
+          ?.handle
+        &&
+        x.root
+          ?.write
+
+    );
+
+
+  /*
+   * 排除包含匹配子目录的父目录。
+   */
+
+  const safe =
+    candidates.filter(
+      extra => {
+
+        const prefix =
+          extra.path
+          +
+          '/';
+
+
+        const containsMatchedChild =
+          result.matchedFolders
+            .some(
+              matched =>
+
+                matched.root.id
+                ===
+                extra.root.id
+
+                &&
+
+                matched.path
+                  .startsWith(
+                    prefix
+                  )
+
+            );
+
+
+        return !containsMatchedChild;
+
+      }
+    );
+
+
+  /*
+   * 如果：
+   *
+   * A
+   * A/B
+   * A/B/C
+   *
+   * 都是多余，
+   * 只移动 A。
+   *
+   * 否则移动 A 之后，
+   * B/C 的 Handle 就会失效。
+   */
+
+  safe.sort(
+    (
+      a,
+      b
+    ) =>
+
+      a.path
+        .split('/')
+        .length
+
+      -
+
+      b.path
+        .split('/')
+        .length
+
+  );
+
+
+  const selected = [];
+
+
+  for(
+    const item
+    of safe
+  ){
+
+    const alreadyCovered =
+      selected.some(
+        parent =>
+
+          parent.root.id
+          ===
+          item.root.id
+
+          &&
+
+          item.path
+            .startsWith(
+              parent.path
+              +
+              '/'
+            )
+
+      );
+
+
+    if(
+      !alreadyCovered
+    ){
+
+      selected.push(
+        item
+      );
+
+    }
+
+  }
+
+
+  return selected;
+
+}
+
+
+
+function updateMoveButton(){
+
+  if(
+    !S.result
+  ){
+
+    $('move').disabled =
+      true;
+
+
+    $('moveHint').textContent =
+      '比对完成后，如存在具有读写权限的多余目录，此按钮会启用。';
+
+
+    return;
+
+  }
+
+
+  const extras =
+    S.result.extras;
+
+
+  const movable =
+    getSafeMovableExtras();
+
+
+  $('move').disabled =
+    movable.length === 0;
+
+
+  if(
+    !extras.length
+  ){
+
+    $('moveHint').textContent =
+      '当前没有多余目录。';
+
+  }
+
+
+  else if(
+    !movable.length
+  ){
+
+    $('moveHint').textContent =
+      '检测到 '
+      +
+      extras.length
+      +
+      ' 个多余目录，但当前没有可安全自动整理的目录。可能是兼容模式只读，或多余父目录内部存在正常匹配项目。';
+
+  }
+
+
+  else{
+
+    $('moveHint').textContent =
+      '检测到 '
+      +
+      extras.length
+      +
+      ' 个多余目录，其中 '
+      +
+      movable.length
+      +
+      ' 个可安全整理。点击后会创建带时间戳的“_比对多余文件_...”目录。';
+
+  }
+
+}
+
+
+
+/* ============================================================
+   结果展示
+============================================================ */
+
+function renderResult(tab){
+
+  const r =
+    S.result;
+
+
+  if(!r)
+    return;
+
+
+  $('mExpected').textContent =
+    r.expected.length;
+
+
+  $('mFolders').textContent =
+    r.folders.length;
+
+
+  $('mMissing').textContent =
+    r.missing.length;
+
+
+  $('mExtras').textContent =
+    r.extras.length;
+
+
+  document
+    .querySelectorAll(
+      '.tab'
+    )
+    .forEach(
+      b =>
+
+        b.classList
+          .toggle(
+            'active',
+            b.dataset.tab ===
+            tab
+          )
+
+    );
+
+
+  let arr;
+
+  let heads;
+
+  let vals;
+
+
+  if(
+    tab === 'missing'
+  ){
+
+    arr =
+      r.missing;
+
+
+    heads = [
+      'Excel行',
+      '设计负责人',
+      '缺少项'
+    ];
+
+
+    vals =
+      x => [
+        x.row,
+        x.owner || '—',
+        x.display
+      ];
+
+  }
+
+
+  else if(
+    tab === 'extras'
+  ){
+
+    arr =
+      r.extras;
+
+
+    heads = [
+      '根目录',
+      '相对路径',
+      '权限'
+    ];
+
+
+    const safeSet =
+      new Set(
+        getSafeMovableExtras()
+          .map(
+            x =>
+              x.root.id
+              +
+              '|'
+              +
+              x.path
+          )
+      );
+
+
+    vals =
+      x => {
+
+        let permission =
+          '只读';
+
+
+        if(
+          x.root.write
+          &&
+          x.handle
+        ){
+
+          const key =
+            x.root.id
+            +
+            '|'
+            +
+            x.path;
+
+
+          permission =
+            safeSet.has(key)
+              ?
+              '可整理'
+              :
+              '暂不自动移动';
+
+        }
+
+
+        return [
+
+          x.root.name,
+
+          x.path,
+
+          permission
+
+        ];
+
+      };
+
+  }
+
+
+  else if(
+    tab === 'expected'
+  ){
+
+    arr =
+      r.expected;
+
+
+    heads = [
+      'Excel行',
+      '设计负责人',
+      'Excel识别内容',
+      '匹配目录'
+    ];
+
+
+    vals =
+      x => [
+
+        x.row,
+
+        x.owner || '—',
+
+        x.display,
+
+        x.match || '—'
+
+      ];
+
+  }
+
+
+  else{
+
+    arr =
+      r.folders;
+
+
+    heads = [
+      '根目录',
+      '相对路径'
+    ];
+
+
+    vals =
+      x => [
+
+        x.root.name,
+
+        x.path
+
+      ];
+
+  }
+
+
+  const wrap =
+    document.createElement(
+      'div'
+    );
+
+
+  wrap.className =
+    'table';
+
+
+  const table =
+    document.createElement(
+      'table'
+    );
+
+
+  const thead =
+    document.createElement(
+      'thead'
+    );
+
+
+  const trh =
+    document.createElement(
+      'tr'
+    );
+
+
+  for(
+    const h
+    of heads
+  ){
+
+    const th =
+      document.createElement(
+        'th'
+      );
+
+
+    th.textContent =
+      h;
+
+
+    trh.appendChild(th);
+
+  }
+
+
+  thead.appendChild(
+    trh
+  );
+
+
+  table.appendChild(
+    thead
+  );
+
+
+  const tbody =
+    document.createElement(
+      'tbody'
+    );
+
+
+  if(
+    !arr.length
+  ){
+
+    const tr =
+      document.createElement(
+        'tr'
+      );
+
+
+    const td =
+      document.createElement(
+        'td'
+      );
+
+
+    td.colSpan =
+      heads.length;
+
+
+    td.className =
+      'good';
+
+
+    td.textContent =
+      '无项目';
+
+
+    tr.appendChild(td);
+
+
+    tbody.appendChild(tr);
+
+  }
+
+
+  else{
+
+    for(
+      const x
+      of arr
+    ){
+
+      const tr =
+        document.createElement(
+          'tr'
+        );
+
+
+      for(
+        const value
+        of vals(x)
+      ){
+
+        const td =
+          document.createElement(
+            'td'
+          );
+
+
+        td.textContent =
+          value ?? '';
+
+
+        tr.appendChild(td);
+
+      }
+
+
+      tbody.appendChild(tr);
+
+    }
+
+  }
+
+
+  table.appendChild(
+    tbody
+  );
+
+
+  wrap.appendChild(
+    table
+  );
+
+
+  $('result').innerHTML =
+    '';
+
+
+  $('result')
+    .appendChild(
+      wrap
+    );
+
+}
+
+
+
+document
+  .querySelectorAll(
+    '.tab'
+  )
+  .forEach(
+    b => {
+
+      b.addEventListener(
+        'click',
+        () => {
+
+          if(
+            S.result
+          ){
+
+            renderResult(
+              b.dataset.tab
+            );
+
+          }
+
+        }
+      );
+
+    }
+  );
+
+
+
+function resetResult(){
+
+  $('mExpected').textContent =
+    '0';
+
+
+  $('mFolders').textContent =
+    '0';
+
+
+  $('mMissing').textContent =
+    '0';
+
+
+  $('mExtras').textContent =
+    '0';
+
+
+  $('csv').disabled =
+    true;
+
+
+  $('move').disabled =
+    true;
+
+
+  $('moveHint').textContent =
+    '比对完成后，如存在具有读写权限的多余目录，此按钮会启用。';
+
+
+  $('result').innerHTML =
+
+    '<div class="hint" style="padding:55px;text-align:center">'
+    +
+    '请先加载 Excel 和文件夹，然后开始比对。'
+    +
+    '</div>';
+
+}
+
+
+
+/* ============================================================
+   CSV
+============================================================ */
+
+function csv(){
+
+  const r =
+    S.result;
+
+
+  if(!r)
+    return;
+
+
+  const rows = [
+
+    [
+      '类型',
+      'Excel行/根目录',
+      '设计负责人',
+      '内容',
+      '匹配结果/权限'
+    ]
+
+  ];
+
+
+  r.missing
+    .forEach(
+      x =>
+
+        rows.push([
+
+          '缺少',
+
+          x.row,
+
+          x.owner || '',
+
+          x.display,
+
+          ''
+
+        ])
+
+    );
+
+
+  const safe =
+    new Set(
+      getSafeMovableExtras()
+        .map(
+          x =>
+            x.root.id
+            +
+            '|'
+            +
+            x.path
+        )
+    );
+
+
+  r.extras
+    .forEach(
+      x => {
+
+        const key =
+          x.root.id
+          +
+          '|'
+          +
+          x.path;
+
+
+        rows.push([
+
+          '多余',
+
+          x.root.name,
+
+          '',
+
+          x.path,
+
+          safe.has(key)
+            ?
+            '可整理'
+            :
+            (
+              x.root.write
+                ?
+                '暂不自动移动'
+                :
+                '只读'
+            )
+
+        ]);
+
+      }
+    );
+
+
+  r.expected
+    .forEach(
+      x =>
+
+        rows.push([
+
+          'Excel识别',
+
+          x.row,
+
+          x.owner || '',
+
+          x.display,
+
+          x.match || '未匹配'
+
+        ])
+
+    );
+
+
+  const text =
+
+    '\ufeff'
+
+    +
+
+    rows
+      .map(
+        a =>
+
+          a.map(
+            v =>
+
+              '"'
+              +
+              String(
+                v ?? ''
+              )
+              .replace(
+                /"/g,
+                '""'
+              )
+              +
+              '"'
+
+          )
+          .join(',')
+
+      )
+      .join('\r\n');
+
+
+  const blob =
+    new Blob(
+      [text],
+      {
+        type:
+          'text/csv;charset=utf-8'
+      }
+    );
+
+
+  const a =
+    document.createElement(
+      'a'
+    );
+
+
+  a.href =
+    URL.createObjectURL(
+      blob
+    );
+
+
+  a.download =
+    '编码比对结果_'
+    +
+    stamp()
+    +
+    '.csv';
+
+
+  a.click();
+
+
+  setTimeout(
+    () =>
+      URL.revokeObjectURL(
+        a.href
+      ),
+    1000
+  );
+
+}
+
+
+
+$('csv')
+  .addEventListener(
+    'click',
+    csv
+  );
+
+
+
+/* ============================================================
+   文件夹复制
+============================================================ */
+
+async function copyDir(
+  src,
+  dst
+){
+
+  for await(
+    const [
+      name,
+      entry
+    ]
+    of src.entries()
+  ){
+
+    if(
+      entry.kind ===
+      'file'
+    ){
+
+      const file =
+        await entry
+          .getFile();
+
+
+      const target =
+        await dst
+          .getFileHandle(
+            name,
+            {
+              create:true
+            }
+          );
+
+
+      const writer =
+        await target
+          .createWritable();
+
+
+      await writer
+        .write(file);
+
+
+      await writer
+        .close();
+
+    }
+
+
+    else if(
+      entry.kind ===
+      'directory'
+    ){
+
+      const child =
+        await dst
+          .getDirectoryHandle(
+            name,
+            {
+              create:true
+            }
+          );
+
+
+      await copyDir(
+        entry,
+        child
+      );
+
+    }
+
+  }
+
+}
+
+
+
+/* ============================================================
+   判断目标目录是否已经存在
+============================================================ */
+
+async function directoryExists(
+  parent,
+  name
+){
+
+  try{
+
+    await parent
+      .getDirectoryHandle(
+        name
+      );
+
+
+    return true;
+
+  }
+
+
+  catch{
+
+    return false;
+
+  }
+
+}
+
+
+
+/* ============================================================
+   多余文件夹整理
+============================================================ */
+
+async function moveExtras(){
+
+  if(
+    !S.result
+  ){
+
+    alert(
+      '请先执行比对。'
+    );
+
+    return;
+
+  }
+
+
+  const list =
+    getSafeMovableExtras();
+
+
+  if(
+    !list.length
+  ){
+
+    alert(
+      '当前没有具备读写权限且可以安全整理的多余目录。\n\n如果使用的是兼容模式，请使用“系统选择器（可整理）”重新选择发包根目录。'
+    );
+
+    return;
+
+  }
+
+
+  const folder =
+    '_比对多余文件_'
+    +
+    stamp();
+
+
+  /*
+   * 二次确认
+   */
+
+  const ok =
+    confirm(
+
+      '⚠️ 二次确认\n\n'
+
+      +
+
+      '检测到 '
+      +
+      list.length
+      +
+      ' 个可以安全整理的多余文件夹。\n\n'
+
+      +
+
+      '程序将在对应的发包根目录创建：\n\n'
+
+      +
+
+      folder
+
+      +
+
+      '\n\n然后把这些多余文件夹复制进去。'
+
+      +
+
+      '\n\n只有复制成功后，才会删除原位置的文件夹。'
+
+      +
+
+      '\n\n是否继续？'
+
+    );
+
+
+  if(!ok)
+    return;
+
+
+  $('move').disabled =
+    true;
+
+
+  $('move').textContent =
+    '⏳ 正在整理…';
+
+
+  let success =
+    0;
+
+
+  const failed =
+    [];
+
+
+  /*
+   * 每个用户选择的根目录分别创建自己的整理目录。
+   */
+
+  const targetRoots =
+    new Map();
+
+
+  for(
+    let index = 0;
+    index < list.length;
+    index++
+  ){
+
+    const x =
+      list[index];
+
+
+    $('move').textContent =
+
+      '⏳ 整理中 '
+
+      +
+
+      (index + 1)
+
+      +
+
+      '/'
+
+      +
+
+      list.length;
+
+
+    try{
+
+      let dstRoot =
+        targetRoots.get(
+          x.root.id
+        );
+
+
+      if(
+        !dstRoot
+      ){
+
+        dstRoot =
+          await x.root.handle
+            .getDirectoryHandle(
+              folder,
+              {
+                create:true
+              }
+            );
+
+
+        targetRoots.set(
+          x.root.id,
+          dstRoot
+        );
+
+      }
+
+
+      let targetName =
+        x.name;
+
+
+      let n =
+        2;
+
+
+      /*
+       * 避免整理目录里已有同名目录。
+       */
+
+      while(
+        await directoryExists(
+          dstRoot,
+          targetName
+        )
+      ){
+
+        targetName =
+          x.name
+          +
+          '_'
+          +
+          n;
+
+
+        n++;
+
+      }
+
+
+      const dst =
+        await dstRoot
+          .getDirectoryHandle(
+            targetName,
+            {
+              create:true
+            }
+          );
+
+
+      /*
+       * 第一步：完整复制
+       */
+
+      await copyDir(
+        x.handle,
+        dst
+      );
+
+
+      /*
+       * 第二步：
+       * 复制没有抛异常后才删除原目录。
+       */
+
+      await x.parentHandle
+        .removeEntry(
+          x.name,
+          {
+            recursive:true
+          }
+        );
+
+
+      success++;
+
+    }
+
+
+    catch(e){
+
+      console.error(
+        '整理失败',
+        x,
+        e
+      );
+
+
+      failed.push(
+        x.path
+        +
+        '：'
+        +
+        e.message
+      );
+
+    }
+
+  }
+
+
+  $('move').textContent =
+    '📦 整理多余文件夹';
+
+
+  alert(
+
+    '整理完成。\n\n'
+
+    +
+
+    '成功：'
+    +
+    success
+    +
+    ' 个\n'
+
+    +
+
+    '失败：'
+    +
+    failed.length
+    +
+    ' 个'
+
+    +
+
+    (
+      failed.length
+        ?
+        '\n\n失败项目：\n'
+        +
+        failed.join('\n')
+        :
+        ''
+    )
+
+    +
+
+    '\n\n文件夹结构已经发生变化，请重新选择发包根目录并再次执行比对。'
+
+  );
+
+
+  /*
+   * 文件系统已经改变。
+   *
+   * 旧的 Handle 列表和比对结果不再可信，
+   * 因此清空结果。
+   */
+
+  S.result =
+    null;
+
+
+  S.sets =
+    [];
+
+
+  renderSets();
+
+
+  resetResult();
+
+
+  $('folderStatus').textContent =
+    '整理已完成，请重新选择发包根目录';
+
+}
+
+
+
+$('move')
+  .addEventListener(
+    'click',
+    moveExtras
+  );
+
+
+
+/* ============================================================
+   初始化
+============================================================ */
+
+modeUI();
+
+resetResult();
+
+</script>
+
+</body>
+</html>
