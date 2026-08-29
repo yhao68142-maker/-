@@ -5,7 +5,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 
-<title>编码比对工具 · 离线测试版</title>
+<title>编码比对工具 · 安全优化版</title>
 
 <style>
 :root{
@@ -18,24 +18,24 @@
   --blue:#58a6ff;
   --green:#3fb950;
   --red:#ff7b72;
-  --orange:#d29922
+  --orange:#d29922;
 }
 
 *{
-  box-sizing:border-box
+  box-sizing:border-box;
 }
 
 body{
   margin:0;
   background:var(--bg);
   color:var(--text);
-  font:14px/1.55 "Microsoft YaHei",sans-serif
+  font:14px/1.55 "Microsoft YaHei",sans-serif;
 }
 
 .page{
   max-width:1320px;
   margin:auto;
-  padding:26px 18px 70px
+  padding:26px 18px 70px;
 }
 
 .head{
@@ -44,36 +44,54 @@ body{
   align-items:center;
   border-bottom:1px solid var(--line);
   padding-bottom:18px;
-  margin-bottom:18px
+  margin-bottom:18px;
 }
 
 .logo{
   background:#1f6feb;
   border-radius:10px;
   padding:10px;
-  font-size:20px
+  font-size:20px;
 }
 
 .head h1{
   font-size:20px;
-  margin:0
+  margin:0;
 }
 
 .sub,
 .hint{
   color:var(--muted);
-  font-size:12px
+  font-size:12px;
+}
+
+.notice{
+  border-left:3px solid var(--orange);
+  padding:10px 12px;
+  background:#2b2110;
+  color:#d7b96d;
+  font-size:12px;
+  margin-bottom:12px;
+}
+
+.safeNotice{
+  border-left:3px solid var(--green);
+  padding:10px 12px;
+  background:#12261a;
+  color:#8ed49a;
+  font-size:12px;
+  margin-bottom:16px;
 }
 
 .layout{
   display:grid;
   grid-template-columns:350px 1fr;
-  gap:15px
+  gap:15px;
 }
 
 @media(max-width:900px){
   .layout{
-    grid-template-columns:1fr
+    grid-template-columns:1fr;
   }
 }
 
@@ -82,7 +100,7 @@ body{
   border:1px solid var(--line);
   border-radius:10px;
   padding:15px;
-  margin-bottom:12px
+  margin-bottom:12px;
 }
 
 .title{
@@ -90,18 +108,18 @@ body{
   color:var(--muted);
   font-weight:700;
   letter-spacing:.7px;
-  margin-bottom:11px
+  margin-bottom:11px;
 }
 
 .title b{
-  color:var(--blue)
+  color:var(--blue);
 }
 
 label{
   display:block;
   color:var(--muted);
   font-size:12px;
-  margin:9px 0 4px
+  margin:9px 0 4px;
 }
 
 .input,
@@ -111,7 +129,7 @@ select{
   color:var(--text);
   border:1px solid var(--line);
   border-radius:7px;
-  padding:8px
+  padding:8px;
 }
 
 .dz{
@@ -121,27 +139,27 @@ select{
   padding:17px;
   cursor:pointer;
   background:#0d1117;
-  margin-bottom:9px
+  margin-bottom:9px;
 }
 
 .dz:hover{
-  border-color:var(--blue)
+  border-color:var(--blue);
 }
 
 .dz.ok{
   border-style:solid;
-  border-color:var(--green)
+  border-color:var(--green);
 }
 
 .dz.over{
   border-color:var(--blue);
-  background:#0d2744
+  background:#0d2744;
 }
 
 .row{
   display:flex;
   gap:7px;
-  margin-top:9px
+  margin-top:9px;
 }
 
 .btn{
@@ -151,35 +169,35 @@ select{
   color:var(--text);
   background:#21262d;
   cursor:pointer;
-  font-weight:600
+  font-weight:600;
 }
 
 .btn:hover:not(:disabled){
-  filter:brightness(1.08)
+  filter:brightness(1.08);
 }
 
 .btn:disabled{
   opacity:.45;
-  cursor:not-allowed
+  cursor:not-allowed;
 }
 
 .blue{
   background:#1f6feb;
-  border-color:#1f6feb
+  border-color:#1f6feb;
 }
 
 .green{
   background:#238636;
-  border-color:#238636
+  border-color:#238636;
 }
 
 .danger{
   background:#5d2528;
-  border-color:#8e3539
+  border-color:#8e3539;
 }
 
 .grow{
-  flex:1
+  flex:1;
 }
 
 .checks label{
@@ -187,16 +205,16 @@ select{
   gap:7px;
   align-items:center;
   color:var(--text);
-  margin:6px 0
+  margin:6px 0;
 }
 
 .checks input{
-  accent-color:var(--blue)
+  accent-color:var(--blue);
 }
 
 .folders{
   max-height:180px;
-  overflow:auto
+  overflow:auto;
 }
 
 .folder{
@@ -207,19 +225,19 @@ select{
   border:1px solid var(--line);
   padding:7px;
   margin-top:5px;
-  border-radius:6px
+  border-radius:6px;
 }
 
 .folder span{
   flex:1;
   overflow:hidden;
   text-overflow:ellipsis;
-  white-space:nowrap
+  white-space:nowrap;
 }
 
 .folder small{
   color:var(--muted);
-  white-space:nowrap
+  white-space:nowrap;
 }
 
 .folder button{
@@ -227,7 +245,7 @@ select{
   border:0;
   color:var(--red);
   cursor:pointer;
-  font-size:16px
+  font-size:16px;
 }
 
 .status{
@@ -236,19 +254,19 @@ select{
   background:#0d2744;
   color:var(--blue);
   margin-top:9px;
-  font-size:12px
+  font-size:12px;
 }
 
 .metrics{
   display:grid;
   grid-template-columns:repeat(4,1fr);
   gap:10px;
-  margin-bottom:12px
+  margin-bottom:12px;
 }
 
 @media(max-width:700px){
   .metrics{
-    grid-template-columns:repeat(2,1fr)
+    grid-template-columns:repeat(2,1fr);
   }
 }
 
@@ -256,24 +274,24 @@ select{
   background:var(--card);
   border:1px solid var(--line);
   border-radius:9px;
-  padding:14px
+  padding:14px;
 }
 
 .metric span{
   color:var(--muted);
-  font-size:11px
+  font-size:11px;
 }
 
 .metric strong{
   display:block;
-  font-size:28px
+  font-size:28px;
 }
 
 .tabs{
   display:flex;
   gap:5px;
   margin-bottom:10px;
-  flex-wrap:wrap
+  flex-wrap:wrap;
 }
 
 .tab{
@@ -282,31 +300,32 @@ select{
   background:#21262d;
   color:var(--muted);
   border-radius:6px;
-  cursor:pointer
+  cursor:pointer;
 }
 
 .tab.active{
   color:var(--blue);
-  border-color:var(--blue)
+  border-color:var(--blue);
 }
 
 .table{
   border:1px solid var(--line);
   border-radius:8px;
   overflow:auto;
-  max-height:560px
+  max-height:580px;
 }
 
 table{
   width:100%;
-  border-collapse:collapse
+  border-collapse:collapse;
 }
 
 th,
 td{
   padding:8px 11px;
   text-align:left;
-  border-bottom:1px solid #21262d
+  border-bottom:1px solid #21262d;
+  vertical-align:top;
 }
 
 th{
@@ -315,90 +334,84 @@ th{
   background:#21262d;
   color:var(--muted);
   font-size:11px;
-  z-index:2
+  z-index:2;
 }
 
 .bad{
-  color:var(--red)
+  color:var(--red);
 }
 
 .warn{
-  color:var(--orange)
+  color:var(--orange);
 }
 
 .good{
-  color:var(--green)
+  color:var(--green);
 }
 
-.notice{
-  border-left:3px solid var(--orange);
-  padding:9px;
-  background:#2b2110;
-  color:#d7b96d;
+.protected{
+  color:var(--green);
+  font-weight:700;
+}
+
+.unprotected{
+  color:var(--orange);
+}
+
+.mono{
+  font-family:Consolas,"Courier New",monospace;
   font-size:12px;
-  margin-bottom:12px
 }
 
 .hidden{
-  display:none !important
+  display:none !important;
 }
 </style>
 </head>
-
 
 <body>
 
 <div class="page">
 
 <div class="head">
-
   <div class="logo">📋</div>
 
   <div>
     <h1>编码比对工具</h1>
-
     <div class="sub">
-      单模申请表 / OB请购单 / TX发包文档 · 离线单文件测试版
+      单模申请表 / OB请购单 / TX发包文档 · 安全优化版
     </div>
   </div>
-
 </div>
-
 
 <div class="notice">
-⚠️ 建议使用最新版 Edge 或 Chrome。
-真实整理文件夹仅在“系统选择器（可整理）”下可用。
-“兼容模式”只能读取和比对，浏览器不会获得删除或移动本地文件夹的权限。
+⚠️ 建议先使用测试目录验证。真实移动文件夹仅在“系统选择器（可整理）”模式下开放。
 </div>
 
+<div class="safeNotice">
+🛡️ 安全保护已启用：TX 编号会统一处理 ~ / ～ / 〜 / ∼ 等字符；真正整理前会再次扫描 Excel 编号。只要目录名称能匹配 Excel 中任意已识别治工具编号，就禁止自动移动。
+</div>
 
 <div class="layout">
-
 
 <!-- 左侧 -->
 <aside>
 
-
 <div class="card">
 
 <div class="title">
-<b>01</b> EXCEL 文件
+  <b>01</b> EXCEL 文件
 </div>
-
 
 <div class="dz" id="excelDz">
+  📊
+  <br>
+  <b>点击或拖入 Excel</b>
 
-📊
-<br>
-
-<b>点击或拖入 Excel</b>
-
-<div class="hint">
-离线读取 .xlsx，无需联网
+  <div class="hint">
+    离线读取 .xlsx，无需联网
+  </div>
 </div>
-
-</div>
-
 
 <input
   id="excelInput"
@@ -407,38 +420,31 @@ th{
   hidden
 >
 
-
-<label>
-工作表
-</label>
+<label>工作表</label>
 
 <select id="sheetSel">
-<option value="">
-请先选择 Excel
-</option>
+  <option value="">
+    请先选择 Excel
+  </option>
 </select>
 
-
-<label>
-表格识别模式
-</label>
+<label>表格识别模式</label>
 
 <select id="mode">
 
-<option value="single">
-单模申请表
-</option>
+  <option value="single">
+    单模申请表
+  </option>
 
-<option value="ob">
-OB请购单
-</option>
+  <option value="ob">
+    OB请购单
+  </option>
 
-<option value="tx">
-TX发包文档
-</option>
+  <option value="tx">
+    TX发包文档
+  </option>
 
 </select>
-
 
 <div
   id="modeHint"
@@ -446,10 +452,7 @@ TX发包文档
   style="margin-top:6px">
 </div>
 
-
-<label>
-起始行
-</label>
+<label>起始行</label>
 
 <input
   class="input"
@@ -459,9 +462,8 @@ TX发包文档
   value="2"
 >
 
-
 <label id="colLabel">
-比对列
+  比对列
 </label>
 
 <input
@@ -470,21 +472,19 @@ TX发包文档
   value="C"
 >
 
-
 <div id="factoryBox">
 
 <label>
-<input
-  id="factoryOn"
-  type="checkbox"
-  checked
->
-启用厂区 / 工厂筛选
+  <input
+    id="factoryOn"
+    type="checkbox"
+    checked
+  >
+  启用厂区 / 工厂筛选
 </label>
 
-
 <label>
-厂区 / 工厂列
+  厂区 / 工厂列
 </label>
 
 <input
@@ -493,73 +493,71 @@ TX发包文档
   placeholder="留空自动寻找：厂区 / 工厂"
 >
 
-
 <div class="checks">
 
 <label>
-<input
-  class="factory"
-  type="checkbox"
-  value="suzhou"
-  checked
->
-苏州 / 1000
+  <input
+    class="factory"
+    type="checkbox"
+    value="suzhou"
+    checked
+  >
+  苏州 / 1000
 </label>
 
-
 <label>
-<input
-  class="factory"
-  type="checkbox"
-  value="tongling"
-  checked
->
-铜陵 / 2000
+  <input
+    class="factory"
+    type="checkbox"
+    value="tongling"
+    checked
+  >
+  铜陵 / 2000
 </label>
 
-
 <label>
-<input
-  class="factory"
-  type="checkbox"
-  value="thailand"
-  checked
->
-泰国 / 5000
+  <input
+    class="factory"
+    type="checkbox"
+    value="thailand"
+    checked
+  >
+  泰国 / 5000
 </label>
 
 </div>
 
 </div>
 
-
-<!-- TX专用 -->
-<div id="txOwnerBox" class="hidden">
+<div
+  id="txOwnerBox"
+  class="hidden">
 
 <label>
-设计负责人筛选
+  设计负责人筛选
 </label>
 
 <select id="txOwner">
 
-<option value="">
-全部设计负责人
-</option>
+  <option value="">
+    全部设计负责人
+  </option>
 
 </select>
 
 <div
   class="hint"
   id="txOwnerHint">
-自动寻找“设计负责人”表头；
-未选择时不限制负责人。
-</div>
+
+  自动寻找“设计负责人”表头；
+  未选择时不限制负责人。
 
 </div>
 
+</div>
 
 <label>
-允许的编码首字母
+  允许的编码首字母
 </label>
 
 <input
@@ -569,53 +567,49 @@ TX发包文档
 >
 
 <div class="hint">
-用英文逗号分隔，例如：
-O,T,R,S,M
+  示例：O,T,R,S,M
 </div>
 
-
 <label>
-<input
-  id="contains"
-  type="checkbox"
-  checked
->
-启用包含匹配
+  <input
+    id="contains"
+    type="checkbox"
+    checked
+  >
+  启用包含匹配
 </label>
-
 
 <div
   id="excelStatus"
   class="status">
-尚未读取 Excel
-</div>
+
+  尚未读取 Excel
 
 </div>
 
+</div>
 
 
 <div class="card">
 
 <div class="title">
-<b>02</b> 发包文件夹（可多次累积）
+  <b>02</b> 发包文件夹（可多次累积）
 </div>
-
 
 <div
   class="dz"
   id="folderDz">
 
-📁
-<br>
+  📁
+  <br>
 
-<b>拖入文件夹或使用下方按钮</b>
+  <b>拖入文件夹或使用下方按钮</b>
 
-<div class="hint">
-根目录本身不参与比对
+  <div class="hint">
+    根目录本身不参与比对
+  </div>
+
 </div>
-
-</div>
-
 
 <input
   id="folderInput"
@@ -626,50 +620,52 @@ O,T,R,S,M
   hidden
 >
 
-
 <div class="row">
 
 <button
   class="btn blue grow"
   id="pick">
-📂 系统选择器（可整理）
-</button>
 
+  📂 系统选择器（可整理）
+
+</button>
 
 <button
   class="btn"
   id="compat">
-🔧 兼容模式
+
+  🔧 兼容模式
+
 </button>
 
 </div>
-
 
 <div
   class="folders"
   id="folders">
 </div>
 
-
 <div
   id="folderStatus"
   class="status">
-尚未添加文件夹
-</div>
 
+  尚未添加文件夹
+
+</div>
 
 <div class="row">
 
 <button
   class="btn grow"
   id="clearFolders">
-🗑 清空已加载目录
+
+  🗑 清空已加载目录
+
 </button>
 
 </div>
 
 </div>
-
 
 
 <div class="card">
@@ -679,10 +675,9 @@ O,T,R,S,M
   style="width:100%"
   id="run">
 
-▶ 开始比对
+  ▶ 开始比对
 
 </button>
-
 
 <div class="row">
 
@@ -691,12 +686,11 @@ O,T,R,S,M
   id="csv"
   disabled>
 
-⬇ 导出 CSV
+  ⬇ 导出 CSV
 
 </button>
 
 </div>
-
 
 <button
   class="btn danger"
@@ -704,93 +698,58 @@ O,T,R,S,M
   id="move"
   disabled>
 
-📦 整理多余文件夹
+  📦 整理多余文件夹
 
 </button>
-
 
 <div
   class="hint"
   id="moveHint"
   style="margin-top:7px">
 
-比对完成后，如存在具有读写权限的多余目录，此按钮会启用。
+  比对完成后，如存在安全可整理目录，此按钮会启用。
 
 </div>
 
 </div>
-
 
 </aside>
-
 
 
 <!-- 右侧 -->
 <main>
 
-
 <div class="metrics">
 
+<div class="metric">
+  <span>EXCEL 期望</span>
+  <strong id="mExpected">0</strong>
+</div>
 
 <div class="metric">
-
-<span>
-EXCEL 期望
-</span>
-
-<strong id="mExpected">
-0
-</strong>
-
+  <span>识别文件夹</span>
+  <strong id="mFolders">0</strong>
 </div>
-
 
 <div class="metric">
-
-<span>
-识别文件夹
-</span>
-
-<strong id="mFolders">
-0
-</strong>
-
+  <span>缺少项</span>
+  <strong
+    class="bad"
+    id="mMissing">
+    0
+  </strong>
 </div>
-
 
 <div class="metric">
-
-<span>
-缺少项
-</span>
-
-<strong
-  class="bad"
-  id="mMissing">
-0
-</strong>
-
+  <span>多余目录</span>
+  <strong
+    class="warn"
+    id="mExtras">
+    0
+  </strong>
 </div>
 
-
-<div class="metric">
-
-<span>
-多余目录
-</span>
-
-<strong
-  class="warn"
-  id="mExtras">
-0
-</strong>
-
 </div>
-
-
-</div>
-
-
 
 <div class="card">
 
@@ -799,29 +758,28 @@ EXCEL 期望
 <button
   class="tab active"
   data-tab="missing">
-缺少项
+  缺少项
 </button>
 
 <button
   class="tab"
   data-tab="extras">
-多余目录
+  多余目录
 </button>
 
 <button
   class="tab"
   data-tab="expected">
-Excel识别结果
+  Excel识别结果
 </button>
 
 <button
   class="tab"
   data-tab="all">
-文件夹列表
+  文件夹列表
 </button>
 
 </div>
-
 
 <div id="result">
 
@@ -829,20 +787,18 @@ Excel识别结果
   class="hint"
   style="padding:55px;text-align:center">
 
-请先加载 Excel 和文件夹，然后开始比对。
+  请先加载 Excel 和文件夹，然后开始比对。
 
 </div>
 
 </div>
 
 </div>
-
 
 </main>
 
 </div>
 </div>
-
 
 
 <script>
@@ -851,12 +807,13 @@ Excel识别结果
 
 
 
-/* ============================================================
-   状态
-============================================================ */
+/* ==========================================================
+   STATE
+========================================================== */
 
-const $ = id =>
-  document.getElementById(id);
+const $ =
+  id =>
+    document.getElementById(id);
 
 
 const S = {
@@ -874,52 +831,184 @@ let nextId = 1;
 
 
 
-/* ============================================================
-   通用工具
-============================================================ */
+/* ==========================================================
+   文本标准化
+========================================================== */
 
-const esc = s =>
-  String(s ?? '')
+
+/*
+ * 普通文本标准化
+ *
+ * 用于：
+ * 单模
+ * OB
+ * TX 名称辅助匹配
+ */
+function canonText(s){
+
+  return String(s ?? '')
+
+    .normalize('NFKC')
+
+    .toUpperCase()
+
+    /*
+     * 先统一字符
+     */
     .replace(
-      /[&<>"']/g,
-      c => ({
-        '&':'&amp;',
-        '<':'&lt;',
-        '>':'&gt;',
-        '"':'&quot;',
-        "'":'&#39;'
-      }[c])
-    );
+      /[～〜﹏∼]/g,
+      '~'
+    )
+
+    .replace(
+      /[﹣－—–]/g,
+      '-'
+    )
+
+    .replace(
+      /[（]/g,
+      '('
+    )
+
+    .replace(
+      /[）]/g,
+      ')'
+    )
+
+    .replace(
+      /[【]/g,
+      '['
+    )
+
+    .replace(
+      /[】]/g,
+      ']'
+    )
+
+    .replace(
+      /[×✕╳＊*]/g,
+      'X'
+    )
+
+    /*
+     * 普通文本匹配时忽略各种符号
+     */
+    .replace(
+      /[\\\/＿_~—–－\-·•,，。.:：;；()（）\[\]【】{}\s]+/g,
+      ''
+    )
+
+    .trim();
+
+}
 
 
 
 /*
- * 用于比对的字符串标准化。
+ * ★ 编号专用标准化
  *
- * 会：
- * - 全角转半角
- * - 转大写
- * - 去掉空格
- * - 去掉 / \ _ - 等常见符号
+ * 这是本次最重要的修复。
  *
- * 因此：
+ * 不直接把 ~ 去掉，
+ * 而是把所有类似字符统一成 ASCII ~。
  *
- * PSM8/DR8
- * PSM8DR8
+ * Excel：
  *
- * 可以认为相同。
+ * TO2ZZ64001013~TO2ZZ64001084
+ *
+ * 文件夹：
+ *
+ * TO2ZZ64001013～TO2ZZ64001084
+ *
+ * 最终都会变成：
+ *
+ * TO2ZZ64001013~TO2ZZ64001084
  */
+function canonCode(s){
 
-const canon = s =>
-  String(s ?? '')
+  return String(s ?? '')
+
     .normalize('NFKC')
+
     .toUpperCase()
+
     .replace(
-      /[\\\/＿_—–－\-·•,，。.:：;；()（）\[\]【】{}\s]+/g,
+      /[～〜﹏∼]/g,
+      '~'
+    )
+
+    .replace(
+      /[﹣－—–]/g,
+      '-'
+    )
+
+    .replace(
+      /[\t\r\n\u3000\s]+/g,
       ''
+    )
+
+    .trim();
+
+}
+
+
+
+/*
+ * 从文件夹名称中提取最前面的治工具编号。
+ *
+ * 支持：
+ *
+ * TO2ZZ64001013~TO2ZZ64001084 ...
+ *
+ * TI6ZZ64002001～TI6ZZ64002024 ...
+ *
+ * RF32DA0000686~RF32DA0000693 ...
+ *
+ * 如果没有范围，也支持单个编号。
+ */
+function extractFolderCode(name){
+
+  const normalized =
+    String(name ?? '')
+
+      .normalize('NFKC')
+
+      .toUpperCase()
+
+      .replace(
+        /[～〜﹏∼]/g,
+        '~'
+      )
+
+      .replace(
+        /[﹣－—–]/g,
+        '-'
+      )
+
+      .trim();
+
+
+  const match =
+    normalized.match(
+      /^[A-Z][A-Z0-9]*(?:~[A-Z0-9]+)?/
     );
 
 
+  return match
+    ?
+    canonCode(
+      match[0]
+    )
+    :
+    '';
+
+}
+
+
+
+/* ==========================================================
+   Excel 列工具
+========================================================== */
 
 function colIdx(v){
 
@@ -929,18 +1018,28 @@ function colIdx(v){
       .toUpperCase();
 
 
-  if(!/^[A-Z]+$/.test(v))
+  if(
+    !/^[A-Z]+$/.test(v)
+  ){
+
     return -1;
+
+  }
 
 
   let n = 0;
 
 
-  for(const c of v){
+  for(
+    const c
+    of v
+  ){
 
     n =
-      n * 26 +
-      c.charCodeAt(0) -
+      n * 26
+      +
+      c.charCodeAt(0)
+      -
       64;
 
   }
@@ -960,14 +1059,23 @@ function colName(n){
   for(
     n++;
     n;
-    n = Math.floor((n - 1) / 26)
+    n =
+      Math.floor(
+        (n - 1) / 26
+      )
   ){
 
     s =
+
       String.fromCharCode(
-        65 + (n - 1) % 26
+        65
+        +
+        (n - 1) % 26
       )
-      + s;
+
+      +
+
+      s;
 
   }
 
@@ -980,30 +1088,56 @@ function colName(n){
 
 function stamp(){
 
-  const d = new Date();
+  const d =
+    new Date();
 
 
   const p =
     n =>
       String(n)
-        .padStart(2,'0');
+        .padStart(
+          2,
+          '0'
+        );
 
 
   return (
 
     d.getFullYear()
 
-    + p(d.getMonth() + 1)
+    +
 
-    + p(d.getDate())
+    p(
+      d.getMonth() + 1
+    )
 
-    + '_'
+    +
 
-    + p(d.getHours())
+    p(
+      d.getDate()
+    )
 
-    + p(d.getMinutes())
+    +
 
-    + p(d.getSeconds())
+    '_'
+
+    +
+
+    p(
+      d.getHours()
+    )
+
+    +
+
+    p(
+      d.getMinutes()
+    )
+
+    +
+
+    p(
+      d.getSeconds()
+    )
 
   );
 
@@ -1011,18 +1145,19 @@ function stamp(){
 
 
 
-/* ============================================================
-   模式界面
-============================================================ */
+/* ==========================================================
+   模式 UI
+========================================================== */
 
 function modeUI(){
 
-  const m =
+  const mode =
     $('mode').value;
 
 
   const isTX =
-    m === 'tx';
+    mode ===
+    'tx';
 
 
   $('factoryBox')
@@ -1057,26 +1192,32 @@ function modeUI(){
     );
 
 
-  if(m === 'single'){
+  if(
+    mode ===
+    'single'
+  ){
 
     $('dataCol').value =
       'C';
 
 
     $('modeHint').textContent =
-      '单模申请表：默认读取 C 列完整内容，并可按“厂区”筛选。';
+      '单模申请表：默认读取 C 列完整内容，可按厂区筛选。';
 
   }
 
 
-  else if(m === 'ob'){
+  else if(
+    mode ===
+    'ob'
+  ){
 
     $('dataCol').value =
       'F';
 
 
     $('modeHint').textContent =
-      'OB请购单：默认读取 F 列完整内容，并可按工厂 1000 / 2000 / 5000 筛选。';
+      'OB请购单：默认读取 F 列完整内容，可按工厂 1000 / 2000 / 5000 筛选。';
 
   }
 
@@ -1084,7 +1225,7 @@ function modeUI(){
   else{
 
     $('modeHint').textContent =
-      'TX发包文档：自动筛选“需求部门”包含 TX 的数据，读取“治工具编号 + 治工具名称”，优先按治工具编号匹配文件夹。';
+      'TX发包文档：自动筛选需求部门包含 TX 的数据，读取“治工具编号 + 治工具名称”。比对时第一优先级只比较治工具编号。';
 
 
     refreshOwners();
@@ -1092,6 +1233,7 @@ function modeUI(){
   }
 
 }
+
 
 
 $('mode')
@@ -1102,16 +1244,9 @@ $('mode')
 
 
 
-/* ============================================================
-   ZIP / XLSX 离线读取
-============================================================ */
-
-/*
- * xlsx 本质上是 ZIP 文件。
- *
- * 为了真正做到单 HTML 离线使用，
- * 这里不调用外部 SheetJS CDN。
- */
+/* ==========================================================
+   XLSX ZIP 解压
+========================================================== */
 
 async function unzip(buf){
 
@@ -1123,15 +1258,20 @@ async function unzip(buf){
     new DataView(buf);
 
 
-  let e = -1;
+  let e =
+    -1;
 
 
   for(
-    let i = u.length - 22;
-    i >= Math.max(
-      0,
-      u.length - 65557
-    );
+    let i =
+      u.length - 22;
+
+    i >=
+      Math.max(
+        0,
+        u.length - 65557
+      );
+
     i--
   ){
 
@@ -1153,7 +1293,9 @@ async function unzip(buf){
   }
 
 
-  if(e < 0){
+  if(
+    e < 0
+  ){
 
     throw Error(
       '不是有效的 xlsx 文件。'
@@ -1169,7 +1311,7 @@ async function unzip(buf){
     );
 
 
-  const off =
+  const offset =
     v.getUint32(
       e + 16,
       true
@@ -1179,7 +1321,8 @@ async function unzip(buf){
   const out = {};
 
 
-  let p = off;
+  let p =
+    offset;
 
 
   for(
@@ -1216,28 +1359,28 @@ async function unzip(buf){
       );
 
 
-    const nl =
+    const nameLen =
       v.getUint16(
         p + 28,
         true
       );
 
 
-    const el =
+    const extraLen =
       v.getUint16(
         p + 30,
         true
       );
 
 
-    const cl =
+    const commentLen =
       v.getUint16(
         p + 32,
         true
       );
 
 
-    const lo =
+    const localOffset =
       v.getUint32(
         p + 42,
         true
@@ -1249,29 +1392,46 @@ async function unzip(buf){
         .decode(
           u.slice(
             p + 46,
-            p + 46 + nl
+            p + 46 + nameLen
           )
         );
 
 
-    const lnl =
+    const localNameLen =
       v.getUint16(
-        lo + 26,
+        localOffset + 26,
         true
       );
 
 
-    const lel =
+    const localExtraLen =
       v.getUint16(
-        lo + 28,
+        localOffset + 28,
         true
       );
 
 
-    const dat =
+    const dataStart =
+
+      localOffset
+
+      +
+
+      30
+
+      +
+
+      localNameLen
+
+      +
+
+      localExtraLen;
+
+
+    const data =
       u.slice(
-        lo + 30 + lnl + lel,
-        lo + 30 + lnl + lel + size
+        dataStart,
+        dataStart + size
       );
 
 
@@ -1279,15 +1439,21 @@ async function unzip(buf){
       !name.endsWith('/')
     ){
 
-      if(method === 0){
+      if(
+        method ===
+        0
+      ){
 
         out[name] =
-          dat;
+          data;
 
       }
 
 
-      else if(method === 8){
+      else if(
+        method ===
+        8
+      ){
 
         if(
           typeof DecompressionStream
@@ -1310,12 +1476,18 @@ async function unzip(buf){
 
         out[name] =
           new Uint8Array(
+
             await new Response(
-              new Blob([dat])
-                .stream()
-                .pipeThrough(ds)
+
+              new Blob(
+                [data]
+              )
+              .stream()
+              .pipeThrough(ds)
+
             )
             .arrayBuffer()
+
           );
 
       }
@@ -1324,10 +1496,20 @@ async function unzip(buf){
 
 
     p +=
-      46 +
-      nl +
-      el +
-      cl;
+
+      46
+
+      +
+
+      nameLen
+
+      +
+
+      extraLen
+
+      +
+
+      commentLen;
 
   }
 
@@ -1340,17 +1522,22 @@ async function unzip(buf){
 
 function xml(u){
 
-  if(!u)
+  if(
+    !u
+  )
     return null;
 
 
   return new DOMParser()
     .parseFromString(
+
       new TextDecoder(
         'utf-8'
       )
       .decode(u),
+
       'application/xml'
+
     );
 
 }
@@ -1363,20 +1550,31 @@ function normalizeZipPath(path){
 
 
   for(
-    const part of
-    String(path || '')
-      .replace(/\\/g,'/')
+    const part
+    of String(path || '')
+      .replace(
+        /\\/g,
+        '/'
+      )
       .split('/')
   ){
 
     if(
-      !part ||
-      part === '.'
-    )
+      !part
+      ||
+      part ===
+      '.'
+    ){
+
       continue;
 
+    }
 
-    if(part === '..'){
+
+    if(
+      part ===
+      '..'
+    ){
 
       parts.pop();
 
@@ -1385,7 +1583,9 @@ function normalizeZipPath(path){
     }
 
 
-    parts.push(part);
+    parts.push(
+      part
+    );
 
   }
 
@@ -1396,298 +1596,363 @@ function normalizeZipPath(path){
 
 
 
+/* ==========================================================
+   读取 XLSX
+========================================================== */
+
 async function readXlsx(file){
 
   if(
     !file.name
       .toLowerCase()
-      .endsWith('.xlsx')
+      .endsWith(
+        '.xlsx'
+      )
   ){
 
     throw Error(
-      '此离线版目前仅支持 .xlsx 文件。'
+      '目前仅支持 .xlsx 文件。'
     );
 
   }
 
 
-  const z =
+  const zip =
     await unzip(
       await file.arrayBuffer()
     );
 
 
-  const shared = [];
+  const sharedStrings =
+    [];
 
 
   if(
-    z['xl/sharedStrings.xml']
+    zip[
+      'xl/sharedStrings.xml'
+    ]
   ){
 
-    const sdoc =
+    const doc =
       xml(
-        z['xl/sharedStrings.xml']
+        zip[
+          'xl/sharedStrings.xml'
+        ]
       );
 
 
-    sdoc
-      .querySelectorAll('si')
-      .forEach(si => {
+    doc.querySelectorAll(
+      'si'
+    )
+    .forEach(
+      si => {
 
-        shared.push(
+        sharedStrings.push(
 
           [
-            ...si.querySelectorAll('t')
+            ...si.querySelectorAll(
+              't'
+            )
           ]
+
           .map(
             x =>
               x.textContent
           )
+
           .join('')
 
         );
 
-      });
+      }
+    );
 
   }
 
 
-  const wb =
+  const workbook =
     xml(
-      z['xl/workbook.xml']
+      zip[
+        'xl/workbook.xml'
+      ]
     );
 
 
   const rels =
     xml(
-      z[
+      zip[
         'xl/_rels/workbook.xml.rels'
       ]
     );
 
 
   if(
-    !wb ||
+    !workbook
+    ||
     !rels
   ){
 
     throw Error(
-      'Excel 工作簿结构不完整。'
+      'Excel 文件结构不完整。'
     );
 
   }
 
 
-  const relMap = {};
+  const relationMap = {};
 
 
   rels
     .querySelectorAll(
       'Relationship'
     )
-    .forEach(r => {
+    .forEach(
+      r => {
 
-      relMap[
-        r.getAttribute('Id')
-      ] =
-        r.getAttribute(
-          'Target'
-        );
+        relationMap[
+          r.getAttribute(
+            'Id'
+          )
+        ] =
+          r.getAttribute(
+            'Target'
+          );
 
-    });
+      }
+    );
 
 
   const sheets = [];
 
 
-  wb
-    .querySelectorAll('sheet')
-    .forEach(sh => {
+  workbook
+    .querySelectorAll(
+      'sheet'
+    )
+    .forEach(
+      sheet => {
 
-      const rid =
-        sh.getAttribute(
-          'r:id'
+        const rid =
+
+          sheet.getAttribute(
+            'r:id'
+          )
+
+          ||
+
+          sheet.getAttributeNS(
+
+            'http://schemas.openxmlformats.org/officeDocument/2006/relationships',
+
+            'id'
+
+          );
+
+
+        const target =
+          relationMap[rid];
+
+
+        if(
+          !target
         )
-        ||
-        sh.getAttributeNS(
-          'http://schemas.openxmlformats.org/officeDocument/2006/relationships',
-          'id'
-        );
+          return;
 
 
-      const target =
-        relMap[rid];
+        const path =
+          target.startsWith('/')
 
+            ?
 
-      if(!target)
-        return;
+            normalizeZipPath(
+              target.slice(1)
+            )
 
+            :
 
-      let path;
-
-
-      if(
-        target.startsWith('/')
-      ){
-
-        path =
-          normalizeZipPath(
-            target.slice(1)
-          );
-
-      }
-
-      else{
-
-        path =
-          normalizeZipPath(
-            'xl/' + target
-          );
-
-      }
-
-
-      const raw =
-        z[path];
-
-
-      if(!raw)
-        return;
-
-
-      const doc =
-        xml(raw);
-
-
-      const rows = [];
-
-
-      doc
-        .querySelectorAll('row')
-        .forEach(row => {
-
-          const a = [];
-
-
-          row
-            .querySelectorAll('c')
-            .forEach(c => {
-
-              const ref =
-                c.getAttribute('r')
-                || '';
-
-
-              const letter =
-                (
-                  ref.match(
-                    /[A-Z]+/
-                  )
-                  ||
-                  ['A']
-                )[0];
-
-
-              const ci =
-                colIdx(letter);
-
-
-              const t =
-                c.getAttribute('t');
-
-
-              const ve =
-                c.querySelector('v');
-
-
-              const is =
-                c.querySelector('is');
-
-
-              let val = '';
-
-
-              if(t === 's'){
-
-                val =
-                  shared[
-                    Number(
-                      ve?.textContent
-                    )
-                  ]
-                  ??
-                  '';
-
-              }
-
-
-              else if(
-                t === 'inlineStr'
-              ){
-
-                val =
-                  [
-                    ...(
-                      is?.querySelectorAll(
-                        't'
-                      )
-                      ||
-                      []
-                    )
-                  ]
-                  .map(
-                    x =>
-                      x.textContent
-                  )
-                  .join('');
-
-              }
-
-
-              else{
-
-                val =
-                  ve?.textContent
-                  ??
-                  '';
-
-              }
-
-
-              a[ci] =
-                val;
-
-            });
-
-
-          const rn =
-            Number(
-              row.getAttribute('r')
-              ||
-              rows.length + 1
+            normalizeZipPath(
+              'xl/' + target
             );
 
 
-          rows[
-            rn - 1
-          ] =
-            a;
+        const raw =
+          zip[path];
+
+
+        if(
+          !raw
+        )
+          return;
+
+
+        const doc =
+          xml(raw);
+
+
+        const rows = [];
+
+
+        doc.querySelectorAll(
+          'row'
+        )
+        .forEach(
+          row => {
+
+            const cells = [];
+
+
+            row.querySelectorAll(
+              'c'
+            )
+            .forEach(
+              c => {
+
+                const ref =
+                  c.getAttribute(
+                    'r'
+                  )
+                  || '';
+
+
+                const letter =
+
+                  (
+                    ref.match(
+                      /[A-Z]+/
+                    )
+
+                    ||
+
+                    ['A']
+                  )[0];
+
+
+                const column =
+                  colIdx(letter);
+
+
+                const type =
+                  c.getAttribute(
+                    't'
+                  );
+
+
+                const valueNode =
+                  c.querySelector(
+                    'v'
+                  );
+
+
+                const inline =
+                  c.querySelector(
+                    'is'
+                  );
+
+
+                let value =
+                  '';
+
+
+                if(
+                  type ===
+                  's'
+                ){
+
+                  value =
+
+                    sharedStrings[
+                      Number(
+                        valueNode?.textContent
+                      )
+                    ]
+
+                    ??
+
+                    '';
+
+                }
+
+
+                else if(
+                  type ===
+                  'inlineStr'
+                ){
+
+                  value =
+
+                    [
+                      ...(
+                        inline?.querySelectorAll(
+                          't'
+                        )
+                        ||
+                        []
+                      )
+                    ]
+
+                    .map(
+                      x =>
+                        x.textContent
+                    )
+
+                    .join('');
+
+                }
+
+
+                else{
+
+                  value =
+                    valueNode?.textContent
+                    ??
+                    '';
+
+                }
+
+
+                cells[column] =
+                  value;
+
+              }
+            );
+
+
+            const rowNumber =
+              Number(
+
+                row.getAttribute(
+                  'r'
+                )
+
+                ||
+
+                rows.length + 1
+
+              );
+
+
+            rows[
+              rowNumber - 1
+            ] =
+              cells;
+
+          }
+        );
+
+
+        sheets.push({
+
+          name:
+            sheet.getAttribute(
+              'name'
+            ),
+
+          rows
 
         });
 
-
-      sheets.push({
-
-        name:
-          sh.getAttribute(
-            'name'
-          ),
-
-        rows
-
-      });
-
-    });
+      }
+    );
 
 
   if(
@@ -1695,7 +1960,7 @@ async function readXlsx(file){
   ){
 
     throw Error(
-      '没有读取到任何工作表。'
+      '没有读取到工作表。'
     );
 
   }
@@ -1707,9 +1972,9 @@ async function readXlsx(file){
 
 
 
-/* ============================================================
-   Excel 表头
-============================================================ */
+/* ==========================================================
+   表头识别
+========================================================== */
 
 function findHeader(
   rows,
@@ -1718,15 +1983,18 @@ function findHeader(
 
   for(
     let r = 0;
-    r < Math.min(
-      rows.length,
-      30
-    );
+    r <
+      Math.min(
+        rows.length,
+        30
+      );
     r++
   ){
 
     const row =
-      rows[r] || [];
+      rows[r]
+      ||
+      [];
 
 
     for(
@@ -1735,24 +2003,27 @@ function findHeader(
       c++
     ){
 
-      const v =
-        canon(
+      const value =
+        canonText(
           row[c]
         );
 
 
       if(
         names.some(
-          n =>
-            v.includes(
-              canon(n)
+          name =>
+            value.includes(
+              canonText(name)
             )
         )
       ){
 
         return {
+
           row:r,
+
           col:c
+
         };
 
       }
@@ -1768,21 +2039,21 @@ function findHeader(
 
 
 
-/* ============================================================
-   TX负责人
-============================================================ */
+/* ==========================================================
+   TX 设计负责人
+========================================================== */
 
 function refreshOwners(){
 
-  const sel =
+  const select =
     $('txOwner');
 
 
-  const old =
-    sel.value;
+  const previous =
+    select.value;
 
 
-  sel.innerHTML =
+  select.innerHTML =
     '<option value="">全部设计负责人</option>';
 
 
@@ -1792,21 +2063,21 @@ function refreshOwners(){
     return;
 
 
-  const index =
-    Number(
-      $('sheetSel').value
-    );
-
-
   const sheet =
-    S.book[index];
+    S.book[
+      Number(
+        $('sheetSel').value
+      )
+    ];
 
 
-  if(!sheet)
+  if(
+    !sheet
+  )
     return;
 
 
-  const h =
+  const header =
     findHeader(
       sheet.rows,
       [
@@ -1815,10 +2086,13 @@ function refreshOwners(){
     );
 
 
-  if(!h){
+  if(
+    !header
+  ){
 
     $('txOwnerHint').textContent =
       '当前工作表未找到“设计负责人”表头，因此不限制负责人。';
+
 
     return;
 
@@ -1830,24 +2104,33 @@ function refreshOwners(){
       ...new Set(
 
         sheet.rows
+
           .slice(
-            h.row + 1
+            header.row + 1
           )
+
           .map(
-            r =>
+            row =>
               String(
-                (r || [])[h.col]
+                (row || [])[
+                  header.col
+                ]
                 ||
                 ''
               )
               .trim()
           )
+
           .filter(Boolean)
 
       )
     ]
+
     .sort(
-      (a,b) =>
+      (
+        a,
+        b
+      ) =>
         a.localeCompare(
           b,
           'zh-CN'
@@ -1856,7 +2139,8 @@ function refreshOwners(){
 
 
   for(
-    const name of names
+    const name
+    of names
   ){
 
     const option =
@@ -1873,7 +2157,7 @@ function refreshOwners(){
       name;
 
 
-    sel.appendChild(
+    select.appendChild(
       option
     );
 
@@ -1881,37 +2165,48 @@ function refreshOwners(){
 
 
   if(
-    names.includes(old)
+    names.includes(
+      previous
+    )
   ){
 
-    sel.value =
-      old;
+    select.value =
+      previous;
 
   }
 
 
   $('txOwnerHint').textContent =
+
     '已自动识别 '
+
     +
-    colName(h.col)
+
+    colName(
+      header.col
+    )
+
     +
+
     ' 列“设计负责人”，共 '
+
     +
+
     names.length
+
     +
-    ' 人；未选择时不限制。';
+
+    ' 人。';
 
 }
 
 
 
-/* ============================================================
-   Excel加载
-============================================================ */
+/* ==========================================================
+   加载 Excel
+========================================================== */
 
-async function loadExcel(
-  file
-){
+async function loadExcel(file){
 
   $('excelStatus').textContent =
     '正在读取 Excel…';
@@ -1925,6 +2220,10 @@ async function loadExcel(
       );
 
 
+    S.result =
+      null;
+
+
     $('sheetSel').innerHTML =
       '';
 
@@ -1932,25 +2231,27 @@ async function loadExcel(
     S.book.forEach(
       (
         sheet,
-        i
+        index
       ) => {
 
-        const o =
+        const option =
           document.createElement(
             'option'
           );
 
 
-        o.value =
-          i;
+        option.value =
+          index;
 
 
-        o.textContent =
+        option.textContent =
           sheet.name;
 
 
         $('sheetSel')
-          .appendChild(o);
+          .appendChild(
+            option
+          );
 
       }
     );
@@ -1958,41 +2259,55 @@ async function loadExcel(
 
     $('excelDz')
       .classList
-      .add('ok');
+      .add(
+        'ok'
+      );
 
 
     $('excelDz')
-      .querySelector('b')
+      .querySelector(
+        'b'
+      )
       .textContent =
         file.name;
 
 
     $('excelStatus').textContent =
+
       '已读取 '
+
       +
+
       S.book.length
+
       +
+
       ' 个工作表';
 
 
     refreshOwners();
 
+
+    resetResult();
+
   }
 
 
-  catch(e){
+  catch(error){
 
-    console.error(e);
+    console.error(
+      error
+    );
 
 
     $('excelStatus').textContent =
       '读取失败：'
       +
-      e.message;
+      error.message;
 
 
     alert(
-      e.message
+      error.message
     );
 
   }
@@ -2004,8 +2319,15 @@ async function loadExcel(
 $('sheetSel')
   .addEventListener(
     'change',
-    refreshOwners
+    () => {
+
+      refreshOwners();
+
+      resetResult();
+
+    }
   );
+
 
 
 $('excelDz')
@@ -2017,97 +2339,116 @@ $('excelDz')
   );
 
 
+
 $('excelInput')
   .addEventListener(
     'change',
-    e => {
+    event => {
 
       const file =
-        e.target
+        event.target
           .files?.[0];
 
 
-      if(file)
-        loadExcel(file);
+      if(
+        file
+      ){
+
+        loadExcel(
+          file
+        );
+
+      }
 
 
-      e.target.value =
+      event.target.value =
         '';
 
     }
   );
 
 
+
 $('excelDz')
   .addEventListener(
     'dragover',
-    e => {
+    event => {
 
-      e.preventDefault();
+      event.preventDefault();
 
-      e.stopPropagation();
+      event.stopPropagation();
+
 
       $('excelDz')
         .classList
-        .add('over');
+        .add(
+          'over'
+        );
 
     }
   );
+
 
 
 $('excelDz')
   .addEventListener(
     'dragleave',
-    e => {
+    event => {
 
-      e.stopPropagation();
+      event.stopPropagation();
+
 
       $('excelDz')
         .classList
-        .remove('over');
+        .remove(
+          'over'
+        );
 
     }
   );
+
 
 
 $('excelDz')
   .addEventListener(
     'drop',
-    e => {
+    event => {
 
-      e.preventDefault();
+      event.preventDefault();
 
-      e.stopPropagation();
+      event.stopPropagation();
 
 
       $('excelDz')
         .classList
-        .remove('over');
+        .remove(
+          'over'
+        );
 
 
       const file =
-        e.dataTransfer
+        event.dataTransfer
           .files?.[0];
 
 
-      if(file)
-        loadExcel(file);
+      if(
+        file
+      ){
+
+        loadExcel(
+          file
+        );
+
+      }
 
     }
   );
 
 
 
-/* ============================================================
+/* ==========================================================
    文件夹读取
-============================================================ */
-
-/*
- * path 是相对于用户选择的发包根目录。
- *
- * 根目录自己不会加入 dirs，
- * 所以根目录本身不会参与比对。
- */
+========================================================== */
 
 async function readTree(
   handle,
@@ -2125,31 +2466,41 @@ async function readTree(
     if(
       child.kind !==
       'directory'
-    )
+    ){
+
       continue;
+
+    }
 
 
     /*
-     * 已经整理过的目录不要再次参与比对。
+     * 已整理文件夹永久排除
      */
-
     if(
       child.name.startsWith(
         '_比对多余文件_'
       )
-    )
+    ){
+
       continue;
 
+    }
 
-    const p =
+
+    const relativePath =
+
       path
+
         ?
+
         path
         +
         '/'
         +
         child.name
+
         :
+
         child.name;
 
 
@@ -2159,13 +2510,23 @@ async function readTree(
         child.name,
 
       path:
-        p,
+        relativePath,
 
       handle:
         child,
 
       parentHandle:
-        handle
+        handle,
+
+      canonText:
+        canonText(
+          child.name
+        ),
+
+      canonCode:
+        extractFolderCode(
+          child.name
+        )
 
     });
 
@@ -2173,7 +2534,7 @@ async function readTree(
     const deeper =
       await readTree(
         child,
-        p
+        relativePath
       );
 
 
@@ -2213,7 +2574,13 @@ function addSet(
   });
 
 
+  S.result =
+    null;
+
+
   renderSets();
+
+  resetResult();
 
 }
 
@@ -2226,7 +2593,8 @@ function renderSets(){
 
 
   for(
-    const s of S.sets
+    const set
+    of S.sets
   ){
 
     const div =
@@ -2260,26 +2628,31 @@ function renderSets(){
       'span'
     )
     .textContent =
-      s.name;
+      set.name;
 
 
     div.querySelector(
       'span'
     )
     .title =
-      s.name;
+      set.name;
 
 
     div.querySelector(
       'small'
     )
     .textContent =
-      s.dirs.length
+
+      set.dirs.length
+
       +
+
       ' 个 · '
+
       +
+
       (
-        s.write
+        set.write
           ?
           '可整理'
           :
@@ -2296,8 +2669,10 @@ function renderSets(){
 
         S.sets =
           S.sets.filter(
-            x =>
-              x.id !== s.id
+            item =>
+              item.id
+              !==
+              set.id
           );
 
 
@@ -2307,7 +2682,6 @@ function renderSets(){
 
         renderSets();
 
-
         resetResult();
 
       }
@@ -2315,7 +2689,9 @@ function renderSets(){
 
 
     $('folders')
-      .appendChild(div);
+      .appendChild(
+        div
+      );
 
   }
 
@@ -2327,25 +2703,34 @@ function renderSets(){
     const total =
       S.sets.reduce(
         (
-          n,
-          s
+          count,
+          set
         ) =>
-          n
+          count
           +
-          s.dirs.length,
+          set.dirs.length,
         0
       );
 
 
     $('folderStatus').textContent =
+
       '已累积 '
+
       +
+
       S.sets.length
+
       +
+
       ' 个根目录，共 '
+
       +
+
       total
+
       +
+
       ' 个子目录';
 
   }
@@ -2362,14 +2747,19 @@ function renderSets(){
 
 
 
+/* ==========================================================
+   系统选择器
+========================================================== */
+
 async function pick(){
 
   if(
-    !window.showDirectoryPicker
+    !window
+      .showDirectoryPicker
   ){
 
     alert(
-      '当前浏览器不支持系统文件夹选择器。\n\n请使用最新版 Edge / Chrome，或者使用“兼容模式”。'
+      '当前浏览器不支持系统选择器。\n\n请使用最新版 Edge / Chrome，或使用兼容模式。'
     );
 
     return;
@@ -2379,38 +2769,51 @@ async function pick(){
 
   try{
 
-    const h =
-      await window.showDirectoryPicker({
-        mode:'readwrite'
-      });
+    const handle =
+      await window
+        .showDirectoryPicker({
+
+          mode:
+            'readwrite'
+
+        });
 
 
-    let write =
+    let writable =
       false;
 
 
     try{
 
-      let perm =
-        await h.queryPermission({
-          mode:'readwrite'
-        });
+      let permission =
+        await handle
+          .queryPermission({
+
+            mode:
+              'readwrite'
+
+          });
 
 
       if(
-        perm === 'prompt'
+        permission ===
+        'prompt'
       ){
 
-        perm =
-          await h.requestPermission({
-            mode:'readwrite'
-          });
+        permission =
+          await handle
+            .requestPermission({
+
+              mode:
+                'readwrite'
+
+            });
 
       }
 
 
-      write =
-        perm ===
+      writable =
+        permission ===
         'granted';
 
     }
@@ -2418,40 +2821,49 @@ async function pick(){
 
     catch{
 
-      write =
+      writable =
         false;
 
     }
 
 
     const dirs =
-      await readTree(h);
+      await readTree(
+        handle
+      );
 
 
     addSet(
-      h.name,
+
+      handle.name,
+
       dirs,
-      h,
-      write
+
+      handle,
+
+      writable
+
     );
 
   }
 
 
-  catch(e){
+  catch(error){
 
     if(
-      e.name !==
+      error.name !==
       'AbortError'
     ){
 
-      console.error(e);
+      console.error(
+        error
+      );
 
 
       alert(
         '读取失败：'
         +
-        e.message
+        error.message
       );
 
     }
@@ -2465,31 +2877,49 @@ async function pick(){
 $('pick')
   .addEventListener(
     'click',
+    event => {
+
+      event.stopPropagation();
+
+      pick();
+
+    }
+  );
+
+
+
+$('folderDz')
+  .addEventListener(
+    'click',
     pick
   );
 
 
 
-/* ============================================================
+/* ==========================================================
    拖入文件夹
-============================================================ */
+========================================================== */
 
-async function handleFolderDrop(e){
+async function handleFolderDrop(
+  event
+){
 
-  e.preventDefault();
+  event.preventDefault();
 
-  e.stopPropagation();
+  event.stopPropagation();
 
 
   $('folderDz')
     .classList
-    .remove('over');
+    .remove(
+      'over'
+    );
 
 
   const items =
     [
       ...(
-        e.dataTransfer
+        event.dataTransfer
           ?.items
         ||
         []
@@ -2497,7 +2927,8 @@ async function handleFolderDrop(e){
     ];
 
 
-  const handles = [];
+  const handles =
+    [];
 
 
   try{
@@ -2510,29 +2941,38 @@ async function handleFolderDrop(e){
       if(
         item.kind !==
         'file'
-      )
+      ){
+
         continue;
+
+      }
 
 
       if(
-        typeof item.getAsFileSystemHandle
+        typeof item
+          .getAsFileSystemHandle
         !==
         'function'
-      )
+      ){
+
         continue;
 
+      }
 
-      const h =
+
+      const handle =
         await item
           .getAsFileSystemHandle();
 
 
       if(
-        h?.kind ===
+        handle?.kind ===
         'directory'
       ){
 
-        handles.push(h);
+        handles.push(
+          handle
+        );
 
       }
 
@@ -2544,7 +2984,7 @@ async function handleFolderDrop(e){
     ){
 
       alert(
-        '当前浏览器无法直接读取拖入的文件夹。\n\n请点击“系统选择器（可整理）”或者“兼容模式”选择文件夹。'
+        '当前浏览器无法直接读取拖入目录，请使用“系统选择器（可整理）”。'
       );
 
       return;
@@ -2553,37 +2993,45 @@ async function handleFolderDrop(e){
 
 
     for(
-      const h
+      const handle
       of handles
     ){
 
-      let write =
+      let writable =
         false;
 
 
       try{
 
-        let perm =
-          await h.queryPermission({
-            mode:'readwrite'
-          });
+        let permission =
+          await handle
+            .queryPermission({
+
+              mode:
+                'readwrite'
+
+            });
 
 
         if(
-          perm ===
+          permission ===
           'prompt'
         ){
 
-          perm =
-            await h.requestPermission({
-              mode:'readwrite'
-            });
+          permission =
+            await handle
+              .requestPermission({
+
+                mode:
+                  'readwrite'
+
+              });
 
         }
 
 
-        write =
-          perm ===
+        writable =
+          permission ===
           'granted';
 
       }
@@ -2591,21 +3039,28 @@ async function handleFolderDrop(e){
 
       catch{
 
-        write =
+        writable =
           false;
 
       }
 
 
       const dirs =
-        await readTree(h);
+        await readTree(
+          handle
+        );
 
 
       addSet(
-        h.name,
+
+        handle.name,
+
         dirs,
-        h,
-        write
+
+        handle,
+
+        writable
+
       );
 
     }
@@ -2613,22 +3068,24 @@ async function handleFolderDrop(e){
 
     $('folderDz')
       .classList
-      .add('ok');
+      .add(
+        'ok'
+      );
 
   }
 
 
-  catch(err){
+  catch(error){
 
-    console.error(err);
+    console.error(
+      error
+    );
 
 
     alert(
       '拖入文件夹读取失败：'
       +
-      err.message
-      +
-      '\n\n请改用“系统选择器（可整理）”。'
+      error.message
     );
 
   }
@@ -2639,73 +3096,65 @@ async function handleFolderDrop(e){
 
 $('folderDz')
   .addEventListener(
-    'click',
-    pick
-  );
-
-
-$('folderDz')
-  .addEventListener(
     'dragenter',
-    e => {
+    event => {
 
-      e.preventDefault();
+      event.preventDefault();
 
-      e.stopPropagation();
+      event.stopPropagation();
 
 
       $('folderDz')
         .classList
-        .add('over');
+        .add(
+          'over'
+        );
 
     }
   );
+
 
 
 $('folderDz')
   .addEventListener(
     'dragover',
-    e => {
+    event => {
 
-      e.preventDefault();
+      event.preventDefault();
 
-      e.stopPropagation();
-
-
-      if(
-        e.dataTransfer
-      ){
-
-        e.dataTransfer.dropEffect =
-          'copy';
-
-      }
+      event.stopPropagation();
 
 
       $('folderDz')
         .classList
-        .add('over');
+        .add(
+          'over'
+        );
 
     }
   );
+
 
 
 $('folderDz')
   .addEventListener(
     'dragleave',
-    e => {
+    event => {
 
-      e.preventDefault();
+      event.preventDefault();
 
-      e.stopPropagation();
+      event.stopPropagation();
 
 
       $('folderDz')
         .classList
-        .remove('over');
+        .remove(
+          'over'
+        );
 
     }
   );
+
 
 
 $('folderDz')
@@ -2716,67 +3165,17 @@ $('folderDz')
 
 
 
-window
-  .addEventListener(
-    'dragover',
-    e => {
-
-      if(
-        [
-          ...(
-            e.dataTransfer
-              ?.types
-            ||
-            []
-          )
-        ]
-        .includes('Files')
-      ){
-
-        e.preventDefault();
-
-      }
-
-    }
-  );
-
-
-window
-  .addEventListener(
-    'drop',
-    e => {
-
-      if(
-        [
-          ...(
-            e.dataTransfer
-              ?.types
-            ||
-            []
-          )
-        ]
-        .includes('Files')
-      ){
-
-        e.preventDefault();
-
-      }
-
-    }
-  );
-
-
-
-/* ============================================================
+/* ==========================================================
    兼容模式
-============================================================ */
+========================================================== */
 
 $('compat')
   .addEventListener(
     'click',
-    e => {
+    event => {
 
-      e.stopPropagation();
+      event.stopPropagation();
+
 
       $('folderInput')
         .click();
@@ -2789,11 +3188,12 @@ $('compat')
 $('folderInput')
   .addEventListener(
     'change',
-    e => {
+    event => {
 
       const files =
         [
-          ...e.target.files
+          ...event.target
+            .files
         ];
 
 
@@ -2803,11 +3203,14 @@ $('folderInput')
         return;
 
 
-      const root =
+      const rootName =
+
         (
           files[0]
             ?.webkitRelativePath
+
           ||
+
           '兼容模式'
         )
         .split('/')[0];
@@ -2818,67 +3221,68 @@ $('folderInput')
 
 
       for(
-        const f
+        const file
         of files
       ){
 
-        const ps =
-          f.webkitRelativePath
+        const parts =
+          file
+            .webkitRelativePath
             .split('/')
             .filter(Boolean);
 
 
-        /*
-         * ps:
-         *
-         * 根目录/一级目录/二级目录/文件
-         *
-         * 只收集目录，
-         * 不收集根目录和文件名。
-         */
-
         for(
           let i = 1;
-          i < ps.length - 1;
+          i < parts.length - 1;
           i++
         ){
 
+          if(
+            parts[i]
+              .startsWith(
+                '_比对多余文件_'
+              )
+          ){
+
+            continue;
+
+          }
+
+
           const path =
-            ps.slice(
-              1,
-              i + 1
-            )
-            .join('/');
+            parts
+              .slice(
+                1,
+                i + 1
+              )
+              .join('/');
 
 
           if(
-            !map.has(path)
+            !map.has(
+              path
+            )
           ){
-
-            /*
-             * 整理目录本身不重新参与比对
-             */
-
-            if(
-              ps[i]
-                .startsWith(
-                  '_比对多余文件_'
-                )
-            ){
-
-              continue;
-
-            }
-
 
             map.set(
               path,
               {
 
                 name:
-                  ps[i],
+                  parts[i],
 
-                path
+                path,
+
+                canonText:
+                  canonText(
+                    parts[i]
+                  ),
+
+                canonCode:
+                  extractFolderCode(
+                    parts[i]
+                  )
 
               }
             );
@@ -2891,21 +3295,26 @@ $('folderInput')
 
 
       addSet(
-        root,
+
+        rootName,
+
         [
           ...map.values()
         ],
+
         null,
+
         false
+
       );
 
 
-      e.target.value =
+      event.target.value =
         '';
 
 
       alert(
-        '兼容模式已加载。\n\n可以正常比对和导出 CSV，但是浏览器没有获得文件夹写入权限，因此不能自动移动多余文件夹。'
+        '兼容模式加载成功。\n\n可以比对和导出，但不能自动移动文件夹。'
       );
 
     }
@@ -2926,10 +3335,13 @@ $('clearFolders')
 
       if(
         !confirm(
-          '确定清空当前已经加载的所有文件夹吗？\n\n不会删除电脑中的任何真实文件。'
+          '确定清空当前加载的所有目录吗？\n\n不会删除电脑上的真实文件。'
         )
-      )
+      ){
+
         return;
+
+      }
 
 
       S.sets =
@@ -2942,7 +3354,6 @@ $('clearFolders')
 
       renderSets();
 
-
       resetResult();
 
     }
@@ -2950,14 +3361,18 @@ $('clearFolders')
 
 
 
-/* ============================================================
-   厂区判断
-============================================================ */
+/* ==========================================================
+   厂区
+========================================================== */
 
-function selectedFactory(v){
+function selectedFactory(
+  value
+){
 
   const c =
-    canon(v);
+    canonText(
+      value
+    );
 
 
   const selected =
@@ -2968,8 +3383,8 @@ function selectedFactory(v){
         )
     ]
     .map(
-      x =>
-        x.value
+      item =>
+        item.value
     );
 
 
@@ -2977,19 +3392,22 @@ function selectedFactory(v){
     selected.includes(
       'suzhou'
     )
+    &&
+    (
+      c.includes(
+        '苏州'
+      )
+      ||
+      c ===
+      '1000'
+      ||
+      c.includes(
+        'SUZHOU'
+      )
+    )
   ){
 
-    if(
-      c.includes('苏州')
-      ||
-      c === '1000'
-      ||
-      c.includes('SUZHOU')
-    ){
-
-      return true;
-
-    }
+    return true;
 
   }
 
@@ -2998,19 +3416,22 @@ function selectedFactory(v){
     selected.includes(
       'tongling'
     )
+    &&
+    (
+      c.includes(
+        '铜陵'
+      )
+      ||
+      c ===
+      '2000'
+      ||
+      c.includes(
+        'TONGLING'
+      )
+    )
   ){
 
-    if(
-      c.includes('铜陵')
-      ||
-      c === '2000'
-      ||
-      c.includes('TONGLING')
-    ){
-
-      return true;
-
-    }
+    return true;
 
   }
 
@@ -3019,21 +3440,26 @@ function selectedFactory(v){
     selected.includes(
       'thailand'
     )
+    &&
+    (
+      c.includes(
+        '泰国'
+      )
+      ||
+      c ===
+      '5000'
+      ||
+      c.includes(
+        'THAILAND'
+      )
+      ||
+      c.includes(
+        'TERAHOP'
+      )
+    )
   ){
 
-    if(
-      c.includes('泰国')
-      ||
-      c === '5000'
-      ||
-      c.includes('THAILAND')
-      ||
-      c.includes('TERAHOP')
-    ){
-
-      return true;
-
-    }
+    return true;
 
   }
 
@@ -3044,9 +3470,11 @@ function selectedFactory(v){
 
 
 
-function autoFactory(rows){
+function autoFactory(
+  rows
+){
 
-  const h =
+  const header =
     findHeader(
       rows,
       [
@@ -3057,9 +3485,9 @@ function autoFactory(rows){
     );
 
 
-  return h
+  return header
     ?
-    h.col
+    header.col
     :
     -1;
 
@@ -3067,9 +3495,9 @@ function autoFactory(rows){
 
 
 
-/* ============================================================
-   Excel提取
-============================================================ */
+/* ==========================================================
+   Excel 数据提取
+========================================================== */
 
 function extract(){
 
@@ -3109,12 +3537,15 @@ function extract(){
 
   const start =
     Math.max(
+
       0,
+
       Number(
         $('startRow').value
       )
       -
       1
+
     );
 
 
@@ -3130,46 +3561,58 @@ function extract(){
         /[,，\s]+/
       )
       .map(
-        x =>
-          x.trim()
+        item =>
+          item.trim()
       )
       .filter(Boolean);
 
 
-  const out = [];
+  const out =
+    [];
 
-
-  /*
-   * TX表头
-   */
 
   const ownerHeader =
-    mode === 'tx'
+    mode ===
+    'tx'
+
       ?
+
       findHeader(
         rows,
-        ['设计负责人']
+        [
+          '设计负责人'
+        ]
       )
+
       :
+
       null;
 
 
   const deptHeader =
-    mode === 'tx'
+    mode ===
+    'tx'
+
       ?
+
       findHeader(
         rows,
         [
           '需求部门'
         ]
       )
+
       :
+
       null;
 
 
   const codeHeader =
-    mode === 'tx'
+    mode ===
+    'tx'
+
       ?
+
       findHeader(
         rows,
         [
@@ -3177,13 +3620,18 @@ function extract(){
           '治具编号'
         ]
       )
+
       :
+
       null;
 
 
   const nameHeader =
-    mode === 'tx'
+    mode ===
+    'tx'
+
       ?
+
       findHeader(
         rows,
         [
@@ -3192,7 +3640,9 @@ function extract(){
           '治具名称+型号'
         ]
       )
+
       :
+
       null;
 
 
@@ -3200,43 +3650,49 @@ function extract(){
     $('txOwner').value;
 
 
-  let factoryCol =
+  let factoryColumn =
     colIdx(
       $('factoryCol').value
     );
 
 
   if(
-    mode !== 'tx'
+    mode !==
+    'tx'
     &&
     $('factoryOn').checked
   ){
 
     if(
-      factoryCol < 0
+      factoryColumn <
+      0
     ){
 
-      factoryCol =
-        autoFactory(rows);
+      factoryColumn =
+        autoFactory(
+          rows
+        );
 
     }
 
 
     if(
-      factoryCol < 0
+      factoryColumn <
+      0
     ){
 
       throw Error(
-        '已启用厂区 / 工厂筛选，但没有找到“厂区”或“工厂”表头。\n\n请在“厂区 / 工厂列”手动填写列字母，例如 B 或 K。'
+        '没有自动找到“厂区 / 工厂”列，请手动填写列字母。'
       );
 
     }
 
 
     if(
-      !document.querySelector(
-        '.factory:checked'
-      )
+      !document
+        .querySelector(
+          '.factory:checked'
+        )
     ){
 
       throw Error(
@@ -3248,20 +3704,22 @@ function extract(){
   }
 
 
-  const dataCol =
+  const dataColumn =
     colIdx(
       $('dataCol').value
     );
 
 
   if(
-    mode !== 'tx'
+    mode !==
+    'tx'
     &&
-    dataCol < 0
+    dataColumn <
+    0
   ){
 
     throw Error(
-      '比对列填写错误，例如 C、F、AA。'
+      '比对列填写错误。'
     );
 
   }
@@ -3275,78 +3733,89 @@ function extract(){
   ){
 
     const row =
-      rows[r] || [];
+      rows[r]
+      ||
+      [];
 
 
-    let code = '';
+    let code =
+      '';
 
-    let name = '';
 
-    let display = '';
+    let name =
+      '';
 
-    let hasCode =
-      false;
+
+    let display =
+      '';
+
+
+    let owner =
+      '';
 
 
     if(
-      mode === 'tx'
+      mode ===
+      'tx'
     ){
 
-      /*
-       * 如果自动找到表头就使用表头，
-       * 找不到则使用用户提供这张表对应的固定列：
-       *
-       * F列 需求部门
-       * T列 治工具编号
-       * C列 治工具名称
-       */
+      const deptColumn =
 
-      const deptCol =
         deptHeader
+
           ?
+
           deptHeader.col
+
           :
+
           5;
 
 
-      const codeCol =
+      const codeColumn =
+
         codeHeader
+
           ?
+
           codeHeader.col
+
           :
+
           19;
 
 
-      const nameCol =
+      const nameColumn =
+
         nameHeader
+
           ?
+
           nameHeader.col
+
           :
+
           2;
 
 
-      const dept =
+      const department =
         String(
-          row[deptCol]
+          row[
+            deptColumn
+          ]
           ||
           ''
         )
         .trim();
 
 
-      /*
-       * 只有需求部门里带 TX 的才参与。
-       *
-       * 例如：
-       *
-       * 制造部_制造工程_TX制程
-       * 制造部_制造工程_TX制程_NPI
-       * 制造部_制造工程_TX制程_苏州
-       */
-
       if(
-        !canon(dept)
-          .includes('TX')
+        !canonText(
+          department
+        )
+        .includes(
+          'TX'
+        )
       ){
 
         continue;
@@ -3355,12 +3824,10 @@ function extract(){
 
 
       if(
-        selectedOwner
-        &&
         ownerHeader
       ){
 
-        const currentOwner =
+        owner =
           String(
             row[
               ownerHeader.col
@@ -3370,22 +3837,26 @@ function extract(){
           )
           .trim();
 
+      }
 
-        if(
-          currentOwner !==
-          selectedOwner
-        ){
 
-          continue;
+      if(
+        selectedOwner
+        &&
+        owner !==
+        selectedOwner
+      ){
 
-        }
+        continue;
 
       }
 
 
       code =
         String(
-          row[codeCol]
+          row[
+            codeColumn
+          ]
           ||
           ''
         )
@@ -3394,15 +3865,13 @@ function extract(){
 
       name =
         String(
-          row[nameCol]
+          row[
+            nameColumn
+          ]
           ||
           ''
         )
         .trim();
-
-
-      hasCode =
-        !!code;
 
 
       if(
@@ -3417,18 +3886,14 @@ function extract(){
 
 
       display =
-        code
-          ?
-          (
-            code
-            +
-            ' '
-            +
-            name
-          )
-          .trim()
-          :
-          name;
+        (
+          code
+          +
+          ' '
+          +
+          name
+        )
+        .trim();
 
     }
 
@@ -3439,7 +3904,9 @@ function extract(){
         $('factoryOn').checked
         &&
         !selectedFactory(
-          row[factoryCol]
+          row[
+            factoryColumn
+          ]
         )
       ){
 
@@ -3450,7 +3917,9 @@ function extract(){
 
       display =
         String(
-          row[dataCol]
+          row[
+            dataColumn
+          ]
           ||
           ''
         )
@@ -3459,10 +3928,6 @@ function extract(){
 
       code =
         display;
-
-
-      hasCode =
-        true;
 
 
       if(
@@ -3479,23 +3944,27 @@ function extract(){
     /*
      * 首字母过滤
      */
-
     if(
-      hasCode
+      code
       &&
       prefixes.length
     ){
 
-      const cc =
-        canon(code);
+      const normalizedCode =
+        canonCode(
+          code
+        );
 
 
       if(
         !prefixes.some(
           prefix =>
-            cc.startsWith(
-              canon(prefix)
-            )
+            normalizedCode
+              .startsWith(
+                canonCode(
+                  prefix
+                )
+              )
         )
       ){
 
@@ -3515,36 +3984,33 @@ function extract(){
 
       code,
 
-      hasCode,
+      name,
 
-      owner:
-        ownerHeader
-          ?
-          String(
-            row[
-              ownerHeader.col
-            ]
-            ||
-            ''
-          )
-          .trim()
-          :
-          '',
+      owner,
 
-      canon:
-        canon(display),
+      textCanon:
+        canonText(
+          display
+        ),
 
+      /*
+       * ★ TX编号保护核心
+       */
       codeCanon:
-        canon(code)
+        canonCode(
+          code
+        )
 
     };
 
 
     if(
-      item.canon
+      item.textCanon
     ){
 
-      out.push(item);
+      out.push(
+        item
+      );
 
     }
 
@@ -3553,11 +4019,8 @@ function extract(){
 
 
   /*
-   * 去除 Excel 自身重复项。
-   *
-   * TX 优先按治工具编号判定重复。
+   * 去重
    */
-
   const seen =
     new Set();
 
@@ -3566,21 +4029,29 @@ function extract(){
     item => {
 
       const key =
-        mode === 'tx'
+
+        mode ===
+        'tx'
         &&
         item.codeCanon
+
           ?
+
           'CODE:'
           +
           item.codeCanon
+
           :
+
           'TEXT:'
           +
-          item.canon;
+          item.textCanon;
 
 
       if(
-        seen.has(key)
+        seen.has(
+          key
+        )
       ){
 
         return false;
@@ -3588,7 +4059,9 @@ function extract(){
       }
 
 
-      seen.add(key);
+      seen.add(
+        key
+      );
 
 
       return true;
@@ -3600,9 +4073,76 @@ function extract(){
 
 
 
-/* ============================================================
+/* ==========================================================
+   TX 编号匹配
+========================================================== */
+
+function txCodeMatches(
+  excelItem,
+  folder
+){
+
+  if(
+    !excelItem.codeCanon
+  ){
+
+    return false;
+
+  }
+
+
+  if(
+    !folder.canonCode
+  ){
+
+    return false;
+
+  }
+
+
+  /*
+   * 首选完全编号一致
+   */
+  if(
+    folder.canonCode
+    ===
+    excelItem.codeCanon
+  ){
+
+    return true;
+
+  }
+
+
+  /*
+   * 第二层容错：
+   *
+   * 目录名字中的编号包含 Excel 编号，
+   * 或 Excel 编号包含目录识别编号。
+   */
+  return (
+
+    folder.canonCode
+      .includes(
+        excelItem.codeCanon
+      )
+
+    ||
+
+    excelItem.codeCanon
+      .includes(
+        folder.canonCode
+      )
+
+  );
+
+}
+
+
+
+/* ==========================================================
    比对
-============================================================ */
+========================================================== */
 
 function compare(){
 
@@ -3612,27 +4152,46 @@ function compare(){
       extract();
 
 
-    const folders = [];
+    const folders =
+      [];
 
 
     for(
-      const s
+      const set
       of S.sets
     ){
 
       for(
-        const d
-        of s.dirs
+        const dir
+        of set.dirs
       ){
 
         folders.push({
 
-          ...d,
+          ...dir,
 
-          root:s,
+          root:
+            set,
 
-          canon:
-            canon(d.name)
+          textCanon:
+
+            dir.canonText
+
+            ||
+
+            canonText(
+              dir.name
+            ),
+
+          codeCanon:
+
+            dir.canonCode
+
+            ||
+
+            extractFolderCode(
+              dir.name
+            )
 
         });
 
@@ -3652,17 +4211,17 @@ function compare(){
     }
 
 
-    const used =
+    const usedFolders =
       new Set();
 
 
-    const matched =
+    const matchedExcel =
       new Set();
 
 
-    /*
-     * Excel 每一项寻找一个文件夹。
-     */
+    const mode =
+      $('mode').value;
+
 
     for(
       let i = 0;
@@ -3670,141 +4229,176 @@ function compare(){
       i++
     ){
 
-      const e =
+      const excel =
         expected[i];
 
 
-      let foundIndex =
+      let found =
         -1;
 
 
       /*
-       * TX：
-       *
-       * 最优先通过治工具编号匹配。
-       *
-       * Excel：
-       * TI6ZZ64002001~TI6ZZ64002024
-       *
-       * 文件夹：
-       * TI6ZZ64002001~TI6ZZ64002024 800G...
-       *
-       * 直接算匹配。
+       * ======================================
+       * TX 第一优先级：
+       * 只看编号
+       * ======================================
        */
-
       if(
-        $('mode').value ===
+        mode ===
         'tx'
         &&
-        e.hasCode
-        &&
-        e.codeCanon
+        excel.codeCanon
       ){
 
-        foundIndex =
-          folders.findIndex(
-            (
-              f,
-              k
-            ) => {
+        found =
+          folders
+            .findIndex(
+              (
+                folder,
+                index
+              ) => {
 
-              if(
-                used.has(k)
-              )
-                return false;
+                if(
+                  usedFolders.has(
+                    index
+                  )
+                ){
+
+                  return false;
+
+                }
 
 
-              return f.canon
-                .includes(
-                  e.codeCanon
+                return txCodeMatches(
+                  excel,
+                  folder
                 );
 
-            }
-          );
+              }
+            );
 
       }
 
 
       /*
-       * 普通完整内容比对。
+       * 第二优先级：
+       * 完整文本
        */
-
       if(
-        foundIndex < 0
+        found <
+        0
       ){
 
-        foundIndex =
-          folders.findIndex(
-            (
-              f,
-              k
-            ) => {
+        found =
+          folders
+            .findIndex(
+              (
+                folder,
+                index
+              ) => {
 
-              if(
-                used.has(k)
-              )
-                return false;
-
-
-              if(
-                f.canon ===
-                e.canon
-              )
-                return true;
-
-
-              if(
-                !$('contains').checked
-              )
-                return false;
-
-
-              return (
-
-                f.canon
-                  .includes(
-                    e.canon
+                if(
+                  usedFolders.has(
+                    index
                   )
+                ){
 
-                ||
+                  return false;
 
-                e.canon
-                  .includes(
-                    f.canon
-                  )
+                }
 
-              );
 
-            }
-          );
+                if(
+                  folder.textCanon
+                  ===
+                  excel.textCanon
+                ){
+
+                  return true;
+
+                }
+
+
+                if(
+                  !$('contains')
+                    .checked
+                ){
+
+                  return false;
+
+                }
+
+
+                return (
+
+                  folder.textCanon
+                    .includes(
+                      excel.textCanon
+                    )
+
+                  ||
+
+                  excel.textCanon
+                    .includes(
+                      folder.textCanon
+                    )
+
+                );
+
+              }
+            );
 
       }
 
 
       if(
-        foundIndex >= 0
+        found >=
+        0
       ){
 
-        used.add(
-          foundIndex
+        usedFolders.add(
+          found
         );
 
 
-        matched.add(i);
+        matchedExcel.add(
+          i
+        );
 
 
-        e.match =
+        excel.match =
           folders[
-            foundIndex
+            found
           ]
           .name;
 
 
-        e.matchPath =
+        excel.matchPath =
           folders[
-            foundIndex
+            found
           ]
           .path;
+
+
+        excel.matchType =
+
+          mode ===
+          'tx'
+          &&
+          txCodeMatches(
+            excel,
+            folders[
+              found
+            ]
+          )
+
+            ?
+
+            '编号匹配'
+
+            :
+
+            '文本匹配';
 
       }
 
@@ -3814,31 +4408,89 @@ function compare(){
     const missing =
       expected.filter(
         (
-          e,
-          i
+          item,
+          index
         ) =>
-          !matched.has(i)
+          !matchedExcel.has(
+            index
+          )
       );
 
 
     const extras =
       folders.filter(
         (
-          f,
-          i
+          folder,
+          index
         ) =>
-          !used.has(i)
+          !usedFolders.has(
+            index
+          )
       );
 
 
     const matchedFolders =
       folders.filter(
         (
-          f,
-          i
+          folder,
+          index
         ) =>
-          used.has(i)
+          usedFolders.has(
+            index
+          )
       );
+
+
+    /*
+     * 给多余目录加保护状态。
+     */
+    for(
+      const folder
+      of extras
+    ){
+
+      const protection =
+        getExcelCodeProtection(
+          folder,
+          expected
+        );
+
+
+      folder.protectedByExcel =
+        protection.protected;
+
+
+      folder.protectedExcelRow =
+        protection.row;
+
+
+      folder.protectedExcelCode =
+        protection.code;
+
+
+      folder.extraReason =
+
+        protection.protected
+
+          ?
+
+          '前序匹配未命中，但编号仍存在于 Excel，禁止移动'
+
+          :
+
+          (
+            folder.codeCanon
+
+              ?
+
+              '未找到对应 Excel 编号或文本'
+
+              :
+
+              '文件夹未识别到有效编号，且文本未匹配'
+          );
+
+    }
 
 
     S.result = {
@@ -3870,12 +4522,15 @@ function compare(){
   }
 
 
-  catch(e){
+  catch(error){
 
-    console.error(e);
+    console.error(
+      error
+    );
+
 
     alert(
-      e.message
+      error.message
     );
 
   }
@@ -3892,66 +4547,208 @@ $('run')
 
 
 
-/* ============================================================
-   可安全移动的多余目录
-============================================================ */
+/* ==========================================================
+   ★ Excel 编号二次保护
+========================================================== */
+
+function getExcelCodeProtection(
+  folder,
+  expected
+){
+
+  if(
+    !folder
+      .codeCanon
+  ){
+
+    return {
+
+      protected:
+        false,
+
+      row:
+        null,
+
+      code:
+        ''
+
+    };
+
+  }
+
+
+  for(
+    const excel
+    of expected
+  ){
+
+    if(
+      !excel
+        .codeCanon
+    ){
+
+      continue;
+
+    }
+
+
+    if(
+
+      folder
+        .codeCanon
+        ===
+        excel
+          .codeCanon
+
+      ||
+
+      folder
+        .codeCanon
+        .includes(
+          excel
+            .codeCanon
+        )
+
+      ||
+
+      excel
+        .codeCanon
+        .includes(
+          folder
+            .codeCanon
+        )
+
+    ){
+
+      return {
+
+        protected:
+          true,
+
+        row:
+          excel.row,
+
+        code:
+          excel.code
+
+      };
+
+    }
+
+  }
+
+
+  return {
+
+    protected:
+      false,
+
+    row:
+      null,
+
+    code:
+      ''
+
+  };
+
+}
+
+
 
 /*
- * 特别重要：
+ * 整理前再次独立调用。
  *
- * 假设目录结构是：
+ * 不相信 extras 结果。
  *
- * 项目A
- * ├─ 正常文件夹
- * └─ 多余文件夹
- *
- * 如果“项目A”本身被判定为多余，
- * 但它内部存在已经成功匹配的文件夹，
- * 我们不能直接把整个项目A移动走。
- *
- * 所以只有：
- *
- * 1. 目录自身是多余
- * 2. 目录下没有任何已匹配目录
- *
- * 才允许整理。
+ * 每个目录移动前都重新检查 Excel 编号。
  */
+function isProtectedByExcelCode(
+  folder
+){
+
+  if(
+    !S.result
+  ){
+
+    return true;
+
+  }
+
+
+  return getExcelCodeProtection(
+
+    folder,
+
+    S.result.expected
+
+  ).protected;
+
+}
+
+
+
+/* ==========================================================
+   安全可移动目录
+========================================================== */
 
 function getSafeMovableExtras(){
 
   if(
     !S.result
-  )
+  ){
+
     return [];
 
-
-  const result =
-    S.result;
+  }
 
 
+  /*
+   * 第一层：
+   * 必须有真实文件系统 Handle。
+   */
   const candidates =
-    result.extras.filter(
-      x =>
+    S.result.extras.filter(
+      item =>
 
-        x.handle
+        item.handle
+
         &&
-        x.parentHandle
+
+        item.parentHandle
+
         &&
-        x.root
+
+        item.root
           ?.handle
+
         &&
-        x.root
+
+        item.root
           ?.write
 
     );
 
 
   /*
-   * 排除包含匹配子目录的父目录。
+   * 第二层：
+   * ★ Excel编号保护。
    */
-
-  const safe =
+  const notProtected =
     candidates.filter(
+      item =>
+        !isProtectedByExcelCode(
+          item
+        )
+    );
+
+
+  /*
+   * 第三层：
+   * 如果“多余父目录”内部存在已经匹配成功的目录，
+   * 不允许移动整个父目录。
+   */
+  const safe =
+    notProtected.filter(
       extra => {
 
         const prefix =
@@ -3961,7 +4758,9 @@ function getSafeMovableExtras(){
 
 
         const containsMatchedChild =
-          result.matchedFolders
+
+          S.result
+            .matchedFolders
             .some(
               matched =>
 
@@ -3979,26 +4778,22 @@ function getSafeMovableExtras(){
             );
 
 
-        return !containsMatchedChild;
+        return !
+          containsMatchedChild;
 
       }
     );
 
 
   /*
-   * 如果：
+   * 第四层：
    *
    * A
    * A/B
    * A/B/C
    *
-   * 都是多余，
-   * 只移动 A。
-   *
-   * 否则移动 A 之后，
-   * B/C 的 Handle 就会失效。
+   * 都是多余时，只移动 A。
    */
-
   safe.sort(
     (
       a,
@@ -4014,11 +4809,11 @@ function getSafeMovableExtras(){
       b.path
         .split('/')
         .length
-
   );
 
 
-  const selected = [];
+  const result =
+    [];
 
 
   for(
@@ -4027,7 +4822,7 @@ function getSafeMovableExtras(){
   ){
 
     const alreadyCovered =
-      selected.some(
+      result.some(
         parent =>
 
           parent.root.id
@@ -4050,7 +4845,7 @@ function getSafeMovableExtras(){
       !alreadyCovered
     ){
 
-      selected.push(
+      result.push(
         item
       );
 
@@ -4059,11 +4854,15 @@ function getSafeMovableExtras(){
   }
 
 
-  return selected;
+  return result;
 
 }
 
 
+
+/* ==========================================================
+   整理按钮状态
+========================================================== */
 
 function updateMoveButton(){
 
@@ -4076,7 +4875,7 @@ function updateMoveButton(){
 
 
     $('moveHint').textContent =
-      '比对完成后，如存在具有读写权限的多余目录，此按钮会启用。';
+      '比对完成后，如存在安全可整理目录，此按钮会启用。';
 
 
     return;
@@ -4088,12 +4887,23 @@ function updateMoveButton(){
     S.result.extras;
 
 
+  const protectedCount =
+    extras.filter(
+      item =>
+        isProtectedByExcelCode(
+          item
+        )
+    )
+    .length;
+
+
   const movable =
     getSafeMovableExtras();
 
 
   $('move').disabled =
-    movable.length === 0;
+    movable.length ===
+    0;
 
 
   if(
@@ -4106,32 +4916,35 @@ function updateMoveButton(){
   }
 
 
-  else if(
-    !movable.length
-  ){
-
-    $('moveHint').textContent =
-      '检测到 '
-      +
-      extras.length
-      +
-      ' 个多余目录，但当前没有可安全自动整理的目录。可能是兼容模式只读，或多余父目录内部存在正常匹配项目。';
-
-  }
-
-
   else{
 
     $('moveHint').textContent =
-      '检测到 '
+
+      '多余目录 '
+
       +
+
       extras.length
+
       +
-      ' 个多余目录，其中 '
+
+      ' 个；Excel编号安全保护拦截 '
+
       +
+
+      protectedCount
+
+      +
+
+      ' 个；最终可自动整理 '
+
+      +
+
       movable.length
+
       +
-      ' 个可安全整理。点击后会创建带时间戳的“_比对多余文件_...”目录。';
+
+      ' 个。';
 
   }
 
@@ -4139,34 +4952,38 @@ function updateMoveButton(){
 
 
 
-/* ============================================================
-   结果展示
-============================================================ */
+/* ==========================================================
+   结果显示
+========================================================== */
 
-function renderResult(tab){
+function renderResult(
+  tab
+){
 
-  const r =
+  const result =
     S.result;
 
 
-  if(!r)
+  if(
+    !result
+  )
     return;
 
 
   $('mExpected').textContent =
-    r.expected.length;
+    result.expected.length;
 
 
   $('mFolders').textContent =
-    r.folders.length;
+    result.folders.length;
 
 
   $('mMissing').textContent =
-    r.missing.length;
+    result.missing.length;
 
 
   $('mExtras').textContent =
-    r.extras.length;
+    result.extras.length;
 
 
   document
@@ -4174,115 +4991,199 @@ function renderResult(tab){
       '.tab'
     )
     .forEach(
-      b =>
+      button => {
 
-        b.classList
+        button.classList
           .toggle(
-            'active',
-            b.dataset.tab ===
-            tab
-          )
 
+            'active',
+
+            button.dataset.tab
+            ===
+            tab
+
+          );
+
+      }
     );
 
 
-  let arr;
+  let rows;
 
-  let heads;
+  let headers;
 
-  let vals;
+  let getter;
 
 
   if(
-    tab === 'missing'
+    tab ===
+    'missing'
   ){
 
-    arr =
-      r.missing;
+    rows =
+      result.missing;
 
 
-    heads = [
+    headers = [
+
       'Excel行',
+
       '设计负责人',
+
+      '治工具编号',
+
       '缺少项'
+
     ];
 
 
-    vals =
-      x => [
-        x.row,
-        x.owner || '—',
-        x.display
+    getter =
+      item => [
+
+        item.row,
+
+        item.owner
+        ||
+        '—',
+
+        item.code
+        ||
+        '—',
+
+        item.display
+
       ];
 
   }
 
 
   else if(
-    tab === 'extras'
+    tab ===
+    'extras'
   ){
 
-    arr =
-      r.extras;
+    rows =
+      result.extras;
 
 
-    heads = [
+    headers = [
+
       '根目录',
+
       '相对路径',
-      '权限'
+
+      '识别编号',
+
+      '判断原因',
+
+      'Excel编号保护',
+
+      '整理权限'
+
     ];
 
 
-    const safeSet =
+    const movableSet =
       new Set(
+
         getSafeMovableExtras()
           .map(
-            x =>
-              x.root.id
+            item =>
+
+              item.root.id
+
               +
+
               '|'
+
               +
-              x.path
+
+              item.path
+
           )
+
       );
 
 
-    vals =
-      x => {
+    getter =
+      item => {
+
+        const key =
+
+          item.root.id
+
+          +
+
+          '|'
+
+          +
+
+          item.path;
+
+
+        const protection =
+
+          item.protectedByExcel
+
+            ?
+
+            (
+              '✅ 禁止移动 · Excel第'
+              +
+              item.protectedExcelRow
+              +
+              '行 · '
+              +
+              item.protectedExcelCode
+            )
+
+            :
+
+            '—';
+
 
         let permission =
           '只读';
 
 
         if(
-          x.root.write
+          item.root.write
           &&
-          x.handle
+          item.handle
         ){
 
-          const key =
-            x.root.id
-            +
-            '|'
-            +
-            x.path;
-
-
           permission =
-            safeSet.has(key)
+
+            movableSet.has(
+              key
+            )
+
               ?
+
               '可整理'
+
               :
-              '暂不自动移动';
+
+              '禁止自动移动';
 
         }
 
 
         return [
 
-          x.root.name,
+          item.root.name,
 
-          x.path,
+          item.path,
+
+          item.codeCanon
+          ||
+          '未识别',
+
+          item.extraReason
+          ||
+          '',
+
+          protection,
 
           permission
 
@@ -4294,31 +5195,59 @@ function renderResult(tab){
 
 
   else if(
-    tab === 'expected'
+    tab ===
+    'expected'
   ){
 
-    arr =
-      r.expected;
+    rows =
+      result.expected;
 
 
-    heads = [
+    headers = [
+
       'Excel行',
+
       '设计负责人',
+
+      '原始编号',
+
+      '标准化编号',
+
       'Excel识别内容',
-      '匹配目录'
+
+      '匹配目录',
+
+      '匹配方式'
+
     ];
 
 
-    vals =
-      x => [
+    getter =
+      item => [
 
-        x.row,
+        item.row,
 
-        x.owner || '—',
+        item.owner
+        ||
+        '—',
 
-        x.display,
+        item.code
+        ||
+        '—',
 
-        x.match || '—'
+        item.codeCanon
+        ||
+        '—',
+
+        item.display,
+
+        item.match
+        ||
+        '—',
+
+        item.matchType
+        ||
+        '未匹配'
 
       ];
 
@@ -4327,35 +5256,48 @@ function renderResult(tab){
 
   else{
 
-    arr =
-      r.folders;
+    rows =
+      result.folders;
 
 
-    heads = [
+    headers = [
+
       '根目录',
-      '相对路径'
+
+      '相对路径',
+
+      '识别编号',
+
+      '标准化文本'
+
     ];
 
 
-    vals =
-      x => [
+    getter =
+      item => [
 
-        x.root.name,
+        item.root.name,
 
-        x.path
+        item.path,
+
+        item.codeCanon
+        ||
+        '未识别',
+
+        item.textCanon
 
       ];
 
   }
 
 
-  const wrap =
+  const wrapper =
     document.createElement(
       'div'
     );
 
 
-  wrap.className =
+  wrapper.className =
     'table';
 
 
@@ -4371,15 +5313,15 @@ function renderResult(tab){
     );
 
 
-  const trh =
+  const headRow =
     document.createElement(
       'tr'
     );
 
 
   for(
-    const h
-    of heads
+    const header
+    of headers
   ){
 
     const th =
@@ -4389,16 +5331,18 @@ function renderResult(tab){
 
 
     th.textContent =
-      h;
+      header;
 
 
-    trh.appendChild(th);
+    headRow.appendChild(
+      th
+    );
 
   }
 
 
   thead.appendChild(
-    trh
+    headRow
   );
 
 
@@ -4414,7 +5358,7 @@ function renderResult(tab){
 
 
   if(
-    !arr.length
+    !rows.length
   ){
 
     const tr =
@@ -4430,7 +5374,7 @@ function renderResult(tab){
 
 
     td.colSpan =
-      heads.length;
+      headers.length;
 
 
     td.className =
@@ -4441,10 +5385,14 @@ function renderResult(tab){
       '无项目';
 
 
-    tr.appendChild(td);
+    tr.appendChild(
+      td
+    );
 
 
-    tbody.appendChild(tr);
+    tbody.appendChild(
+      tr
+    );
 
   }
 
@@ -4452,8 +5400,8 @@ function renderResult(tab){
   else{
 
     for(
-      const x
-      of arr
+      const item
+      of rows
     ){
 
       const tr =
@@ -4462,27 +5410,82 @@ function renderResult(tab){
         );
 
 
-      for(
-        const value
-        of vals(x)
-      ){
+      const values =
+        getter(
+          item
+        );
 
-        const td =
-          document.createElement(
-            'td'
+
+      values.forEach(
+        (
+          value,
+          index
+        ) => {
+
+          const td =
+            document.createElement(
+              'td'
+            );
+
+
+          td.textContent =
+            value
+            ??
+            '';
+
+
+          if(
+            tab ===
+            'extras'
+            &&
+            index ===
+            4
+            &&
+            item.protectedByExcel
+          ){
+
+            td.className =
+              'protected';
+
+          }
+
+
+          if(
+            (
+              tab ===
+              'expected'
+              &&
+              index ===
+              3
+            )
+            ||
+            (
+              tab ===
+              'all'
+              &&
+              index ===
+              2
+            )
+          ){
+
+            td.classList.add(
+              'mono'
+            );
+
+          }
+
+
+          tr.appendChild(
+            td
           );
 
-
-        td.textContent =
-          value ?? '';
-
-
-        tr.appendChild(td);
-
-      }
+        }
+      );
 
 
-      tbody.appendChild(tr);
+      tbody.appendChild(
+        tr
+      );
 
     }
 
@@ -4494,7 +5497,7 @@ function renderResult(tab){
   );
 
 
-  wrap.appendChild(
+  wrapper.appendChild(
     table
   );
 
@@ -4505,21 +5508,25 @@ function renderResult(tab){
 
   $('result')
     .appendChild(
-      wrap
+      wrapper
     );
 
 }
 
 
 
+/* ==========================================================
+   Tab
+========================================================== */
+
 document
   .querySelectorAll(
     '.tab'
   )
   .forEach(
-    b => {
+    button => {
 
-      b.addEventListener(
+      button.addEventListener(
         'click',
         () => {
 
@@ -4528,7 +5535,7 @@ document
           ){
 
             renderResult(
-              b.dataset.tab
+              button.dataset.tab
             );
 
           }
@@ -4540,6 +5547,10 @@ document
   );
 
 
+
+/* ==========================================================
+   重置结果
+========================================================== */
 
 function resetResult(){
 
@@ -4567,33 +5578,39 @@ function resetResult(){
     true;
 
 
+  $('move').textContent =
+    '📦 整理多余文件夹';
+
+
   $('moveHint').textContent =
-    '比对完成后，如存在具有读写权限的多余目录，此按钮会启用。';
+    '比对完成后，如存在安全可整理目录，此按钮会启用。';
 
 
   $('result').innerHTML =
 
     '<div class="hint" style="padding:55px;text-align:center">'
+
     +
+
     '请先加载 Excel 和文件夹，然后开始比对。'
+
     +
+
     '</div>';
 
 }
 
 
 
-/* ============================================================
+/* ==========================================================
    CSV
-============================================================ */
+========================================================== */
 
-function csv(){
+function exportCSV(){
 
-  const r =
-    S.result;
-
-
-  if(!r)
+  if(
+    !S.result
+  )
     return;
 
 
@@ -4603,147 +5620,180 @@ function csv(){
       '类型',
       'Excel行/根目录',
       '设计负责人',
+      '原始编号',
+      '标准化编号',
       '内容',
-      '匹配结果/权限'
+      '匹配/保护信息'
     ]
 
   ];
 
 
-  r.missing
-    .forEach(
-      x =>
+  for(
+    const item
+    of S.result.missing
+  ){
 
-        rows.push([
+    rows.push([
 
-          '缺少',
+      '缺少',
 
-          x.row,
+      item.row,
 
-          x.owner || '',
+      item.owner
+      ||
+      '',
 
-          x.display,
+      item.code
+      ||
+      '',
 
-          ''
+      item.codeCanon
+      ||
+      '',
 
-        ])
+      item.display,
 
-    );
+      ''
+
+    ]);
+
+  }
 
 
-  const safe =
-    new Set(
-      getSafeMovableExtras()
-        .map(
-          x =>
-            x.root.id
-            +
-            '|'
-            +
-            x.path
+  for(
+    const item
+    of S.result.extras
+  ){
+
+    rows.push([
+
+      '多余',
+
+      item.root.name,
+
+      '',
+
+      item.name,
+
+      item.codeCanon
+      ||
+      '',
+
+      item.path,
+
+      item.protectedByExcel
+
+        ?
+
+        (
+          '禁止移动：Excel第'
+          +
+          item.protectedExcelRow
+          +
+          '行存在编号 '
+          +
+          item.protectedExcelCode
         )
-    );
+
+        :
+
+        item.extraReason
+
+    ]);
+
+  }
 
 
-  r.extras
-    .forEach(
-      x => {
+  for(
+    const item
+    of S.result.expected
+  ){
 
-        const key =
-          x.root.id
-          +
-          '|'
-          +
-          x.path;
+    rows.push([
 
+      'Excel识别',
 
-        rows.push([
+      item.row,
 
-          '多余',
+      item.owner
+      ||
+      '',
 
-          x.root.name,
+      item.code
+      ||
+      '',
 
-          '',
+      item.codeCanon
+      ||
+      '',
 
-          x.path,
+      item.display,
 
-          safe.has(key)
-            ?
-            '可整理'
-            :
-            (
-              x.root.write
-                ?
-                '暂不自动移动'
-                :
-                '只读'
-            )
+      item.match
+      ||
+      '未匹配'
 
-        ]);
+    ]);
 
-      }
-    );
+  }
 
 
-  r.expected
-    .forEach(
-      x =>
-
-        rows.push([
-
-          'Excel识别',
-
-          x.row,
-
-          x.owner || '',
-
-          x.display,
-
-          x.match || '未匹配'
-
-        ])
-
-    );
-
-
-  const text =
+  const csv =
 
     '\ufeff'
 
     +
 
     rows
+
       .map(
-        a =>
+        row =>
 
-          a.map(
-            v =>
+          row
 
-              '"'
-              +
-              String(
-                v ?? ''
-              )
-              .replace(
-                /"/g,
-                '""'
-              )
-              +
-              '"'
+            .map(
+              value =>
 
-          )
-          .join(',')
+                '"'
+
+                +
+
+                String(
+                  value
+                  ??
+                  ''
+                )
+                .replace(
+                  /"/g,
+                  '""'
+                )
+
+                +
+
+                '"'
+
+            )
+
+            .join(',')
 
       )
-      .join('\r\n');
+
+      .join(
+        '\r\n'
+      );
 
 
   const blob =
     new Blob(
-      [text],
+      [
+        csv
+      ],
       {
+
         type:
           'text/csv;charset=utf-8'
+
       }
     );
 
@@ -4761,10 +5811,15 @@ function csv(){
 
 
   a.download =
+
     '编码比对结果_'
+
     +
+
     stamp()
+
     +
+
     '.csv';
 
 
@@ -4786,18 +5841,18 @@ function csv(){
 $('csv')
   .addEventListener(
     'click',
-    csv
+    exportCSV
   );
 
 
 
-/* ============================================================
-   文件夹复制
-============================================================ */
+/* ==========================================================
+   文件复制
+========================================================== */
 
-async function copyDir(
-  src,
-  dst
+async function copyDirectory(
+  source,
+  target
 ){
 
   for await(
@@ -4805,7 +5860,7 @@ async function copyDir(
       name,
       entry
     ]
-    of src.entries()
+    of source.entries()
   ){
 
     if(
@@ -4818,23 +5873,27 @@ async function copyDir(
           .getFile();
 
 
-      const target =
-        await dst
+      const targetFile =
+        await target
           .getFileHandle(
             name,
             {
+
               create:true
+
             }
           );
 
 
       const writer =
-        await target
+        await targetFile
           .createWritable();
 
 
       await writer
-        .write(file);
+        .write(
+          file
+        );
 
 
       await writer
@@ -4848,19 +5907,24 @@ async function copyDir(
       'directory'
     ){
 
-      const child =
-        await dst
+      const targetDir =
+        await target
           .getDirectoryHandle(
             name,
             {
+
               create:true
+
             }
           );
 
 
-      await copyDir(
+      await copyDirectory(
+
         entry,
-        child
+
+        targetDir
+
       );
 
     }
@@ -4871,9 +5935,9 @@ async function copyDir(
 
 
 
-/* ============================================================
-   判断目标目录是否已经存在
-============================================================ */
+/* ==========================================================
+   是否存在目录
+========================================================== */
 
 async function directoryExists(
   parent,
@@ -4903,9 +5967,127 @@ async function directoryExists(
 
 
 
-/* ============================================================
-   多余文件夹整理
-============================================================ */
+/* ==========================================================
+   ★ 真正移动前最后一道独立保护
+========================================================== */
+
+function finalSafetyCheck(
+  item
+){
+
+  if(
+    !S.result
+  ){
+
+    return {
+
+      safe:false,
+
+      reason:
+        '当前比对结果已经失效'
+
+    };
+
+  }
+
+
+  /*
+   * 再算一次目录编号，
+   * 不相信前面缓存。
+   */
+  const currentFolderCode =
+    extractFolderCode(
+      item.name
+    );
+
+
+  if(
+    currentFolderCode
+  ){
+
+    for(
+      const excel
+      of S.result.expected
+    ){
+
+      const excelCode =
+        canonCode(
+          excel.code
+        );
+
+
+      if(
+        !excelCode
+      )
+        continue;
+
+
+      if(
+
+        currentFolderCode
+        ===
+        excelCode
+
+        ||
+
+        currentFolderCode
+          .includes(
+            excelCode
+          )
+
+        ||
+
+        excelCode
+          .includes(
+            currentFolderCode
+          )
+
+      ){
+
+        return {
+
+          safe:false,
+
+          reason:
+
+            'Excel第'
+
+            +
+
+            excel.row
+
+            +
+
+            '行存在编号：'
+
+            +
+
+            excel.code
+
+        };
+
+      }
+
+    }
+
+  }
+
+
+  return {
+
+    safe:true,
+
+    reason:''
+
+  };
+
+}
+
+
+
+/* ==========================================================
+   整理多余目录
+========================================================== */
 
 async function moveExtras(){
 
@@ -4922,16 +6104,16 @@ async function moveExtras(){
   }
 
 
-  const list =
+  const originalList =
     getSafeMovableExtras();
 
 
   if(
-    !list.length
+    !originalList.length
   ){
 
     alert(
-      '当前没有具备读写权限且可以安全整理的多余目录。\n\n如果使用的是兼容模式，请使用“系统选择器（可整理）”重新选择发包根目录。'
+      '当前没有可以安全整理的多余目录。'
     );
 
     return;
@@ -4939,62 +6121,163 @@ async function moveExtras(){
   }
 
 
-  const folder =
+  /*
+   * ★ 移动按钮点击后，再做一次完整复核。
+   */
+  const list =
+    [];
+
+
+  const blocked =
+    [];
+
+
+  for(
+    const item
+    of originalList
+  ){
+
+    const check =
+      finalSafetyCheck(
+        item
+      );
+
+
+    if(
+      check.safe
+    ){
+
+      list.push(
+        item
+      );
+
+    }
+
+
+    else{
+
+      blocked.push({
+
+        item,
+
+        reason:
+          check.reason
+
+      });
+
+    }
+
+  }
+
+
+  if(
+    blocked.length
+  ){
+
+    console.warn(
+      '安全保护拦截：',
+      blocked
+    );
+
+  }
+
+
+  if(
+    !list.length
+  ){
+
+    alert(
+      '安全检查拦截了所有待整理目录。\n\n这些目录的编号仍然可以在 Excel 中找到，因此不会移动。'
+    );
+
+    return;
+
+  }
+
+
+  const folderName =
+
     '_比对多余文件_'
+
     +
+
     stamp();
 
 
-  /*
-   * 二次确认
-   */
+  const confirmText =
 
-  const ok =
-    confirm(
+    '⚠️ 二次确认\n\n'
 
-      '⚠️ 二次确认\n\n'
+    +
 
-      +
+    '初始多余目录：'
 
-      '检测到 '
-      +
-      list.length
-      +
-      ' 个可以安全整理的多余文件夹。\n\n'
+    +
 
-      +
+    S.result.extras.length
 
-      '程序将在对应的发包根目录创建：\n\n'
+    +
 
-      +
+    ' 个\n'
 
-      folder
+    +
 
-      +
+    'Excel编号保护拦截：'
 
-      '\n\n然后把这些多余文件夹复制进去。'
+    +
 
-      +
+    blocked.length
 
-      '\n\n只有复制成功后，才会删除原位置的文件夹。'
+    +
 
-      +
+    ' 个\n'
 
-      '\n\n是否继续？'
+    +
 
-    );
+    '最终准备移动：'
+
+    +
+
+    list.length
+
+    +
+
+    ' 个\n\n'
+
+    +
+
+    '将创建：\n'
+
+    +
+
+    folderName
+
+    +
+
+    '\n\n'
+
+    +
+
+    '程序会先复制成功，再删除原目录。\n\n'
+
+    +
+
+    '是否继续？';
 
 
-  if(!ok)
+  if(
+    !confirm(
+      confirmText
+    )
+  ){
+
     return;
+
+  }
 
 
   $('move').disabled =
     true;
-
-
-  $('move').textContent =
-    '⏳ 正在整理…';
 
 
   let success =
@@ -5005,22 +6288,18 @@ async function moveExtras(){
     [];
 
 
-  /*
-   * 每个用户选择的根目录分别创建自己的整理目录。
-   */
-
   const targetRoots =
     new Map();
 
 
   for(
-    let index = 0;
-    index < list.length;
-    index++
+    let i = 0;
+    i < list.length;
+    i++
   ){
 
-    const x =
-      list[index];
+    const item =
+      list[i];
 
 
     $('move').textContent =
@@ -5029,7 +6308,7 @@ async function moveExtras(){
 
       +
 
-      (index + 1)
+      (i + 1)
 
       +
 
@@ -5042,96 +6321,130 @@ async function moveExtras(){
 
     try{
 
-      let dstRoot =
-        targetRoots.get(
-          x.root.id
+      /*
+       * ★ 每一个目录真正移动的最后一刻，
+       * 再检查第三次。
+       */
+      const finalCheck =
+        finalSafetyCheck(
+          item
         );
 
 
       if(
-        !dstRoot
+        !finalCheck.safe
       ){
 
-        dstRoot =
-          await x.root.handle
+        throw Error(
+          '安全保护阻止移动：'
+          +
+          finalCheck.reason
+        );
+
+      }
+
+
+      let targetRoot =
+        targetRoots.get(
+          item.root.id
+        );
+
+
+      if(
+        !targetRoot
+      ){
+
+        targetRoot =
+          await item.root
+            .handle
             .getDirectoryHandle(
-              folder,
+              folderName,
               {
+
                 create:true
+
               }
             );
 
 
         targetRoots.set(
-          x.root.id,
-          dstRoot
+
+          item.root.id,
+
+          targetRoot
+
         );
 
       }
 
 
       let targetName =
-        x.name;
+        item.name;
 
 
-      let n =
+      let number =
         2;
 
 
-      /*
-       * 避免整理目录里已有同名目录。
-       */
-
       while(
         await directoryExists(
-          dstRoot,
+          targetRoot,
           targetName
         )
       ){
 
         targetName =
-          x.name
+
+          item.name
+
           +
+
           '_'
+
           +
-          n;
+
+          number;
 
 
-        n++;
+        number++;
 
       }
 
 
-      const dst =
-        await dstRoot
+      const target =
+        await targetRoot
           .getDirectoryHandle(
             targetName,
             {
+
               create:true
+
             }
           );
 
 
       /*
-       * 第一步：完整复制
+       * 先复制
        */
+      await copyDirectory(
 
-      await copyDir(
-        x.handle,
-        dst
+        item.handle,
+
+        target
+
       );
 
 
       /*
-       * 第二步：
-       * 复制没有抛异常后才删除原目录。
+       * 再删除
        */
-
-      await x.parentHandle
+      await item.parentHandle
         .removeEntry(
-          x.name,
+          item.name,
           {
+
             recursive:true
+
           }
         );
 
@@ -5141,21 +6454,27 @@ async function moveExtras(){
     }
 
 
-    catch(e){
+    catch(error){
 
       console.error(
         '整理失败',
-        x,
-        e
+        item,
+        error
       );
 
 
       failed.push(
-        x.path
+
+        item.path
+
         +
+
         '：'
+
         +
-        e.message
+
+        error.message
+
       );
 
     }
@@ -5174,45 +6493,68 @@ async function moveExtras(){
     +
 
     '成功：'
+
     +
+
     success
+
     +
+
+    ' 个\n'
+
+    +
+
+    '安全保护拦截：'
+
+    +
+
+    blocked.length
+
+    +
+
     ' 个\n'
 
     +
 
     '失败：'
+
     +
+
     failed.length
+
     +
+
     ' 个'
 
     +
 
     (
       failed.length
+
         ?
+
         '\n\n失败项目：\n'
         +
-        failed.join('\n')
+        failed.join(
+          '\n'
+        )
+
         :
+
         ''
     )
 
     +
 
-    '\n\n文件夹结构已经发生变化，请重新选择发包根目录并再次执行比对。'
+    '\n\n文件系统已经发生变化，请重新选择发包目录并再次比对。'
 
   );
 
 
   /*
-   * 文件系统已经改变。
-   *
-   * 旧的 Handle 列表和比对结果不再可信，
-   * 因此清空结果。
+   * 目录已经变化，
+   * 所有旧 Handle 作废。
    */
-
   S.result =
     null;
 
@@ -5223,12 +6565,11 @@ async function moveExtras(){
 
   renderSets();
 
-
   resetResult();
 
 
   $('folderStatus').textContent =
-    '整理已完成，请重新选择发包根目录';
+    '整理完成，请重新选择发包根目录';
 
 }
 
@@ -5242,9 +6583,9 @@ $('move')
 
 
 
-/* ============================================================
+/* ==========================================================
    初始化
-============================================================ */
+========================================================== */
 
 modeUI();
 
