@@ -3,241 +3,157 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>发包文件一键转移复制</title>
+<title>发包文件一键转移复制 · 编码规则优化版</title>
 <style>
   :root{
-    --bg:#0b1020;
-    --grad1:#10172a; --grad2:#0f172a;
-    --primary:#5b8cff; --primary-2:#7aa2ff;
-    --border:#1f2a44; --fg:#e5ebff; --muted:#9aa6c2;
-    --chip:#121a33; --ok:#22c55e; --warn:#f59e0b; --danger:#ef4444;
+    --bg:#0b1020;--grad1:#10172a;--grad2:#0f172a;
+    --primary:#5b8cff;--primary-2:#7aa2ff;
+    --border:#1f2a44;--fg:#e5ebff;--muted:#9aa6c2;
+    --chip:#121a33;--ok:#22c55e;--warn:#f59e0b;--danger:#ef4444;
   }
-  *{box-sizing:border-box}
-  html,body{height:100%}
-  body{
-    margin:0;
-    background:
-      radial-gradient(1200px 800px at 20% -10%, #1b2a5b33,transparent 60%),
-      radial-gradient(900px 600px at 120% 10%, #134e4a22,transparent 60%),
-      linear-gradient(180deg,#091024, #0b1020 35%, #0b1020);
-    color:var(--fg);
-    font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Ubuntu,Helvetica,Arial;
-  }
+  *{box-sizing:border-box} html,body{height:100%}
+  body{margin:0;background:radial-gradient(1200px 800px at 20% -10%,#1b2a5b33,transparent 60%),radial-gradient(900px 600px at 120% 10%,#134e4a22,transparent 60%),linear-gradient(180deg,#091024,#0b1020 35%,#0b1020);color:var(--fg);font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Ubuntu,Helvetica,Arial}
   .wrap{max-width:1100px;margin:32px auto;padding:0 16px}
-  header{display:flex;gap:16px;align-items:center;justify-content:space-between;margin-bottom:18px}
+  header{display:flex;gap:16px;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap}
   h1{margin:0;font-weight:800;font-size:22px;letter-spacing:.3px}
   .badge{display:inline-flex;gap:8px;align-items:center;padding:6px 10px;border-radius:999px;border:1px solid var(--border);background:linear-gradient(180deg,#0e1630,#0b1228)}
-  .card{border:1px solid var(--border);background:linear-gradient(180deg,var(--grad1),var(--grad2));border-radius:18px;box-shadow:0 10px 30px rgba(2,6,23,.35);overflow:hidden}
-  .pad{padding:18px}
+  .card{border:1px solid var(--border);background:linear-gradient(180deg,var(--grad1),var(--grad2));border-radius:18px;box-shadow:0 10px 30px rgba(2,6,23,.35);overflow:hidden}.pad{padding:18px}
   label{display:block;font-size:12px;color:var(--muted);margin:8px 0 6px}
   input[type=text]{width:100%;padding:12px;border:1px solid var(--border);background:#0b1330;color:var(--fg);border-radius:12px;font:inherit;outline:none}
   input[type=text]:focus{border-color:var(--primary);box-shadow:0 0 0 4px rgba(91,140,255,.15)}
   .btn{appearance:none;border:1px solid var(--border);background:linear-gradient(180deg,#0e1632,#0c142d);color:#eaf1ff;border-radius:12px;padding:10px 14px;font-weight:700;cursor:pointer}
-  .btn.primary{background:linear-gradient(180deg,#294ecf,#2142b5);border-color:#3558d3}
-  .btn.success{background:linear-gradient(180deg,#1f8b4f,#17753f);border-color:#258b58}
-  .btn.ghost{background:#0f1533}
-  .btn.alt{background:linear-gradient(180deg,#161e3d,#121a39)}
-  .btn.warn{background:linear-gradient(180deg,#9a6a18,#7c540f)}
-  .btn.danger{background:linear-gradient(180deg,#b93838,#8f2626);border-color:#ba4444}
-  .toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-  .sep{height:1px;background:var(--border);margin:14px 0}
-  .k{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:#0d1330;padding:2px 6px;border-radius:6px;border:1px solid var(--border);color:#c3ceff}
-
-  .bar{position:relative;height:14px;border-radius:999px;background:#0f1638;border:1px solid var(--border);overflow:hidden;flex:0 0 280px}
-  .fill{position:absolute;left:0;top:0;height:100%;width:0;background:linear-gradient(90deg, rgba(91,140,255,1), rgba(122,162,255,1));box-shadow:0 0 12px rgba(91,140,255,.45)}
-  .pct{position:absolute;left:0;right:0;top:0;bottom:0;display:flex;align-items:center;justify-content:center;font-size:12px;color:#eaf1ff;text-shadow:0 1px 2px rgba(0,0,0,.8);line-height:14px;pointer-events:none}
-
-  .muted{color:var(--muted)}
-  .list{max-height:320px;overflow:auto;border:1px dashed var(--border);border-radius:14px;padding:8px;background:#0a1230}
-  .item{padding:8px 10px;border-radius:12px;display:flex;align-items:center;gap:10px}
-  .item:nth-child(odd){background:#0e1738}
-  .copybox{margin-top:8px;border:1px solid var(--border);border-radius:12px;padding:10px;background:linear-gradient(180deg,#0b1330,#0a122c)}
-  .copybox strong{color:#dbe7ff}
-  .copylist{margin:6px 0 0;padding-left:18px;max-height:120px;overflow:auto}
-  .copymeta{font-size:12px;color:var(--muted);margin-top:6px}
-  .truncate{max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .chipbox{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:8px}
-  .chip{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;background:var(--chip);border:1px solid var(--border);color:var(--fg);cursor:pointer;user-select:none}
-  .chip input{accent-color:#5b8cff}
-  .section-title{font-weight:700;margin:10px 0 4px}
-  .issuebox{margin-top:10px;border:1px solid #6b4f1d;border-radius:14px;padding:12px;background:linear-gradient(180deg,#2b1f08,#1d1608)}
-  .issuebox strong{color:#ffe7b0}
-  .issuelist{margin:8px 0 0;padding-left:18px;max-height:180px;overflow:auto;color:#ffd89a}
-  .helpbox{margin-top:10px;border:1px solid var(--border);border-radius:14px;padding:12px;background:#0b1330}
-  .helpbox strong{color:#dbe7ff}
-
-  .dropzone{
-    margin-top:16px;
-    padding:26px 18px;
-    border-radius:18px;
-    border:2px dashed var(--primary);
-    background:
-      radial-gradient(260px 160px at 10% 0%, rgba(91,140,255,0.18), transparent 65%),
-      radial-gradient(260px 160px at 90% 100%, rgba(34,197,94,0.14), transparent 65%),
-      #050819;
-    color:var(--muted);
-    font-size:14px;
-    text-align:center;
-    cursor:pointer;
-    transition:border-color .18s ease, background .18s ease, color .18s ease, box-shadow .18s ease, transform .12s ease;
-    box-shadow:0 0 0 1px rgba(15,23,42,0.6), 0 14px 30px rgba(15,23,42,0.7);
-  }
-  .dropzone strong{color:var(--fg);display:block;font-size:15px;margin-bottom:4px;pointer-events:none}
-  .dropzone span{pointer-events:none}
-  .dropzone::before{content:"📁";display:block;font-size:24px;margin-bottom:6px;opacity:0.95}
-  .dropzone:hover{border-color:var(--primary-2);box-shadow:0 18px 40px rgba(37,99,235,0.45);transform:translateY(-1px)}
-  .dropzone.dragover{
-    border-color:var(--primary-2);
-    background:
-      radial-gradient(280px 180px at 15% 0%, rgba(91,140,255,0.35), transparent 70%),
-      radial-gradient(280px 180px at 85% 100%, rgba(34,197,94,0.25), transparent 70%),
-      #050819;
-    color:#e5ebff;
-  }
-
-  .modalMask{
-    position:fixed; inset:0; background:rgba(2,6,23,.62); display:none;
-    align-items:center; justify-content:center; z-index:9999; padding:20px;
-  }
-  .modal{
-    width:min(920px, 96vw); max-height:82vh; overflow:auto;
-    border:1px solid var(--border); border-radius:18px;
-    background:linear-gradient(180deg,#10172a,#0b1228);
-    box-shadow:0 20px 60px rgba(0,0,0,.45);
-    padding:18px;
-  }
-  .modal h2{margin:0 0 12px;font-size:20px}
-  .modal .toolbar{justify-content:flex-end}
-  .compareRow{
-    border:1px solid var(--border); border-radius:14px; padding:12px; margin-top:10px;
-    background:#0a1230;
-  }
-  .compareOld{color:#ffb4b4}
-  .compareNew{color:#b8f7c4}
-  .compareMeta{color:var(--muted);font-size:12px;margin-top:6px}
+  .btn:disabled{opacity:.45;cursor:not-allowed}.btn.primary{background:linear-gradient(180deg,#294ecf,#2142b5);border-color:#3558d3}.btn.success{background:linear-gradient(180deg,#1f8b4f,#17753f);border-color:#258b58}.btn.ghost{background:#0f1533}.btn.alt{background:linear-gradient(180deg,#161e3d,#121a39)}.btn.warn{background:linear-gradient(180deg,#9a6a18,#7c540f)}.btn.danger{background:linear-gradient(180deg,#b93838,#8f2626);border-color:#ba4444}
+  .toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.sep{height:1px;background:var(--border);margin:14px 0}.k{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:#0d1330;padding:2px 6px;border-radius:6px;border:1px solid var(--border);color:#c3ceff}
+  .bar{position:relative;height:14px;border-radius:999px;background:#0f1638;border:1px solid var(--border);overflow:hidden;flex:0 0 280px}.fill{position:absolute;left:0;top:0;height:100%;width:0;background:linear-gradient(90deg,rgba(91,140,255,1),rgba(122,162,255,1));box-shadow:0 0 12px rgba(91,140,255,.45)}.pct{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:12px;color:#eaf1ff;text-shadow:0 1px 2px rgba(0,0,0,.8);line-height:14px;pointer-events:none}
+  .muted{color:var(--muted)}.list{max-height:320px;overflow:auto;border:1px dashed var(--border);border-radius:14px;padding:8px;background:#0a1230}.item{padding:8px 10px;border-radius:12px;display:flex;align-items:center;gap:10px}.item:nth-child(odd){background:#0e1738}
+  .copybox{margin-top:8px;border:1px solid var(--border);border-radius:12px;padding:10px;background:linear-gradient(180deg,#0b1330,#0a122c)}.copybox strong{color:#dbe7ff}.copylist{margin:6px 0 0;padding-left:18px;max-height:120px;overflow:auto}.copymeta{font-size:12px;color:var(--muted);margin-top:6px}.truncate{max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .chipbox{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:8px}.chip{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;background:var(--chip);border:1px solid var(--border);color:var(--fg);cursor:pointer;user-select:none}.chip input{accent-color:#5b8cff}
+  .section-title{font-weight:700;margin:10px 0 4px}.issuebox{margin-top:10px;border:1px solid #6b4f1d;border-radius:14px;padding:12px;background:linear-gradient(180deg,#2b1f08,#1d1608)}.issuebox strong{color:#ffe7b0}.issuelist{margin:8px 0 0;padding-left:18px;max-height:180px;overflow:auto;color:#ffd89a}.helpbox{margin-top:10px;border:1px solid var(--border);border-radius:14px;padding:12px;background:#0b1330}.helpbox strong{color:#dbe7ff}
+  .okbox{margin-top:10px;border:1px solid #1f6a3e;border-radius:14px;padding:12px;background:#0b2418;color:#a7f3c1}
+  .dropzone{margin-top:16px;padding:26px 18px;border-radius:18px;border:2px dashed var(--primary);background:radial-gradient(260px 160px at 10% 0%,rgba(91,140,255,.18),transparent 65%),radial-gradient(260px 160px at 90% 100%,rgba(34,197,94,.14),transparent 65%),#050819;color:var(--muted);font-size:14px;text-align:center;cursor:pointer;transition:.18s;box-shadow:0 0 0 1px rgba(15,23,42,.6),0 14px 30px rgba(15,23,42,.7)}
+  .dropzone strong{color:var(--fg);display:block;font-size:15px;margin-bottom:4px;pointer-events:none}.dropzone span{pointer-events:none}.dropzone::before{content:"📁";display:block;font-size:24px;margin-bottom:6px}.dropzone:hover{border-color:var(--primary-2);box-shadow:0 18px 40px rgba(37,99,235,.45);transform:translateY(-1px)}.dropzone.dragover{border-color:var(--primary-2);background:radial-gradient(280px 180px at 15% 0%,rgba(91,140,255,.35),transparent 70%),radial-gradient(280px 180px at 85% 100%,rgba(34,197,94,.25),transparent 70%),#050819;color:#e5ebff}
+  .modalMask{position:fixed;inset:0;background:rgba(2,6,23,.62);display:none;align-items:center;justify-content:center;z-index:9999;padding:20px}.modal{width:min(920px,96vw);max-height:82vh;overflow:auto;border:1px solid var(--border);border-radius:18px;background:linear-gradient(180deg,#10172a,#0b1228);box-shadow:0 20px 60px rgba(0,0,0,.45);padding:18px}.modal h2{margin:0 0 12px;font-size:20px}.modal .toolbar{justify-content:flex-end}.compareRow{border:1px solid var(--border);border-radius:14px;padding:12px;margin-top:10px;background:#0a1230}.compareOld{color:#ffb4b4}.compareNew{color:#b8f7c4}.compareMeta{color:var(--muted);font-size:12px;margin-top:6px}
+  .rulegrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:10px}@media(max-width:760px){.rulegrid{grid-template-columns:1fr}}.ruleitem{border:1px solid var(--border);border-radius:12px;padding:10px;background:#0b1330}.ruleitem b{color:#dbe7ff}
 </style>
 </head>
 <body>
-  <div class="wrap">
-    <header>
-      <h1>发包文件一键转移复制</h1>
-      <div class="badge">
-        <span>需要</span>
-        <span class="k">Chrome / Edge 86+</span>
-        <span>· File System Access API</span>
-      </div>
-    </header>
+<div class="wrap">
+<header>
+  <h1>发包文件一键转移复制</h1>
+  <div class="badge"><span>规则版本</span><span class="k">最新治工具编码规则</span><span>· 本地离线</span></div>
+</header>
 
-    <div class="card pad">
-      <div>
-        <label>匹配规则（正则，可编辑）</label>
-        <input id="regex" type="text" value="^(?:O(?:(?:(?:ER|[ADEFIO])\d+)(?:[ADEFIO]\d+)*[A-Z]{2}[A-Z0-9]+|UN[A-Z]{2}\d+|TE\d+|\d+)|S(?:(?:[A-JOP]\d+)+[A-Z]{2}[A-Z0-9]+|UN[A-Z]{2}\d+|\d+)|[TRM](?:[A-J]|N|0|UN)(?=\d))" />
-        <div class="toolbar" style="margin-top:8px">
-          <label class="muted" style="margin:0;display:flex;align-items:center;gap:8px">
-            <input id="ignoreCase" type="checkbox" checked /> 忽略大小写
-          </label>
-          <button class="btn ghost" id="btnPresetDefault" type="button">默认</button>
-          <button class="btn ghost" id="btnPresetO" type="button">示例：仅 O 族</button>
-          <button class="btn ghost" id="btnPresetTRSM" type="button">示例：仅 TRSM</button>
-        </div>
+<div class="card pad">
+  <div class="okbox">
+    已优化编码识别：部门代码 O/T/R/S/M；兼容铜陵 TL、台湾 TW、泰国 TA 前缀；按规则表校验机种代码；支持范围编号“编码1~编码2”；RX 已包含 Q3=Fiber Kit、Z01~Z12 等扩展机种；SLA001 类特殊短码也可识别。
+  </div>
 
-        <div class="chipbox">
-          <span class="muted" style="margin-right:6px">部门筛选：</span>
-          <label class="chip"><input type="checkbox" class="dept" data-letter="O" checked> OB 部门</label>
-          <label class="chip"><input type="checkbox" class="dept" data-letter="T" checked> TX 部门</label>
-          <label class="chip"><input type="checkbox" class="dept" data-letter="R" checked> RX 部门</label>
-          <label class="chip"><input type="checkbox" class="dept" data-letter="S" checked> SM 部门</label>
-          <label class="chip"><input type="checkbox" class="dept" data-letter="M" checked> MM 部门</label>
-          <button class="btn ghost" id="deptAll" type="button">部门全选</button>
-          <button class="btn ghost" id="deptNone" type="button">部门全不选</button>
-        </div>
-      </div>
+  <div>
+    <label>高级正则二次过滤（可选，不再作为基础编码识别条件）</label>
+    <input id="regex" type="text" value="" placeholder="留空=不过滤。例如：^R.*Q3 或 Fiber（针对完整文件夹名）" />
+    <div class="toolbar" style="margin-top:8px">
+      <label class="muted" style="margin:0;display:flex;align-items:center;gap:8px">
+        <input id="useAdvancedRegex" type="checkbox" /> 启用高级正则二次过滤
+      </label>
+      <label class="muted" style="margin:0;display:flex;align-items:center;gap:8px">
+        <input id="ignoreCase" type="checkbox" checked /> 忽略大小写
+      </label>
+      <label class="muted" style="margin:0;display:flex;align-items:center;gap:8px">
+        <input id="allowFutureCode" type="checkbox" checked /> 兼容规则表尚未录入的新/历史机种码
+      </label>
+    </div>
 
-      <div class="sep"></div>
+    <div class="chipbox">
+      <span class="muted" style="margin-right:6px">部门筛选：</span>
+      <label class="chip"><input type="checkbox" class="dept" data-letter="O" checked> OB 部门</label>
+      <label class="chip"><input type="checkbox" class="dept" data-letter="T" checked> TX 部门</label>
+      <label class="chip"><input type="checkbox" class="dept" data-letter="R" checked> RX 部门</label>
+      <label class="chip"><input type="checkbox" class="dept" data-letter="S" checked> SM 部门</label>
+      <label class="chip"><input type="checkbox" class="dept" data-letter="M" checked> MM 部门</label>
+      <button class="btn ghost" id="deptAll" type="button">部门全选</button>
+      <button class="btn ghost" id="deptNone" type="button">部门全不选</button>
+    </div>
 
-      <div>
-        <label class="section-title">源目录 A（可多选）</label>
-        <div class="toolbar">
-          <button id="pickSrc" class="btn" type="button">添加源目录</button>
-          <button id="clearSrc" class="btn warn" type="button">清空</button>
-        </div>
-        <div id="srcDrop" class="dropzone">
-          <strong>将源文件夹 A 拖到这里</strong><span>或点击这里 / 上方按钮选择目录</span>
-        </div>
-        <div id="srcList" class="list" style="margin-top:8px"></div>
-      </div>
-
-      <div style="margin-top:14px">
-        <label class="section-title">目标目录</label>
-        <div class="toolbar">
-          <button id="pickDst" class="btn success" type="button">选择目标目录</button>
-          <button id="openDst" class="btn ghost" type="button" disabled>打开目标目录</button>
-          <button id="start" class="btn primary" type="button" disabled>开始复制</button>
-          <div class="bar">
-            <div class="fill" id="fill"></div>
-            <div class="pct" id="pct">0%</div>
-          </div>
-        </div>
-        <div id="dstDrop" class="dropzone">
-          <strong>将目标文件夹拖到这里</strong><span>或点击这里 / 上方按钮选择目录</span>
-        </div>
-        <div id="dstPath" class="muted" style="margin-top:8px"></div>
-
-        <div id="copyBox" class="copybox" style="display:none;">
-          <div class="truncate"><strong>正在复制：</strong><span id="copyingName">—</span></div>
-          <div class="copymeta" id="copyMeta">0 / 0</div>
-          <ul id="copyList" class="copylist"></ul>
-        </div>
-      </div>
-
-      <div class="sep"></div>
-
-      <div>
-        <label class="section-title">命中目录（默认全选）</label>
-        <div class="toolbar" style="margin-top:8px">
-          <button id="preview" class="btn alt" type="button">预览命中</button>
-          <button id="renameBtn" class="btn danger" type="button">一键改名</button>
-          <button id="showCompareBtn" class="btn ghost" type="button">显示名称对比</button>
-        </div>
-        <div class="toolbar" style="margin-top:8px">
-          <button id="btnAll" class="btn ghost" type="button">全选</button>
-          <button id="btnNone" class="btn ghost" type="button">全不选</button>
-          <button id="btnInvert" class="btn ghost" type="button">反选</button>
-        </div>
-        <div id="stat" class="muted" style="margin-top:8px">尚未预览</div>
-        <div id="hitList" class="list" style="margin-top:8px"></div>
-        <div id="issueBox" class="issuebox" style="display:none;">
-          <strong>名称不一致 / 改名结果</strong>
-          <ul id="issueList" class="issuelist"></ul>
-        </div>
-        <div class="helpbox">
-          <strong>当前逻辑</strong>
-          <div class="muted" style="margin-top:6px">
-            按 OB / 单模真实系统编码规则识别文件夹（兼容历史编号、通用编号及复合机种编号） → 支持源目录本身、一级目录及更深层级 → 普通业务目录中的编码文件夹仍可用于“一键改名”修正业务目录名 →
-            开始复制时只复制命中的编码文件夹到目标目录。
-          </div>
-        </div>
-      </div>
-
-      <p class="hint" style="margin-top:10px">隐私：所有操作均在本地浏览器完成，不会上传任何文件。</p>
+    <div class="rulegrid">
+      <div class="ruleitem"><b>部门代码</b><div class="muted">OB=O · TX=T · RX=R · SM=S · MM=M</div></div>
+      <div class="ruleitem"><b>厂区前缀</b><div class="muted">铜陵=TL · 台湾=TW · 泰国=TA；仅当其后紧跟 O/T/R/S/M 时按厂区前缀解析。</div></div>
+      <div class="ruleitem"><b>正常编码</b><div class="muted">部门 + 机种代码 + 后续站别/设备/工序/流水号/版本；识别时优先校验“部门+机种代码”，避免把规则写死到具体工序。</div></div>
+      <div class="ruleitem"><b>特殊短码</b><div class="muted">兼容规则表注明的 SLA001 类“部门 + 工序 + 流水号”短编码。</div></div>
     </div>
   </div>
 
-  <div id="modalMask" class="modalMask">
-    <div class="modal">
-      <h2>名称对比</h2>
-      <div id="compareList"></div>
-      <div class="toolbar" style="margin-top:12px">
-        <button id="closeModal" class="btn primary" type="button">关闭</button>
+  <div class="sep"></div>
+
+  <div>
+    <label class="section-title">源目录 A（可多选）</label>
+    <div class="toolbar">
+      <button id="pickSrc" class="btn" type="button">添加源目录</button>
+      <button id="clearSrc" class="btn warn" type="button">清空</button>
+    </div>
+    <div id="srcDrop" class="dropzone"><strong>将源文件夹 A 拖到这里</strong><span>或点击这里 / 上方按钮选择目录</span></div>
+    <div id="srcList" class="list" style="margin-top:8px"></div>
+  </div>
+
+  <div style="margin-top:14px">
+    <label class="section-title">目标目录</label>
+    <div class="toolbar">
+      <button id="pickDst" class="btn success" type="button">选择目标目录</button>
+      <button id="openDst" class="btn ghost" type="button" disabled>打开目标目录</button>
+      <button id="start" class="btn primary" type="button" disabled>开始复制</button>
+      <div class="bar"><div class="fill" id="fill"></div><div class="pct" id="pct">0%</div></div>
+    </div>
+    <div id="dstDrop" class="dropzone"><strong>将目标文件夹拖到这里</strong><span>或点击这里 / 上方按钮选择目录</span></div>
+    <div id="dstPath" class="muted" style="margin-top:8px"></div>
+    <div id="copyBox" class="copybox" style="display:none;">
+      <div class="truncate"><strong>正在复制：</strong><span id="copyingName">—</span></div>
+      <div class="copymeta" id="copyMeta">0 / 0</div><ul id="copyList" class="copylist"></ul>
+    </div>
+  </div>
+
+  <div class="sep"></div>
+
+  <div>
+    <label class="section-title">命中目录（默认全选）</label>
+    <div class="toolbar" style="margin-top:8px">
+      <button id="preview" class="btn alt" type="button">预览命中</button>
+      <button id="renameBtn" class="btn danger" type="button">一键改名</button>
+      <button id="showCompareBtn" class="btn ghost" type="button">显示名称对比</button>
+    </div>
+    <div class="toolbar" style="margin-top:8px">
+      <button id="btnAll" class="btn ghost" type="button">全选</button>
+      <button id="btnNone" class="btn ghost" type="button">全不选</button>
+      <button id="btnInvert" class="btn ghost" type="button">反选</button>
+    </div>
+    <div id="stat" class="muted" style="margin-top:8px">尚未预览</div>
+    <div id="hitList" class="list" style="margin-top:8px"></div>
+    <div id="issueBox" class="issuebox" style="display:none;"><strong>名称不一致 / 规则提示 / 改名结果</strong><ul id="issueList" class="issuelist"></ul></div>
+    <div class="helpbox">
+      <strong>当前识别顺序</strong>
+      <div class="muted" style="margin-top:6px">
+        标准化字符 → 提取首个编号/范围编号 → 解析可选 TL/TW/TA 厂区前缀 → 解析 O/T/R/S/M 部门 →
+        按当前规则表校验机种代码（RX 包含 Q3、Z01~Z12） → 部门筛选 → 可选高级正则 →
+        支持源目录本身、一级及深层编码目录 → 复制时发生同名目录将自动改为 _2、_3，避免覆盖原目标文件。
       </div>
     </div>
   </div>
+
+  <p class="hint" style="margin-top:10px">隐私：所有操作均在本地浏览器完成，不会上传任何文件。</p>
+</div>
+</div>
+
+<div id="modalMask" class="modalMask"><div class="modal"><h2>名称对比</h2><div id="compareList"></div><div class="toolbar" style="margin-top:12px"><button id="closeModal" class="btn primary" type="button">关闭</button></div></div></div>
 
 <script>
 (() => {
   if (!('showDirectoryPicker' in window)) {
     alert('此页面需要 File System Access API。请使用最新版 Chrome/Edge 打开。');
   }
+
+  const MODEL_CODES = {"T":["A1","A2","A3","A4","A5","A6","A7","A8","A9","A10","A11","A12","A13","A14","B1","B2","B3","B4","B5","B6","B7","B8","B9","B10","C1","C2","C3","C4","C5","D1","D2","D3","D4","D5","D6","D7","D8","D9","D10","D11","D12","D13","D14","D15","D16","D17","D18","D19","D20","D21","D22","D23","E1","E2","E3","E4","E5","E6","F1","F2","F3","F4","F5","F6","F7","F8","F9","F10","F11","F12","F13","F14","F15","F16","F17","F18","F19","F20","F21","F22","F23","F24","G1","G2","H1","H2","H3","H4","H5","H6","H7","H8","H9","H10","H11","H12","H13","H14","H15","UN"],"R":["A1","A2","A3","A4","A5","A6","A7","A8","A9","A10","A11","A12","A13","A14","B1","B2","B3","B4","B5","B6","B7","B8","B9","B10","C1","C2","C3","C4","C5","C6","D1","D2","D3","D4","D5","D6","D7","D8","D9","D10","D11","D12","D13","D14","D15","D16","D17","D18","D19","D20","D21","D22","D23","D24","D25","D26","D27","D28","D29","D30","D31","D32","E1","E2","E3","E4","E5","E6","E7","E8","E9","E10","E11","E12","E13","E14","E15","E16","E17","E18","F1","F2","F3","F4","F5","F6","F7","F8","F9","F10","F11","F12","F13","F14","F15","F16","F17","F18","F19","F20","F21","F22","F23","F24","F25","F26","F27","F28","F29","F30","F31","F32","F33","F34","F35","F36","F37","F38","F39","F40","F41","F42","F43","F44","F45","F46","F47","F48","F49","F50","F51","F52","F53","F54","G1","G2","H1","H2","H3","H4","H5","H6","H7","H8","H9","H10","H11","H12","H13","H14","H15","I1","I2","I3","I4","I5","I6","I7","I8","I9","I10","I11","I12","I13","I14","I15","I16","I17","I18","I19","I20","I21","I22","I23","I24","I25","I26","I27","I28","I29","I30","I31","I32","J1","J2","K1","K2","K3","K4","L1","M1","N1","O1","O2","O3","O4","O5","O6","O7","O8","O9","P1","P2","Q1","Q2","Q3","Z01","Z02","Z03","Z04","Z05","Z06","Z07","Z08","Z09","Z10","Z11","Z12","UN"],"O":["A1","A2","A3","A4","A5","A6","A7","A8","A9","A10","A11","A12","A13","A14","B1","B2","B3","B4","B5","B6","B7","B8","B9","B10","C1","C2","C3","C4","C5","D1","D2","D3","D4","D5","D6","D7","D8","D9","D10","D11","D12","D13","D14","D15","D16","D17","D18","D19","D20","D21","D22","D23","E1","E2","E3","E4","E5","E6","F1","F2","F3","F4","F5","F6","F7","F8","F9","F10","F11","F12","F13","F14","F15","F16","F17","F18","F19","F20","F21","F22","F23","F24","G1","G2","H1","H2","H3","H4","H5","H6","H7","H8","H9","H10","H11","H12","H13","H14","H15","UN"],"M":["A1","A2","A3","A4","A5","A6","A7","A8","A9","A10","A11","A12","A13","A14","B1","B2","B3","B4","B5","B6","B7","B8","B9","B10","C1","C2","C3","C4","C5","D1","D2","D3","D4","D5","D6","D7","D8","D9","D10","D11","D12","D13","D14","D15","D16","D17","D18","D19","D20","D21","D22","D23","E1","E2","E3","E4","E5","E6","F1","F2","F3","F4","F5","F6","F7","F8","F9","F10","F11","F12","F13","F14","F15","F16","F17","F18","F19","F20","F21","F22","F23","F24","G1","G2","H1","H2","H3","H4","H5","H6","H7","H8","H9","H10","H11","H12","H13","H14","H15","UN"],"S":["A1","A2","A3","A4","A5","A6","A7","A8","A9","A10","A11","A12","A13","A14","B1","B2","B3","B4","B5","B6","B7","B8","B9","B10","C1","C2","C3","C4","C5","D1","D2","D3","D4","D5","D6","D7","D8","D9","D10","D11","D12","D13","D14","D15","D16","D17","D18","D19","D20","D21","D22","D23","E1","E2","E3","E4","E5","E6","F1","F2","F3","F4","F5","F6","F7","F8","F9","F10","F11","F12","F13","F14","F15","F16","F17","F18","F19","F20","F21","F22","F23","F24","G1","G2","H1","H2","H3","H4","H5","H6","H7","H8","H9","H10","H11","H12","H13","H14","H15","UN"]};
+  const MODEL_CODE_SETS = Object.fromEntries(Object.entries(MODEL_CODES).map(([k,v]) => [k, new Set(v)]));
+  const MODEL_CODE_SORTED = Object.fromEntries(Object.entries(MODEL_CODES).map(([k,v]) => [k, [...v].sort((a,b)=>b.length-a.length)]));
+  const DEPT_NAMES = {O:'OB',T:'TX',R:'RX',S:'SM',M:'MM'};
+  const PLANT_PREFIXES = new Set(['TL','TW','TA']);
 
   const srcDirs = [];
   let dstDir = null;
@@ -246,554 +162,365 @@
 
   const $ = s => document.querySelector(s);
   const $$ = s => Array.from(document.querySelectorAll(s));
-  const srcList = $('#srcList');
-  const dstPath = $('#dstPath');
-  const hitList = $('#hitList');
-  const stat = $('#stat');
-  const fill = $('#fill');
-  const pct = $('#pct');
-  const copyBox = $('#copyBox');
-  const copyingName = $('#copyingName');
-  const copyMeta = $('#copyMeta');
-  const copyList = $('#copyList');
-  const regexInput = $('#regex');
-  const ignoreCase = $('#ignoreCase');
-  const srcDrop = $('#srcDrop');
-  const dstDrop = $('#dstDrop');
-  const modalMask = $('#modalMask');
-  const compareList = $('#compareList');
+  const srcList=$('#srcList'),dstPath=$('#dstPath'),hitList=$('#hitList'),stat=$('#stat'),fill=$('#fill'),pct=$('#pct');
+  const copyBox=$('#copyBox'),copyingName=$('#copyingName'),copyMeta=$('#copyMeta'),copyList=$('#copyList');
+  const regexInput=$('#regex'),ignoreCase=$('#ignoreCase'),useAdvancedRegex=$('#useAdvancedRegex'),allowFutureCode=$('#allowFutureCode');
+  const srcDrop=$('#srcDrop'),dstDrop=$('#dstDrop'),modalMask=$('#modalMask'),compareList=$('#compareList');
 
-  function selectedLetters(){
-    const set = new Set();
-    $$('.dept').forEach(cb => { if (cb.checked) set.add(cb.dataset.letter); });
-    if (set.size === 0) return new Set(['O','T','R','S','M']);
-    return set;
-  }
-
-  function renderSrc(){
-    srcList.innerHTML = '';
-    srcDirs.forEach((h, i) => {
-      const row = document.createElement('div');
-      row.className = 'item';
-      row.innerHTML = `<span class="k">[${i+1}]</span> <strong>${h.name || '(未知名称)'}</strong>`;
-      const del = document.createElement('button');
-      del.textContent = '移除';
-      del.className = 'btn ghost';
-      del.style.marginLeft = 'auto';
-      del.onclick = () => { srcDirs.splice(i, 1); renderSrc(); };
-      row.appendChild(del);
-      srcList.appendChild(row);
-    });
-  }
-
-  async function pickSourceDir(){
-    try{
-      const handle = await window.showDirectoryPicker({ mode: 'readwrite' });
-      srcDirs.push(handle);
-      renderSrc();
-    }catch(e){}
-  }
-
-  function clearSrc(){
-    srcDirs.length = 0;
-    previewMatches = [];
-    lastRenameTasks = [];
-    renderSrc();
-    hitList.innerHTML = '';
-    renderIssues([]);
-    renderCompare([]);
-    stat.textContent = '尚未预览';
-  }
-
-  async function pickDestDir(){
-    try{
-      dstDir = await window.showDirectoryPicker({ mode: 'readwrite' });
-      dstPath.textContent = `已选择：${dstDir.name}`;
-      $('#start').disabled = false;
-      $('#openDst').disabled = false;
-    }catch(e){}
-  }
-
-  async function openDestDir(){
-    if(!dstDir){ alert('请先选择目标目录'); return; }
-    try{
-      await window.showDirectoryPicker({ startIn: dstDir, mode: 'readwrite' });
-    }catch(e){}
+  function normalizeCodeText(value){
+    return String(value ?? '').normalize('NFKC').toUpperCase()
+      .replace(/[～〜﹏∼]/g,'~').replace(/[﹣－—–]/g,'-')
+      .replace(/[\t\r\n\u3000]+/g,' ').replace(/\s+/g,' ').trim();
   }
 
   function normalizeFolderTitle(name){
-    return String(name || '')
-      .replace(/\s*-\s*副本(?:\s*\(\d+\))?\s*$/i, '')
-      .replace(/\s+/g, ' ')
-      .trim();
+    return String(name||'').replace(/\s*-\s*副本(?:\s*\(\d+\))?\s*$/i,'').replace(/\s+/g,' ').trim();
+  }
+  function prettyFolderTitle(name){return String(name||'').replace(/\s+/g,' ').trim();}
+
+  function extractCodeToken(name){
+    const s = normalizeCodeText(name);
+    // 编码必须位于文件夹名开头，直到第一个空格为止；支持 A~B 范围。
+    const m = s.match(/^([A-Z0-9][A-Z0-9_-]*(?:~[A-Z0-9][A-Z0-9_-]*)?)(?=\s|$)/);
+    return m ? m[1].replace(/_/g,'') : '';
   }
 
-  function prettyFolderTitle(name){
-    return String(name || '').replace(/\s+/g, ' ').trim();
+  function parseSingleCode(raw){
+    const code = normalizeCodeText(raw).replace(/\s+/g,'').replace(/_/g,'');
+    if(!code || !/[A-Z]/.test(code) || !/\d/.test(code)) return {valid:false,reason:'缺少字母或数字',raw:code};
+
+    let plantPrefix = '';
+    let dept = '';
+    let body = code;
+
+    // TL/TW/TA 只有在后面紧跟部门字母 O/T/R/S/M 时才解释为厂区前缀，
+    // 避免把正常 TX 编号 TA1... 误当成泰国前缀。
+    const p2 = body.slice(0,2);
+    if(PLANT_PREFIXES.has(p2) && 'OTRSM'.includes(body.charAt(2))){
+      plantPrefix = p2;
+      dept = body.charAt(2);
+      body = body.slice(3);
+    } else {
+      dept = body.charAt(0);
+      body = body.slice(1);
+    }
+
+    if(!'OTRSM'.includes(dept)) return {valid:false,reason:'部门代码不是 O/T/R/S/M',raw:code,plantPrefix,dept};
+
+    // 当前规则表机种代码：按最长前缀匹配，避免 A1 抢先匹配 A10。
+    let modelCode = '';
+    const known = MODEL_CODE_SORTED[dept] || [];
+    for(const mc of known){
+      if(body.startsWith(mc)){modelCode=mc;break;}
+    }
+
+    if(modelCode){
+      const rest = body.slice(modelCode.length);
+      // 正常编码在机种代码后还应有内容；但不把站别/设备/工序写死，
+      // 因为规则表中不同部门、历史编号和手动岗位存在差异。
+      if(rest.length < 2) return {valid:false,reason:'机种代码后内容过短',raw:code,plantPrefix,dept,modelCode,rest};
+      return {valid:true,strict:true,raw:code,plantPrefix,dept,modelCode,rest,reason:''};
+    }
+
+    // 规则表明确注明 SLA001 类特殊短码：部门 + 工序 + 流水号。
+    // 这里兼容 2~4 位字母工序 + >=3 位流水号。
+    if(/^[A-Z]{2,4}\d{3,}[A-Z]?$/.test(body)){
+      return {valid:true,strict:true,special:true,raw:code,plantPrefix,dept,modelCode:'(特殊短码)',rest:body,reason:''};
+    }
+
+    // 对尚未录入规则表的新/历史机种，提供结构兼容，避免再次出现 Q3 类漏识别。
+    // 必须至少以“字母+数字”或 UN 开头，并有足够长度，降低普通英文目录误命中。
+    if(allowFutureCode.checked && (/^(?:[A-Z]\d{1,3}|Z\d{2}|UN)[A-Z0-9-]{2,}$/.test(body))){
+      const guessed = (body.match(/^(?:Z\d{2}|UN|[A-Z]\d{1,3})/)||[''])[0];
+      return {valid:true,strict:false,future:true,raw:code,plantPrefix,dept,modelCode:guessed||'(未知机种)',rest:body.slice((guessed||'').length),reason:'机种码未在当前规则表中，按兼容模式识别'};
+    }
+
+    return {valid:false,reason:'未匹配当前规则表机种代码',raw:code,plantPrefix,dept,modelCode:'',rest:body};
+  }
+
+  function parseEncodedDirName(name){
+    const token = extractCodeToken(name);
+    if(!token) return {valid:false,reason:'文件夹名开头没有可提取编码',token:''};
+
+    const parts = token.split('~');
+    if(parts.length > 2) return {valid:false,reason:'范围符号 ~ 超过一次',token};
+
+    const first = parseSingleCode(parts[0]);
+    if(!first.valid) return {...first,token};
+
+    let second = null;
+    if(parts.length === 2){
+      second = parseSingleCode(parts[1]);
+      if(!second.valid) return {valid:false,reason:'范围结束编码无效：'+second.reason,token,first,second};
+      if(second.dept !== first.dept) return {valid:false,reason:'范围前后部门代码不一致',token,first,second};
+      if(second.plantPrefix !== first.plantPrefix) return {valid:false,reason:'范围前后厂区前缀不一致',token,first,second};
+    }
+
+    return {
+      valid:true,token,dept:first.dept,deptName:DEPT_NAMES[first.dept],
+      plantPrefix:first.plantPrefix,modelCode:first.modelCode,
+      strict:first.strict && (!second || second.strict),
+      future:first.future || !!second?.future,
+      special:first.special || !!second?.special,
+      first,second,
+      warning:first.reason || second?.reason || ''
+    };
   }
 
   function getNameAfterCode(name){
-    const s = String(name || '').trim();
-    const m = s.match(/^\S+\s+(.+)$/);
-    return m ? m[1].trim() : '';
+    const s = String(name||'').trim();
+    const token = extractCodeToken(s);
+    if(!token) return '';
+    return s.slice(s.toUpperCase().indexOf(token.toUpperCase()) + token.length).trim();
   }
 
-  function buildRegex(){
-    const raw = (regexInput?.value || '').trim();
-    const flags = ignoreCase?.checked ? 'i' : '';
-    const core = raw.replace(/^\^/, '').replace(/\$$/, '');
-    const letters = Array.from(selectedLetters()).join('');
-    const parts = [];
-    if (core) parts.push(core);
-    if (letters) parts.push('[' + letters + ']O(?=\\d)');
-    const source = '^(?:' + parts.join('|') + ')';
-    try{ return new RegExp(source, flags); }
-    catch(e){
-      alert('正则语法错误：\n' + e.message + '\n\n组合后的表达式：' + source);
-      throw e;
-    }
+  function selectedLetters(){
+    const set = new Set();
+    $$('.dept').forEach(cb=>{if(cb.checked)set.add(cb.dataset.letter)});
+    return set; // 修复：全不选就是 0 个部门，不再偷偷恢复成全选
   }
+
+  function buildAdvancedRegex(){
+    if(!useAdvancedRegex.checked) return null;
+    const raw=(regexInput.value||'').trim();
+    if(!raw) return null;
+    try{return new RegExp(raw,ignoreCase.checked?'i':'')}
+    catch(e){alert('高级正则语法错误：\n'+e.message);throw e}
+  }
+
+  function encodedInfo(name, lettersSet, advancedRe){
+    const info=parseEncodedDirName(name);
+    if(!info.valid) return info;
+    if(!lettersSet.has(info.dept)) return {...info,valid:false,reason:'该部门未勾选'};
+    if(advancedRe && !advancedRe.test(String(name||''))) return {...info,valid:false,reason:'未通过高级正则二次过滤'};
+    return info;
+  }
+
+  async function addSourceHandle(handle){
+    for(const old of srcDirs){
+      try{if(old.isSameEntry && await old.isSameEntry(handle)) return false}catch{}
+      if(old.name===handle.name && !old.isSameEntry) return false;
+    }
+    srcDirs.push(handle);return true;
+  }
+
+  function renderSrc(){
+    srcList.innerHTML='';
+    srcDirs.forEach((h,i)=>{
+      const row=document.createElement('div');row.className='item';
+      row.innerHTML=`<span class="k">[${i+1}]</span> <strong>${h.name||'(未知名称)'}</strong>`;
+      const del=document.createElement('button');del.textContent='移除';del.className='btn ghost';del.style.marginLeft='auto';
+      del.onclick=()=>{srcDirs.splice(i,1);renderSrc()};row.appendChild(del);srcList.appendChild(row);
+    });
+  }
+
+  async function pickSourceDir(){try{const h=await showDirectoryPicker({mode:'readwrite'});await addSourceHandle(h);renderSrc()}catch(e){}}
+  function clearSrc(){srcDirs.length=0;previewMatches=[];lastRenameTasks=[];renderSrc();hitList.innerHTML='';renderIssues([]);renderCompare([]);stat.textContent='尚未预览'}
+  async function pickDestDir(){try{dstDir=await showDirectoryPicker({mode:'readwrite'});dstPath.textContent=`已选择：${dstDir.name}`;$('#start').disabled=false;$('#openDst').disabled=false}catch(e){}}
+  async function openDestDir(){if(!dstDir)return alert('请先选择目标目录');try{await showDirectoryPicker({startIn:dstDir,mode:'readwrite'})}catch(e){}}
 
   function renderIssues(messages){
-    const issueBox = $('#issueBox');
-    const issueList = $('#issueList');
-    issueList.innerHTML = '';
-    if (!messages || messages.length === 0){
-      issueBox.style.display = 'none';
-      return;
-    }
-    messages.forEach(msg => {
-      const li = document.createElement('li');
-      li.textContent = msg;
-      issueList.appendChild(li);
-    });
-    issueBox.style.display = 'block';
+    const box=$('#issueBox'),list=$('#issueList');list.innerHTML='';
+    if(!messages?.length){box.style.display='none';return}
+    messages.forEach(msg=>{const li=document.createElement('li');li.textContent=msg;list.appendChild(li)});box.style.display='block';
   }
-
   function renderCompare(tasks){
-    compareList.innerHTML = '';
-    if (!tasks || tasks.length === 0){
-      const div = document.createElement('div');
-      div.className = 'compareRow';
-      div.innerHTML = '<div class="compareMeta">当前没有可显示的名称对比。</div>';
-      compareList.appendChild(div);
-      return;
-    }
-    tasks.forEach(task => {
-      const div = document.createElement('div');
-      div.className = 'compareRow';
-      if (task.type === 'rename'){
-        div.innerHTML = `
-          <div><strong>二级文件夹：</strong><span class="compareOld">${prettyFolderTitle(task.oldParentName)}</span></div>
-          <div style="margin-top:6px"><strong>编码文件夹示例：</strong>${task.childExample || '—'}</div>
-          <div style="margin-top:6px"><strong>编码后名称：</strong><span class="compareNew">${task.expectedName || '—'}</span></div>
-          <div class="compareMeta">点击“一键改名”后，会把二级文件夹改成上面的正确名称。</div>
-        `;
-      } else {
-        div.innerHTML = `
-          <div><strong>二级文件夹：</strong>${task.parentName || '—'}</div>
-          <div style="margin-top:6px"><strong>结果：</strong><span class="compareOld">${task.message || '—'}</span></div>
-        `;
-      }
-      compareList.appendChild(div);
+    compareList.innerHTML='';
+    if(!tasks?.length){const d=document.createElement('div');d.className='compareRow';d.innerHTML='<div class="compareMeta">当前没有可显示的名称对比。</div>';compareList.appendChild(d);return}
+    tasks.forEach(task=>{
+      const d=document.createElement('div');d.className='compareRow';
+      if(task.type==='rename') d.innerHTML=`<div><strong>业务文件夹：</strong><span class="compareOld">${prettyFolderTitle(task.oldParentName)}</span></div><div style="margin-top:6px"><strong>编码文件夹示例：</strong>${task.childExample||'—'}</div><div style="margin-top:6px"><strong>编码后名称：</strong><span class="compareNew">${task.expectedName||'—'}</span></div><div class="compareMeta">点击“一键改名”后，会将业务文件夹改为编码后的名称；如目标名称已存在则拒绝合并，避免误覆盖。</div>`;
+      else d.innerHTML=`<div><strong>业务文件夹：</strong>${task.parentName||'—'}</div><div style="margin-top:6px"><strong>结果：</strong><span class="compareOld">${task.message||'—'}</span></div>`;
+      compareList.appendChild(d);
     });
   }
-
   function renderHits(){
-    const checks = Array.from(document.querySelectorAll('.hitcb'));
-    const total = checks.length;
-    const selected = checks.filter(c => c.checked).length;
-    stat.textContent = `命中编码文件夹：${total} 个 · 已选中：${selected} 个`;
+    const checks=[...document.querySelectorAll('.hitcb')],total=checks.length,selected=checks.filter(c=>c.checked).length;
+    stat.textContent=`命中编码文件夹：${total} 个 · 已选中：${selected} 个`;
   }
 
-  async function copyFile(srcFileHandle, dstDirHandle){
-    const file = await srcFileHandle.getFile();
-    const dstFileHandle = await dstDirHandle.getFileHandle(srcFileHandle.name, { create: true });
-    const writable = await dstFileHandle.createWritable();
-    await writable.write(await file.arrayBuffer());
-    await writable.close();
+  async function copyFile(srcFileHandle,dstDirHandle){
+    const file=await srcFileHandle.getFile(),dstFileHandle=await dstDirHandle.getFileHandle(srcFileHandle.name,{create:true}),w=await dstFileHandle.createWritable();
+    await w.write(await file.arrayBuffer());await w.close();
   }
-
-  async function ensureSubDir(parent, name){
-    return await parent.getDirectoryHandle(name, { create: true });
-  }
-
-  async function copyDirContents(srcDirHandle, dstDirHandle){
-    for await (const [name, handle] of srcDirHandle.entries()){
-      if (handle.kind === 'file'){
-        await copyFile(handle, dstDirHandle);
-      }else if (handle.kind === 'directory'){
-        const subDst = await ensureSubDir(dstDirHandle, name);
-        await copyDirContents(handle, subDst);
-      }
+  async function ensureSubDir(parent,name){return await parent.getDirectoryHandle(name,{create:true})}
+  async function copyDirContents(src,dst){
+    for await(const [name,h] of src.entries()){
+      if(h.kind==='file') await copyFile(h,dst);
+      else if(h.kind==='directory'){const sub=await ensureSubDir(dst,name);await copyDirContents(h,sub)}
     }
   }
-
-  async function copyDir(srcHandle, dstParent, forcedName){
-    const dstHere = await ensureSubDir(dstParent, forcedName || srcHandle.name);
-    await copyDirContents(srcHandle, dstHere);
+  async function entryExists(parent,name){try{await parent.getDirectoryHandle(name);return true}catch{return false}}
+  async function uniqueDirName(parent,name){
+    if(!await entryExists(parent,name)) return name;
+    let n=2;while(await entryExists(parent,`${name}_${n}`))n++;
+    return `${name}_${n}`;
   }
-
+  async function copyDir(srcHandle,dstParent,forcedName){
+    const safeName=await uniqueDirName(dstParent,forcedName||srcHandle.name);
+    const dstHere=await ensureSubDir(dstParent,safeName);await copyDirContents(srcHandle,dstHere);return safeName;
+  }
   async function deleteAllEntries(dirHandle){
-    const names = [];
-    for await (const [name] of dirHandle.entries()){
-      names.push(name);
-    }
-    for (const name of names){
-      await dirHandle.removeEntry(name, { recursive: true });
-    }
+    const names=[];for await(const [name] of dirHandle.entries())names.push(name);
+    for(const name of names)await dirHandle.removeEntry(name,{recursive:true});
   }
 
-  function isEncodedDirName(name, re, lettersSet){
-    const rawName = String(name || '');
-    const normalizedName = rawName.trim();
-    if (!normalizedName) return false;
-    const first = normalizedName.charAt(0).toUpperCase();
-    return lettersSet.has(first) && re.test(normalizedName);
-  }
-
-  async function iterEncodedDirsUnder(parentHandle, re, lettersSet){
-    const results = [];
-    async function walk(dirHandle){
-      for await (const [name, handle] of dirHandle.entries()){
-        if (handle.kind !== 'directory') continue;
-
-        if (isEncodedDirName(name, re, lettersSet)){
-          results.push({ name, handle });
-          // 已经命中一个编码目录后，不再继续进入其内部扫描，避免重复命中。
-          continue;
-        }
-
-        await walk(handle);
+  async function iterEncodedDirsUnder(parentHandle,lettersSet,advancedRe,basePath=''){
+    const results=[];
+    async function walk(dirHandle,path){
+      for await(const [name,handle] of dirHandle.entries()){
+        if(handle.kind!=='directory')continue;
+        const p=path?path+'/'+name:name;
+        const info=encodedInfo(name,lettersSet,advancedRe);
+        if(info.valid){results.push({name,handle,path:p,info});continue}
+        await walk(handle,p);
       }
     }
-    await walk(parentHandle);
-    return results;
+    await walk(parentHandle,basePath);return results;
   }
 
   async function findRenameTasks(){
-    const re = buildRegex();
-    const lettersSet = selectedLetters();
-    const tasks = [];
-
-    for (const root of srcDirs){
-      // 如果用户直接选择的源目录本身就是编码目录，则它没有可自动改名的上级业务目录。
-      // 这种情况交给预览/复制处理，这里不生成改名任务。
-      if (isEncodedDirName(root.name, re, lettersSet)) continue;
-
-      for await (const [parentName, parentHandle] of root.entries()){
-        if (parentHandle.kind !== 'directory') continue;
-
-        // 一级目录本身就是编码目录时，不应把它误当成“需要改名的二级业务文件夹”。
-        if (isEncodedDirName(parentName, re, lettersSet)) continue;
-
-        const encodedDirs = await iterEncodedDirsUnder(parentHandle, re, lettersSet);
-        if (encodedDirs.length === 0) continue;
-
-        const expectedNames = new Set();
-        for (const item of encodedDirs){
-          const codeTail = normalizeFolderTitle(getNameAfterCode(item.name));
-          if (codeTail) expectedNames.add(codeTail);
-        }
-
-        if (expectedNames.size === 0) continue;
-
-        const normalizedParent = normalizeFolderTitle(parentName);
-
-        if (expectedNames.size > 1){
-          tasks.push({
-            type: 'conflict',
-            rootHandle: root,
-            parentHandle,
-            parentName,
-            message: `文件夹“${prettyFolderTitle(parentName)}”下有多个不同名称的编码文件夹，无法自动改名：${Array.from(expectedNames).join(' / ')}`
-          });
-          continue;
-        }
-
-        const expectedName = Array.from(expectedNames)[0];
-        if (normalizedParent === expectedName) continue;
-
-        const childExample = encodedDirs[0]?.name || '';
-        tasks.push({
-          type: 'rename',
-          rootHandle: root,
-          parentHandle,
-          oldParentName: parentName,
-          newParentName: expectedName,
-          expectedName,
-          childExample,
-          message: `${prettyFolderTitle(parentName)} 与 ${childExample} 的 ${expectedName} 不符`
-        });
+    const lettersSet=selectedLetters(),advancedRe=buildAdvancedRegex(),tasks=[];
+    if(lettersSet.size===0)return tasks;
+    for(const root of srcDirs){
+      if(encodedInfo(root.name,lettersSet,advancedRe).valid)continue;
+      for await(const [parentName,parentHandle] of root.entries()){
+        if(parentHandle.kind!=='directory')continue;
+        if(encodedInfo(parentName,lettersSet,advancedRe).valid)continue;
+        const encodedDirs=await iterEncodedDirsUnder(parentHandle,lettersSet,advancedRe);
+        if(!encodedDirs.length)continue;
+        const expectedNames=new Set();
+        for(const item of encodedDirs){const tail=normalizeFolderTitle(getNameAfterCode(item.name));if(tail)expectedNames.add(tail)}
+        if(!expectedNames.size)continue;
+        const normalizedParent=normalizeFolderTitle(parentName);
+        if(expectedNames.size>1){tasks.push({type:'conflict',rootHandle:root,parentHandle,parentName,message:`文件夹“${prettyFolderTitle(parentName)}”下有多个不同编码后名称，无法自动改名：${[...expectedNames].join(' / ')}`});continue}
+        const expectedName=[...expectedNames][0];if(normalizedParent===expectedName)continue;
+        tasks.push({type:'rename',rootHandle:root,parentHandle,oldParentName:parentName,newParentName:expectedName,expectedName,childExample:encodedDirs[0]?.name||'',message:`${prettyFolderTitle(parentName)} 与编码目录名称尾部 ${expectedName} 不符`});
       }
     }
     return tasks;
   }
 
   async function renameSourceFolder(task){
-    if (!task || task.type !== 'rename') return;
-    if (!task.rootHandle || !task.parentHandle) return;
-    if (!task.oldParentName || !task.newParentName) return;
-    if (task.oldParentName === task.newParentName) return;
-
-    const targetHandle = await ensureSubDir(task.rootHandle, task.newParentName);
-    await copyDirContents(task.parentHandle, targetHandle);
+    if(!task||task.type!=='rename'||!task.rootHandle||!task.parentHandle||!task.oldParentName||!task.newParentName||task.oldParentName===task.newParentName)return;
+    // 修复：禁止合并进同名已有目录，避免复制后删除原目录导致数据混在一起。
+    if(await entryExists(task.rootHandle,task.newParentName))throw new Error(`目标名称“${task.newParentName}”已经存在，为防止目录合并已停止改名`);
+    const target=await ensureSubDir(task.rootHandle,task.newParentName);
+    try{await copyDirContents(task.parentHandle,target)}
+    catch(e){try{await task.rootHandle.removeEntry(task.newParentName,{recursive:true})}catch{};throw e}
     await deleteAllEntries(task.parentHandle);
-    await task.rootHandle.removeEntry(task.oldParentName, { recursive: true });
+    await task.rootHandle.removeEntry(task.oldParentName,{recursive:true});
   }
 
   async function collectPreviewMatches(){
-    previewMatches = [];
-    hitList.innerHTML = '';
-    const re = buildRegex();
-    const lettersSet = selectedLetters();
-    let idx = 0;
+    previewMatches=[];hitList.innerHTML='';
+    const lettersSet=selectedLetters(),advancedRe=buildAdvancedRegex(),seen=new Set();let idx=0;
+    const warnings=[];
+    if(lettersSet.size===0){stat.textContent='当前未选择任何部门';return}
 
-    function addPreviewMatch(item, parentLabel){
-      const lab = document.createElement('label');
-      lab.className = 'item';
-
-      const cb = document.createElement('input');
-      cb.type = 'checkbox';
-      cb.checked = true;
-      cb.className = 'hitcb';
-      cb.dataset.idx = String(idx);
-      cb.onchange = renderHits;
-
-      const span = document.createElement('span');
-      span.textContent = parentLabel
-        ? `${prettyFolderTitle(parentLabel)} / ${item.name}`
-        : item.name;
-
-      lab.appendChild(cb);
-      lab.appendChild(span);
-      hitList.appendChild(lab);
-
-      previewMatches.push({
-        handle: item.handle,
-        targetName: item.name,
-        displayName: item.name,
-        sourceParentName: parentLabel || ''
-      });
-      idx++;
+    function add(item,parentLabel,rootName){
+      const key=`${rootName}::${item.path||item.name}`;if(seen.has(key))return;seen.add(key);
+      const lab=document.createElement('label');lab.className='item';
+      const cb=document.createElement('input');cb.type='checkbox';cb.checked=true;cb.className='hitcb';cb.dataset.idx=String(idx);cb.onchange=renderHits;
+      const span=document.createElement('span');
+      const plant=item.info?.plantPrefix?` · 厂区前缀 ${item.info.plantPrefix}`:'';
+      const mode=item.info?.strict?'规则表命中':(item.info?.special?'特殊短码':'兼容识别');
+      span.textContent=`${parentLabel?prettyFolderTitle(parentLabel)+' / ':''}${item.name}  [${item.info?.deptName||''} · ${item.info?.modelCode||''}${plant} · ${mode}]`;
+      lab.append(cb,span);hitList.appendChild(lab);
+      previewMatches.push({handle:item.handle,targetName:item.name,displayName:item.name,sourceParentName:parentLabel||'',path:item.path||item.name,info:item.info});idx++;
+      if(item.info?.future)warnings.push(`兼容识别（规则表暂无机种码）：${item.name}`);
     }
 
-    for (const root of srcDirs){
-      // 场景 1：用户直接选择的源目录本身就是编码目录。
-      if (isEncodedDirName(root.name, re, lettersSet)){
-        addPreviewMatch({ name: root.name, handle: root }, '');
-        continue;
-      }
-
-      for await (const [parentName, parentHandle] of root.entries()){
-        if (parentHandle.kind !== 'directory') continue;
-
-        // 场景 2：源目录的一级子目录本身就是编码目录。
-        if (isEncodedDirName(parentName, re, lettersSet)){
-          addPreviewMatch({ name: parentName, handle: parentHandle }, root.name || '源目录');
-          continue;
-        }
-
-        // 场景 3：编码目录位于普通业务目录的更深层级。
-        const encodedDirs = await iterEncodedDirsUnder(parentHandle, re, lettersSet);
-        for (const item of encodedDirs){
-          addPreviewMatch(item, parentName);
-        }
+    for(const root of srcDirs){
+      const rootInfo=encodedInfo(root.name,lettersSet,advancedRe);
+      if(rootInfo.valid){add({name:root.name,handle:root,path:root.name,info:rootInfo},'',root.name);continue}
+      for await(const [parentName,parentHandle] of root.entries()){
+        if(parentHandle.kind!=='directory')continue;
+        const pInfo=encodedInfo(parentName,lettersSet,advancedRe);
+        if(pInfo.valid){add({name:parentName,handle:parentHandle,path:parentName,info:pInfo},root.name||'源目录',root.name);continue}
+        const encodedDirs=await iterEncodedDirsUnder(parentHandle,lettersSet,advancedRe,parentName);
+        for(const item of encodedDirs)add(item,parentName,root.name);
       }
     }
+    if(warnings.length)renderIssues(warnings.slice(0,100));
     renderHits();
   }
 
   async function previewHits(){
-    lastRenameTasks = await findRenameTasks();
-    renderCompare(lastRenameTasks);
-
-    const issueMessages = lastRenameTasks.map(task => {
-      if (task.type === 'rename') {
-        return `${prettyFolderTitle(task.oldParentName)} 与 ${task.childExample} 的 ${task.expectedName} 不符，可点击“一键改名”`;
-      }
-      return task.message;
-    });
-
-    renderIssues(issueMessages);
-    await collectPreviewMatches();
+    lastRenameTasks=await findRenameTasks();renderCompare(lastRenameTasks);
+    const msgs=lastRenameTasks.map(t=>t.type==='rename'?`${prettyFolderTitle(t.oldParentName)} 与 ${t.childExample} 的名称尾部 ${t.expectedName} 不符，可点击“一键改名”`:t.message);
+    renderIssues(msgs);await collectPreviewMatches();
   }
 
   async function doRename(){
-    lastRenameTasks = await findRenameTasks();
-    renderCompare(lastRenameTasks);
-
-    const issueMessages = [];
-    let renamedCount = 0;
-
-    for (const task of lastRenameTasks){
-      if (task.type !== 'rename'){
-        issueMessages.push(task.message);
-        continue;
-      }
-      issueMessages.push(`${prettyFolderTitle(task.oldParentName)} 与 ${task.childExample} 的 ${task.expectedName} 不符，开始改名`);
-      try{
-        await renameSourceFolder(task);
-        renamedCount++;
-        issueMessages.push(`已修改：${prettyFolderTitle(task.oldParentName)} → ${task.newParentName}`);
-      }catch(err){
-        issueMessages.push(`改名失败：${prettyFolderTitle(task.oldParentName)} → ${task.newParentName}，原因：${err?.message || err}`);
-      }
+    lastRenameTasks=await findRenameTasks();renderCompare(lastRenameTasks);
+    const msgs=[];let renamed=0;
+    for(const task of lastRenameTasks){
+      if(task.type!=='rename'){msgs.push(task.message);continue}
+      try{await renameSourceFolder(task);renamed++;msgs.push(`已修改：${prettyFolderTitle(task.oldParentName)} → ${task.newParentName}`)}
+      catch(err){msgs.push(`改名失败：${prettyFolderTitle(task.oldParentName)} → ${task.newParentName}，原因：${err?.message||err}`)}
     }
-
-    if (lastRenameTasks.length === 0){
-      issueMessages.push('未发现需要改名的二级文件夹。');
-    }
-
-    renderIssues(issueMessages);
-    await collectPreviewMatches();
-    showModal();
-    if (renamedCount > 0){
-      stat.textContent = `已完成改名：${renamedCount} 个，当前命中编码文件夹：${previewMatches.length} 个`;
-    }
+    if(!lastRenameTasks.length)msgs.push('未发现需要改名的业务文件夹。');
+    renderIssues(msgs);await collectPreviewMatches();showModal();
+    if(renamed>0)stat.textContent=`已完成改名：${renamed} 个，当前命中编码文件夹：${previewMatches.length} 个`;
   }
 
-  function updateProgress(done, total, currentName){
-    const percent = total ? Math.round(done * 100 / total) : 0;
-    fill.style.width = percent + '%';
-    pct.textContent = percent + '%';
-    copyingName.textContent = currentName || '—';
-    copyMeta.textContent = `${done} / ${total}`;
-    if (copyBox.style.display === 'none') copyBox.style.display = 'block';
+  function updateProgress(done,total,currentName){
+    const percent=total?Math.round(done*100/total):0;fill.style.width=percent+'%';pct.textContent=percent+'%';copyingName.textContent=currentName||'—';copyMeta.textContent=`${done} / ${total}`;if(copyBox.style.display==='none')copyBox.style.display='block';
   }
-
-  function pushRecent(name){
-    const li = document.createElement('li');
-    li.textContent = name;
-    copyList.appendChild(li);
-    while(copyList.children.length > 8){
-      copyList.removeChild(copyList.firstChild);
-    }
-  }
-
+  function pushRecent(name){const li=document.createElement('li');li.textContent=name;copyList.appendChild(li);while(copyList.children.length>8)copyList.removeChild(copyList.firstChild)}
   async function startCopy(){
-    if (!dstDir){
-      alert('请先选择目标目录');
-      return;
+    if(!dstDir)return alert('请先选择目标目录');
+    if(!previewMatches.length)await previewHits();
+    const chosen=[...document.querySelectorAll('.hitcb')].filter(el=>el.checked).map(el=>Number(el.dataset.idx)).map(i=>previewMatches[i]).filter(Boolean);
+    if(!chosen.length)return alert('未选择任何要复制的编码文件夹');
+    copyList.innerHTML='';updateProgress(0,chosen.length,'准备中…');stat.textContent='复制中...';
+    let done=0,renamedTargets=[];
+    for(const item of chosen){
+      const label=item.targetName||item.displayName||'未命名目录';updateProgress(done,chosen.length,label);
+      const actual=await copyDir(item.handle,dstDir,item.targetName);
+      if(actual!==item.targetName)renamedTargets.push(`${item.targetName} → ${actual}`);
+      done++;pushRecent(actual);updateProgress(done,chosen.length,actual);stat.textContent=`复制中：${done}/${chosen.length}`;
     }
-    if (!previewMatches || previewMatches.length === 0){
-      await previewHits();
-    }
-    const checks = Array.from(document.querySelectorAll('.hitcb'));
-    const chosenIdx = checks.filter(el => el.checked).map(el => Number(el.dataset.idx));
-    if (chosenIdx.length === 0){
-      alert('未选择任何要复制的编码文件夹');
-      return;
-    }
-
-    const matches = chosenIdx.map(i => previewMatches[i]).filter(Boolean);
-
-    copyList.innerHTML = '';
-    updateProgress(0, matches.length, '准备中…');
-    stat.textContent = '复制中...';
-
-    let done = 0;
-    for (const item of matches){
-      const currentLabel = item.targetName || item.displayName || '未命名目录';
-      updateProgress(done, matches.length, currentLabel);
-      await copyDir(item.handle, dstDir, item.targetName);
-      done++;
-      pushRecent(currentLabel);
-      updateProgress(done, matches.length, currentLabel);
-      stat.textContent = `复制中：${done}/${matches.length}`;
-    }
-    stat.textContent = `完成：复制了 ${done} 个编码文件夹`;
-    updateProgress(done, matches.length, '完成');
+    stat.textContent=`完成：复制了 ${done} 个编码文件夹`;updateProgress(done,chosen.length,'完成');
+    if(renamedTargets.length)renderIssues([`目标目录存在同名文件夹，为防止覆盖已自动改名：`,...renamedTargets]);
   }
 
-  function handleDragOver(e){
-    e.preventDefault();
-    if (e.dataTransfer) e.dataTransfer.dropEffect = 'copy';
-    e.currentTarget.classList.add('dragover');
+  function handleDragOver(e){e.preventDefault();if(e.dataTransfer)e.dataTransfer.dropEffect='copy';e.currentTarget.classList.add('dragover')}
+  function handleDragLeave(e){e.preventDefault();e.currentTarget.classList.remove('dragover')}
+  async function handleDrop(e,type,el){
+    e.preventDefault();el.classList.remove('dragover');const dt=e.dataTransfer;if(!dt?.items)return;
+    const dirs=[];for(const item of dt.items){if(item.kind!=='file'||typeof item.getAsFileSystemHandle!=='function')continue;try{const h=await item.getAsFileSystemHandle();if(h?.kind==='directory')dirs.push(h)}catch{}}
+    if(!dirs.length)return alert('未检测到文件夹，请拖拽文件夹（目录）到此处。若拖拽无效，可使用上方按钮选择。');
+    if(type==='src'){for(const h of dirs)await addSourceHandle(h);renderSrc()}
+    else{dstDir=dirs[0];dstPath.textContent=`已选择：${dstDir.name}`;$('#start').disabled=false;$('#openDst').disabled=false}
   }
+  function setupDropZone(el,type){if(!el)return;el.addEventListener('dragenter',handleDragOver);el.addEventListener('dragover',handleDragOver);el.addEventListener('dragleave',handleDragLeave);el.addEventListener('drop',e=>handleDrop(e,type,el));el.addEventListener('click',()=>type==='src'?pickSourceDir():pickDestDir())}
+  function showModal(){modalMask.style.display='flex'} function hideModal(){modalMask.style.display='none'}
 
-  function handleDragLeave(e){
-    e.preventDefault();
-    e.currentTarget.classList.remove('dragover');
-  }
+  $('#pickSrc').onclick=pickSourceDir;$('#clearSrc').onclick=clearSrc;$('#pickDst').onclick=pickDestDir;$('#openDst').onclick=openDestDir;
+  $('#preview').onclick=previewHits;$('#renameBtn').onclick=doRename;$('#showCompareBtn').onclick=async()=>{if(!lastRenameTasks.length){lastRenameTasks=await findRenameTasks();renderCompare(lastRenameTasks)}showModal()};
+  $('#start').onclick=startCopy;$('#closeModal').onclick=hideModal;$('#modalMask').addEventListener('click',e=>{if(e.target===modalMask)hideModal()});
+  $('#btnAll').onclick=()=>{document.querySelectorAll('.hitcb').forEach(cb=>cb.checked=true);renderHits()};
+  $('#btnNone').onclick=()=>{document.querySelectorAll('.hitcb').forEach(cb=>cb.checked=false);renderHits()};
+  $('#btnInvert').onclick=()=>{document.querySelectorAll('.hitcb').forEach(cb=>cb.checked=!cb.checked);renderHits()};
+  $('#deptAll').onclick=()=>{$$('.dept').forEach(cb=>cb.checked=true)};
+  $('#deptNone').onclick=()=>{$$('.dept').forEach(cb=>cb.checked=false)};
+  setupDropZone(srcDrop,'src');setupDropZone(dstDrop,'dst');
 
-  async function handleDrop(e, type, el){
-    e.preventDefault();
-    el.classList.remove('dragover');
-    const dt = e.dataTransfer;
-    if (!dt || !dt.items) return;
-
-    const dirs = [];
-    for (const item of dt.items){
-      if (item.kind !== 'file') continue;
-      if (typeof item.getAsFileSystemHandle === 'function'){
-        try{
-          const handle = await item.getAsFileSystemHandle();
-          if (handle && handle.kind === 'directory'){
-            dirs.push(handle);
-          }
-        }catch(err){}
-      }
-    }
-
-    if (!dirs.length){
-      alert('未检测到文件夹，请拖拽文件夹（目录）到此处。若拖拽无效，可使用上方按钮选择。');
-      return;
-    }
-
-    if (type === 'src'){
-      for (const h of dirs) srcDirs.push(h);
-      renderSrc();
-    }else if (type === 'dst'){
-      dstDir = dirs[0];
-      dstPath.textContent = `已选择：${dstDir.name}`;
-      $('#start').disabled = false;
-      $('#openDst').disabled = false;
-    }
-  }
-
-  function setupDropZone(el, type){
-    if (!el) return;
-    el.addEventListener('dragenter', handleDragOver);
-    el.addEventListener('dragover', handleDragOver);
-    el.addEventListener('dragleave', handleDragLeave);
-    el.addEventListener('drop', e => handleDrop(e, type, el));
-    el.addEventListener('click', () => {
-      if (type === 'src') pickSourceDir();
-      else if (type === 'dst') pickDestDir();
-    });
-  }
-
-  function showModal(){ modalMask.style.display = 'flex'; }
-  function hideModal(){ modalMask.style.display = 'none'; }
-
-  $('#pickSrc').onclick = pickSourceDir;
-  $('#clearSrc').onclick = clearSrc;
-  $('#pickDst').onclick = pickDestDir;
-  $('#openDst').onclick = openDestDir;
-  $('#preview').onclick = previewHits;
-  $('#renameBtn').onclick = doRename;
-  $('#showCompareBtn').onclick = async () => {
-    if (!lastRenameTasks || lastRenameTasks.length === 0){
-      lastRenameTasks = await findRenameTasks();
-      renderCompare(lastRenameTasks);
-    }
-    showModal();
-  };
-  $('#start').onclick = startCopy;
-  $('#closeModal').onclick = hideModal;
-  $('#modalMask').addEventListener('click', (e) => { if (e.target === modalMask) hideModal(); });
-  $('#btnAll').onclick = () => { document.querySelectorAll('.hitcb').forEach(cb => cb.checked = true); renderHits(); };
-  $('#btnNone').onclick = () => { document.querySelectorAll('.hitcb').forEach(cb => cb.checked = false); renderHits(); };
-  $('#btnInvert').onclick = () => { document.querySelectorAll('.hitcb').forEach(cb => cb.checked = !cb.checked); renderHits(); };
-  $('#btnPresetDefault').onclick = () => { regexInput.value = '^(?:O(?:(?:(?:ER|[ADEFIO])\\d+)(?:[ADEFIO]\\d+)*[A-Z]{2}[A-Z0-9]+|UN[A-Z]{2}\\d+|TE\\d+|\\d+)|S(?:(?:[A-JOP]\\d+)+[A-Z]{2}[A-Z0-9]+|UN[A-Z]{2}\\d+|\\d+)|[TRM](?:[A-J]|N|0|UN)(?=\\d))'; };
-  $('#btnPresetO').onclick = () => { regexInput.value = '^(?:O(?:(?:(?:ER|[ADEFIO])\\d+)(?:[ADEFIO]\\d+)*[A-Z]{2}[A-Z0-9]+|UN[A-Z]{2}\\d+|TE\\d+|\\d+))'; };
-  $('#btnPresetTRSM').onclick = () => { regexInput.value = '^(?:S(?:(?:[A-JOP]\\d+)+[A-Z]{2}[A-Z0-9]+|UN[A-Z]{2}\\d+|\\d+)|[TRM](?:[A-J]|N|0|UN)(?=\\d))'; };
-  $('#deptAll').onclick = () => { $$('.dept').forEach(cb => cb.checked = true); };
-  $('#deptNone').onclick = () => { $$('.dept').forEach(cb => cb.checked = false); };
-
-  setupDropZone(srcDrop, 'src');
-  setupDropZone(dstDrop, 'dst');
+  // 规则回归自检（控制台可查看）
+  const selfTests=[
+    'RQ3AA0000143~RQ3AA0000147 Fiber Kit AA 8度FA耦合底座',
+    'OE3LW1RL001G 示例',
+    'TD1TE1L001 示例',
+    'RB2LW2JJ001 示例',
+    'MD7ZZ1UV001 示例',
+    'SF2AS2DUV001 示例',
+    'SLA001 特殊短码'
+  ];
+  console.group('编码规则自检');
+  selfTests.forEach(x=>console.log(x,parseEncodedDirName(x)));
+  console.groupEnd();
 })();
 </script>
 </body>
