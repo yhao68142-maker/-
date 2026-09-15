@@ -180,9 +180,32 @@
 
   function extractCodeToken(name){
     const s = normalizeCodeText(name);
-    // 编码必须位于文件夹名开头，直到第一个空格为止；支持 A~B 范围。
-    const m = s.match(/^([A-Z0-9][A-Z0-9_-]*(?:~[A-Z0-9][A-Z0-9_-]*)?)(?=\s|$)/);
-    return m ? m[1].replace(/_/g,'') : '';
+    /*
+      编码必须位于名称开头，但编码与中文名称之间不一定有空格。
+      范围结尾既可能是完整编码，也可能只写变化的数字，例如：
+        OUNTY0006695~6704  -> OUNTY0006695~6704
+        OUNTY0006752称重... -> OUNTY0006752（数字后紧贴中文时也可识别）
+
+      先优先识别带范围的写法，再识别单编码。中文、空白或字符串结尾
+      都可以作为编码结束边界。
+    */
+    const boundary = '(?=\\s|[\\u3400-\\u9FFF]|$)';
+    const range = new RegExp('^([A-Z][A-Z0-9_-]*?\\d+)~((?:[A-Z][A-Z0-9_-]*?\\d+)|(?:\\d+))' + boundary);
+    const single = new RegExp('^([A-Z][A-Z0-9_-]*?\\d+)' + boundary);
+    const m = s.match(range) || s.match(single);
+    return m ? (m[2] ? `${m[1]}~${m[2]}` : m[1]).replace(/_/g,'') : '';
+  }
+
+  function expandRangeEnd(firstCode,endCode){
+    const first=normalizeCodeText(firstCode).replace(/\s+/g,'').replace(/_/g,'');
+    const end=normalizeCodeText(endCode).replace(/\s+/g,'').replace(/_/g,'');
+    // 完整范围结尾（含字母）直接使用。
+    if(/[A-Z]/.test(end))return end;
+    // 纯数字是缩写：用它替换首编码末尾相同位数的数字。
+    // OUNTY0006695 + 6704 => OUNTY0006704；SO...4022 + 9 => SO...4029。
+    const m=first.match(/^(.*?)(\d+)$/);
+    if(!m||!/^\d+$/.test(end)||end.length>m[2].length)return end;
+    return m[1]+m[2].slice(0,m[2].length-end.length)+end;
   }
 
   function parseSingleCode(raw){
@@ -250,14 +273,15 @@
 
     let second = null;
     if(parts.length === 2){
-      second = parseSingleCode(parts[1]);
+      const expandedSecond=expandRangeEnd(parts[0],parts[1]);
+      second = parseSingleCode(expandedSecond);
       if(!second.valid) return {valid:false,reason:'范围结束编码无效：'+second.reason,token,first,second};
       if(second.dept !== first.dept) return {valid:false,reason:'范围前后部门代码不一致',token,first,second};
       if(second.plantPrefix !== first.plantPrefix) return {valid:false,reason:'范围前后厂区前缀不一致',token,first,second};
     }
 
     return {
-      valid:true,token,dept:first.dept,deptName:DEPT_NAMES[first.dept],
+      valid:true,token,expandedToken:second?`${first.raw}~${second.raw}`:first.raw,dept:first.dept,deptName:DEPT_NAMES[first.dept],
       plantPrefix:first.plantPrefix,modelCode:first.modelCode,
       strict:first.strict && (!second || second.strict),
       future:first.future || !!second?.future,
@@ -510,6 +534,12 @@
 
   // 规则回归自检（控制台可查看）
   const selfTests=[
+    'OUNTY0006695~6704 5mmUV光源校验治具',
+    'OUNTY0006705~6714 2mmUV光源校验治具',
+    'OUNTY0006715~6719 UV光源固定治具',
+    'OUNTY0006720~6751 TCT设备地脚垫',
+    'OUNTY0006752 TCT称重小车维修',
+    'OUNTY0006752称重小车维修',
     'RQ3AA0000143~RQ3AA0000147 Fiber Kit AA 8度FA耦合底座',
     'OE3LW1RL001G 示例',
     'TD1TE1L001 示例',
