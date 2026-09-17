@@ -230,6 +230,12 @@
 
     if(!'OTRSM'.includes(dept)) return {valid:false,reason:'部门代码不是 O/T/R/S/M',raw:code,plantPrefix,dept};
 
+    // 兼容部门 + 纯数字流水编码（如 T0709866），不将流水号误作机种码。
+    // 至少 3 位数字，与特殊短码的流水号下限一致；不依赖新/历史机种开关。
+    if(/^\d{3,}$/.test(body)){
+      return {valid:true,strict:false,numeric:true,raw:code,plantPrefix,dept,modelCode:'(纯数字流水号)',rest:body,reason:''};
+    }
+
     // 当前规则表机种代码：按最长前缀匹配，避免 A1 抢先匹配 A10。
     let modelCode = '';
     const known = MODEL_CODE_SORTED[dept] || [];
@@ -534,6 +540,9 @@
 
   // 规则回归自检（控制台可查看）
   const selfTests=[
+    'T0709866~T0709915 800G 2XFR4 GEN2金属盖板锁螺丝治具钨钢镶件（铜陵）',
+    'T0709866~9915金属盖板锁螺丝治具',
+    'T0709866金属盖板锁螺丝治具',
     'OUNTY0006695~6704 5mmUV光源校验治具',
     'OUNTY0006705~6714 2mmUV光源校验治具',
     'OUNTY0006715~6719 UV光源固定治具',
