@@ -2,25 +2,63 @@
 'use strict';
 if(!window.FixtureExcel){const el=document.getElementById('message');el.textContent='Excel 组件未加载。请完整解压源码包后打开 index.html，或刷新在线网页。';el.classList.add('error');return;}
 const{readWorkbook,detect,records,matchRows,exportColumn,exportColumns,colName}=window.FixtureExcel;
-const $=id=>document.getElementById(id);let source,target,sourceSheet,targetSheet,sourceCfg,targetCfg,sourceRows=[],results=[];const versions={source:0,target:0};
+const $=id=>document.getElementById(id);let source,target,sourceSheet,targetSheet,sourceCfg,targetCfg,sourceRows=[],results=[];let batchVersion=0;
 function message(s,error=false){$('message').textContent=s;$('message').classList.toggle('error',error)}
 function invalidate(){results=[];$('results').hidden=true;$('empty').hidden=false;$('match').disabled=!(source&&target)}
-function setSheet(kind){const b=kind==='source'?source:target,sel=$(kind+'Sheet'),s=b.sheets[+sel.value];if(kind==='source')sourceSheet=s;else targetSheet=s;invalidate();message(source&&target?'两份文件已就绪，点击「开始匹配」。':'请继续选择另一份 Excel。')}
-async function load(kind,file){if(!file)return;const version=++versions[kind];if(kind==='source')source=null;else target=null;invalidate();$(kind+'Sheet').disabled=true;$(kind+'Label').textContent='正在读取…';message('正在读取 Excel…');try{const b=await readWorkbook(file);if(version!==versions[kind])return;if(kind==='source')source=b;else target=b;const sel=$(kind+'Sheet');sel.replaceChildren(...b.sheets.map((s,i)=>new Option(s.name,i)));const found=b.sheets.findIndex(s=>{try{detect(s,kind);return true}catch{return false}});sel.value=String(Math.max(found,0));sel.disabled=false;$(kind+'Label').textContent=file.name;setSheet(kind)}catch(e){if(version!==versions[kind])return;$(kind+'Label').textContent='重新选择 Excel';message(e.message,true)}}
-for(const kind of ['source','target']){
- const input=$(kind+'File'),box=input.closest('.filebox');let depth=0;
- input.addEventListener('click',()=>{input.value=''});
- input.addEventListener('change',e=>load(kind,e.target.files[0]));
- $(kind+'Sheet').addEventListener('change',()=>setSheet(kind));
- box.addEventListener('dragenter',e=>{e.preventDefault();e.stopPropagation();depth++;box.classList.add('dragover')});
- box.addEventListener('dragover',e=>{e.preventDefault();e.stopPropagation();if(e.dataTransfer)e.dataTransfer.dropEffect='copy'});
- box.addEventListener('dragleave',e=>{e.preventDefault();e.stopPropagation();depth=Math.max(0,depth-1);if(!depth)box.classList.remove('dragover')});
- box.addEventListener('drop',e=>{e.preventDefault();e.stopPropagation();depth=0;box.classList.remove('dragover');const files=Array.from(e.dataTransfer?.files??[]);if(files.length!==1){message('每个区域一次请放入一份 Excel 文件。',true);return;}load(kind,files[0])});
+function resetDetected(){
+ source=target=sourceSheet=targetSheet=null;sourceCfg=targetCfg=null;sourceRows=[];results=[];
+ for(const kind of ['source','target']){const sel=$(kind+'Sheet');sel.replaceChildren(new Option('自动识别后显示',''));sel.disabled=true;$(kind+'Label').textContent='等待识别'}
+ invalidate();
 }
+function setDetected(kind,book,sheetIndex){
+ const sel=$(kind+'Sheet');sel.replaceChildren(...book.sheets.map((s,i)=>new Option(s.name,i)));sel.value=String(sheetIndex);sel.disabled=false;
+ $(kind+'Label').textContent=book.name;
+ if(kind==='source'){source=book;sourceSheet=book.sheets[sheetIndex]}else{target=book;targetSheet=book.sheets[sheetIndex]}
+}
+function setSheet(kind){
+ const book=kind==='source'?source:target;if(!book)return;const sel=$(kind+'Sheet'),sheet=book.sheets[+sel.value];
+ if(kind==='source')sourceSheet=sheet;else targetSheet=sheet;invalidate();message('工作表已切换，点击「开始匹配」重新核对。')
+}
+function classify(book){
+ const sourceSheets=[],targetSheets=[];
+ book.sheets.forEach((sheet,i)=>{try{detect(sheet,'source');sourceSheets.push(i)}catch{}try{detect(sheet,'target');targetSheets.push(i)}catch{}});
+ return{sourceSheets,targetSheets};
+}
+function roleScore(file,cls,role){
+ const name=file.name.toUpperCase();let score=10;
+ if(role==='source'){if(!cls.targetSheets.length)score+=5;if(/流程|统计|编码名称/.test(name))score+=3;if(/审核|TX-/.test(name))score-=1}
+ else{if(!cls.sourceSheets.length)score+=5;if(/审核|申请|TX-/.test(name))score+=3;if(/流程统计/.test(name))score-=1}
+ return score;
+}
+async function loadPair(fileList){
+ const files=Array.from(fileList??[]);
+ if(files.length!==2){message('请一次选择或拖入两份 .xlsx 文件，系统会自动识别哪份是流程统计表、哪份是申请审核表。',true);return}
+ if(files.some(f=>!/\.xlsx$/i.test(f.name))){message('两份文件都必须是 .xlsx 格式。',true);return}
+ const version=++batchVersion;resetDetected();$('bothLabel').textContent='正在读取并自动识别…';message('正在读取两份 Excel，并根据表头自动判断文件类型…');
+ try{
+  const books=await Promise.all(files.map(readWorkbook));if(version!==batchVersion)return;
+  const classes=books.map(classify),combos=[];
+  if(classes[0].sourceSheets.length&&classes[1].targetSheets.length)combos.push({s:0,t:1,si:classes[0].sourceSheets[0],ti:classes[1].targetSheets[0],score:roleScore(files[0],classes[0],'source')+roleScore(files[1],classes[1],'target')});
+  if(classes[1].sourceSheets.length&&classes[0].targetSheets.length)combos.push({s:1,t:0,si:classes[1].sourceSheets[0],ti:classes[0].targetSheets[0],score:roleScore(files[1],classes[1],'source')+roleScore(files[0],classes[0],'target')});
+  if(!combos.length)throw Error('无法从这两份文件中同时识别出「流程统计表」和「申请审核表」。请确认一份包含“治工具编号/名称说明”，另一份包含“治具名称+型号”。');
+  combos.sort((x,y)=>y.score-x.score);const pick=combos[0];
+  setDetected('source',books[pick.s],pick.si);setDetected('target',books[pick.t],pick.ti);
+  $('bothLabel').textContent='两份文件已自动识别';
+  invalidate();message(`识别完成：流程统计表「${source.name}」；申请审核表「${target.name}」。可直接点击「开始匹配」。`);
+ }catch(e){if(version!==batchVersion)return;resetDetected();$('bothLabel').textContent='重新选择两份 Excel';message(e.message,true)}
+}
+const input=$('bothFiles'),box=input.closest('.filebox');let dragDepth=0;
+input.addEventListener('click',()=>{input.value=''});
+input.addEventListener('change',e=>loadPair(e.target.files));
+for(const kind of ['source','target'])$(kind+'Sheet').addEventListener('change',()=>setSheet(kind));
+box.addEventListener('dragenter',e=>{e.preventDefault();e.stopPropagation();dragDepth++;box.classList.add('dragover')});
+box.addEventListener('dragover',e=>{e.preventDefault();e.stopPropagation();if(e.dataTransfer)e.dataTransfer.dropEffect='copy'});
+box.addEventListener('dragleave',e=>{e.preventDefault();e.stopPropagation();dragDepth=Math.max(0,dragDepth-1);if(!dragDepth)box.classList.remove('dragover')});
+box.addEventListener('drop',e=>{e.preventDefault();e.stopPropagation();dragDepth=0;box.classList.remove('dragover');loadPair(e.dataTransfer?.files)});
 window.addEventListener('dragover',e=>{if(Array.from(e.dataTransfer?.types??[]).includes('Files'))e.preventDefault()});
-window.addEventListener('drop',e=>{if(Array.from(e.dataTransfer?.types??[]).includes('Files')){e.preventDefault();document.querySelectorAll('.dragover').forEach(el=>el.classList.remove('dragover'));message('请将文件拖到对应的流程统计表或申请审核表区域。',true)}});
-window.addEventListener('dragend',()=>document.querySelectorAll('.dragover').forEach(el=>el.classList.remove('dragover')));
-message('请点击选择或拖入两份 Excel 文件。原文件不会被修改。');
+window.addEventListener('drop',e=>{if(Array.from(e.dataTransfer?.types??[]).includes('Files')){e.preventDefault();box.classList.remove('dragover')}});
+window.addEventListener('dragend',()=>box.classList.remove('dragover'));
+resetDetected();message('请一次选择或拖入两份 Excel，系统会自动识别文件类型。原文件不会被修改。');
 window.fixtureAppReady=true;
 
 function people(r){const c=r.selected===null?null:r.candidates[r.selected];return{requester:String(r.requester||c?.requester||'').trim(),designer:String(r.designer||c?.designer||'').trim()}}
