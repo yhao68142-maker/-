@@ -32,7 +32,7 @@ function roleScore(file,cls,role){
 }
 async function loadPair(fileList){
  const files=Array.from(fileList??[]);
- if(files.length!==2){message('请一次选择或拖入两份 .xlsx 文件，系统会自动识别哪份是流程统计表、哪份是申请审核表。',true);return}
+ if(files.length!==2){message('需要两份 .xlsx 文件。你可以一次拖入两份，也可以先拖一份、再拖第二份。',true);return}
  if(files.some(f=>!/\.xlsx$/i.test(f.name))){message('两份文件都必须是 .xlsx 格式。',true);return}
  const version=++batchVersion;resetDetected();$('bothLabel').textContent='正在读取并自动识别…';message('正在读取两份 Excel，并根据表头自动判断文件类型…');
  try{
@@ -47,18 +47,39 @@ async function loadPair(fileList){
   invalidate();message(`识别完成：流程统计表「${source.name}」；申请审核表「${target.name}」。可直接点击「开始匹配」。`);
  }catch(e){if(version!==batchVersion)return;resetDetected();$('bothLabel').textContent='重新选择两份 Excel';message(e.message,true)}
 }
-const input=$('bothFiles'),box=input.closest('.filebox');let dragDepth=0;
-input.addEventListener('click',()=>{input.value=''});
-input.addEventListener('change',e=>loadPair(e.target.files));
+const input=$('bothFiles'),box=$('dropZone');let dragDepth=0,pendingFiles=[];
+function sameFile(a,b){return a.name===b.name&&a.size===b.size&&a.lastModified===b.lastModified}
+function acceptFiles(fileList){
+ const incoming=Array.from(fileList??[]);
+ if(!incoming.length){message('没有检测到可读取的文件。请从文件资源管理器拖入 .xlsx 文件。',true);return}
+ const invalid=incoming.filter(f=>!/\.xlsx$/i.test(f.name));
+ if(invalid.length){message('只支持 .xlsx 文件。请确认拖入的是 Excel 文件本身，而不是快捷方式或工作表内容。',true);return}
+ if(incoming.length>=2){
+  pendingFiles=[];loadPair(incoming.slice(0,2));return;
+ }
+ const file=incoming[0];
+ if(source&&target&&pendingFiles.length===0){resetDetected()}
+ if(!pendingFiles.some(f=>sameFile(f,file)))pendingFiles.push(file);
+ if(pendingFiles.length===1){
+  $('bothLabel').textContent=`已收到 1 份：${file.name}`;
+  message('已收到第 1 份 Excel。请再拖入或选择第 2 份，系统会自动识别两份表的类型。');
+  return;
+ }
+ const pair=pendingFiles.slice(0,2);pendingFiles=[];loadPair(pair);
+}
+input.addEventListener('click',e=>{e.stopPropagation();input.value=''});
+input.addEventListener('change',e=>acceptFiles(e.target.files));
+box.addEventListener('click',e=>{if(e.target!==input)input.click()});
+box.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();input.click()}});
 for(const kind of ['source','target'])$(kind+'Sheet').addEventListener('change',()=>setSheet(kind));
-box.addEventListener('dragenter',e=>{e.preventDefault();e.stopPropagation();dragDepth++;box.classList.add('dragover')});
-box.addEventListener('dragover',e=>{e.preventDefault();e.stopPropagation();if(e.dataTransfer)e.dataTransfer.dropEffect='copy'});
-box.addEventListener('dragleave',e=>{e.preventDefault();e.stopPropagation();dragDepth=Math.max(0,dragDepth-1);if(!dragDepth)box.classList.remove('dragover')});
-box.addEventListener('drop',e=>{e.preventDefault();e.stopPropagation();dragDepth=0;box.classList.remove('dragover');loadPair(e.dataTransfer?.files)});
+box.addEventListener('dragenter',e=>{if(!Array.from(e.dataTransfer?.types??[]).includes('Files'))return;e.preventDefault();e.stopPropagation();dragDepth++;box.classList.add('dragover');$('bothLabel').textContent='松开鼠标即可加入 Excel'});
+box.addEventListener('dragover',e=>{if(!Array.from(e.dataTransfer?.types??[]).includes('Files'))return;e.preventDefault();e.stopPropagation();if(e.dataTransfer)e.dataTransfer.dropEffect='copy';box.classList.add('dragover')});
+box.addEventListener('dragleave',e=>{e.preventDefault();e.stopPropagation();dragDepth=Math.max(0,dragDepth-1);if(!dragDepth){box.classList.remove('dragover');if(pendingFiles.length===1)$('bothLabel').textContent=`已收到 1 份：${pendingFiles[0].name}`;else if(!(source&&target))$('bothLabel').textContent='选择或拖入两份 Excel'}});
+box.addEventListener('drop',e=>{e.preventDefault();e.stopPropagation();dragDepth=0;box.classList.remove('dragover');acceptFiles(e.dataTransfer?.files)});
 window.addEventListener('dragover',e=>{if(Array.from(e.dataTransfer?.types??[]).includes('Files'))e.preventDefault()});
-window.addEventListener('drop',e=>{if(Array.from(e.dataTransfer?.types??[]).includes('Files')){e.preventDefault();box.classList.remove('dragover')}});
-window.addEventListener('dragend',()=>box.classList.remove('dragover'));
-resetDetected();message('请一次选择或拖入两份 Excel，系统会自动识别文件类型。原文件不会被修改。');
+window.addEventListener('drop',e=>{if(Array.from(e.dataTransfer?.types??[]).includes('Files'))e.preventDefault()});
+window.addEventListener('dragend',()=>{dragDepth=0;box.classList.remove('dragover')});
+resetDetected();message('请拖入或选择两份 Excel。可以一次加入两份，也可以分两次加入；系统会自动识别文件类型。原文件不会被修改。');
 window.fixtureAppReady=true;
 
 function people(r){const c=r.selected===null?null:r.candidates[r.selected];return{requester:String(r.requester||c?.requester||'').trim(),designer:String(r.designer||c?.designer||'').trim()}}
