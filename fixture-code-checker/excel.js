@@ -53,17 +53,53 @@ function codeCount(code){
  return count>0n&&count<=BigInt(Number.MAX_SAFE_INTEGER)?Number(count):null;
 }
 function mergePeople(a,b){const values=[...String(a??'').split('、'),...String(b??'').split('、')].map(s=>s.trim()).filter(Boolean);return[...new Set(values)].join('、')}
+function nameMatchMode(targetName,sourceName){
+ const targetKey=normalizeName(targetName),sourceKey=normalizeName(sourceName);
+ if(targetKey===sourceKey)return'exact';
+ if(targetKey.length>=8&&sourceKey.endsWith(targetKey))return'suffix';
+ if(normalizeAliasName(targetName)===normalizeAliasName(sourceName))return'alias';
+ return null;
+}
+function matchWeight(mode){return mode==='exact'?1003:mode==='suffix'?1002:mode==='alias'?1001:0}
+function groupCandidates(hits){
+ const groups=[];
+ for(const hit of hits){const s=hit.source;let g=groups.find(g=>g.code===s.code&&g.name===s.name);
+  if(g){g.rows.push(s.row);g.sourceIndices.push(hit.index);g.requester=mergePeople(g.requester,s.requester);g.designer=mergePeople(g.designer,s.designer)}
+  else groups.push({...s,rows:[s.row],sourceIndices:[hit.index],count:codeCount(s.code)})
+ }
+ return groups;
+}
 function matchRows(target,source){
- const index=new Map();for(const s of source){const key=normalizeName(s.name);if(!index.has(key))index.set(key,[]);index.get(key).push(s)}
- return target.map(t=>{const targetKey=normalizeName(t.name);let hits=index.get(targetKey)??[],matchMode='exact';
-  if(!hits.length&&targetKey.length>=8){hits=source.filter(s=>normalizeName(s.name).endsWith(targetKey));if(hits.length)matchMode='suffix'}
-  if(!hits.length){const aliasKey=normalizeAliasName(t.name);hits=source.filter(s=>normalizeAliasName(s.name)===aliasKey);if(hits.length)matchMode='alias'}
-  const groups=[];
-  for(const s of hits){let g=groups.find(g=>g.code===s.code&&g.name===s.name);if(g){g.rows.push(s.row);g.requester=mergePeople(g.requester,s.requester);g.designer=mergePeople(g.designer,s.designer)}else groups.push({...s,rows:[s.row],count:codeCount(s.code)})}
-  const candidates=groups.filter(g=>g.code);let selected=candidates.length===1?0:null,reason=selected===0?(matchMode==='suffix'?'suffix':matchMode==='alias'?'alias':'name'):null;
-  if(candidates.length>1&&t.quantity!==null&&t.quantity!==undefined){const fitting=candidates.map((c,i)=>c.count===t.quantity?i:-1).filter(i=>i>=0);if(fitting.length===1){selected=fitting[0];reason='quantity'}}
-  return{...t,candidates,selected,reason,matchMode,status:candidates.length===1?'matched':candidates.length>1?'ambiguous':hits.length?'noCode':'missing'};
- })
+ const m=target.length,n=source.length,modes=Array.from({length:m},()=>Array(n).fill(null)),dp=Array.from({length:m+1},()=>Array(n+1).fill(0));
+ for(let i=0;i<m;i++)for(let j=0;j<n;j++)modes[i][j]=nameMatchMode(target[i].name,source[j].name);
+ for(let i=1;i<=m;i++)for(let j=1;j<=n;j++){
+  let best=Math.max(dp[i-1][j],dp[i][j-1]),mode=modes[i-1][j-1];
+  if(mode)best=Math.max(best,dp[i-1][j-1]+matchWeight(mode));
+  dp[i][j]=best;
+ }
+ const ordered=new Map(),usedSource=new Set();let i=m,j=n;
+ while(i>0&&j>0){
+  const mode=modes[i-1][j-1],score=mode?dp[i-1][j-1]+matchWeight(mode):-1;
+  if(mode&&dp[i][j]===score){ordered.set(i-1,{sourceIndex:j-1,mode});usedSource.add(j-1);i--;j--;continue}
+  if(dp[i-1][j]>=dp[i][j-1])i--;else j--;
+ }
+ const results=target.map(t=>({...t,candidates:[],selected:null,reason:null,matchMode:null,status:'missing'}));
+ for(const [ti,pair]of ordered){
+  const s=source[pair.sourceIndex],candidate={...s,rows:[s.row],sourceIndices:[pair.sourceIndex],count:codeCount(s.code)},hasCode=!!s.code;
+  results[ti]={...target[ti],candidates:hasCode?[candidate]:[],selected:hasCode?0:null,reason:hasCode?'order':null,matchMode:pair.mode,status:hasCode?'matched':'noCode'};
+ }
+ for(let ti=0;ti<m;ti++){
+  if(ordered.has(ti))continue;
+  const t=target[ti],available=source.map((s,index)=>({source:s,index})).filter(x=>!usedSource.has(x.index));
+  let matchMode='exact',hits=available.filter(x=>nameMatchMode(t.name,x.source.name)==='exact');
+  if(!hits.length){matchMode='suffix';hits=available.filter(x=>nameMatchMode(t.name,x.source.name)==='suffix')}
+  if(!hits.length){matchMode='alias';hits=available.filter(x=>nameMatchMode(t.name,x.source.name)==='alias')}
+  const groups=groupCandidates(hits),candidates=groups.filter(g=>g.code);let selected=candidates.length===1?0:null,reason=selected===0?'fallback':null;
+  if(candidates.length>1&&t.quantity!==null&&t.quantity!==undefined){const fitting=candidates.map((candidate,index)=>candidate.count===t.quantity?index:-1).filter(index=>index>=0);if(fitting.length===1){selected=fitting[0];reason='quantity'}}
+  if(selected!==null)for(const sourceIndex of candidates[selected].sourceIndices)usedSource.add(sourceIndex);
+  results[ti]={...t,candidates,selected,reason,matchMode:hits.length?matchMode:null,status:candidates.length===1?'matched':candidates.length>1?'ambiguous':hits.length?'noCode':'missing'};
+ }
+ return results;
 }
 
 function shiftRef(s,at,delta=1){return s.replace(/(\$?)([A-Z]{1,3})(\$?\d+)/g,(m,a,b,c)=>colNum(b)>=at?a+colName(colNum(b)+delta)+c:m)}
