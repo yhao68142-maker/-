@@ -7,6 +7,7 @@ const nodes=(d,n)=>Array.from(d.getElementsByTagNameNS('*',n));
 const colNum=s=>[...s.replace(/\$/g,'').toUpperCase()].reduce((n,c)=>n*26+c.charCodeAt(0)-64,0);
 function colName(n){let s='';while(n){n--;s=String.fromCharCode(65+n%26)+s;n=Math.floor(n/26)}return s}
 function normalize(s){return String(s??'').normalize('NFKC').replace(/\s+/g,'').toUpperCase()}
+function normalizeName(s){return normalize(s).replace(/GEN(\d+)\.0(?!\d)/g,'GEN$1')}
 const requesterHeaders=['需求人','申请人','申请人姓名','需求申请人','申请者','申请人员'];
 const designerHeaders=['设计人','设计负责人','设计担当','设计者','设计人员','设计工程师'];
 function findHeader(items,names){const normalized=new Set(names.map(normalize));return items.find(([,v])=>normalized.has(normalize(v)))}
@@ -52,8 +53,8 @@ function codeCount(code){
 }
 function mergePeople(a,b){const values=[...String(a??'').split('、'),...String(b??'').split('、')].map(s=>s.trim()).filter(Boolean);return[...new Set(values)].join('、')}
 function matchRows(target,source){
- const index=new Map();for(const s of source){const key=normalize(s.name);if(!index.has(key))index.set(key,[]);index.get(key).push(s)}
- return target.map(t=>{const hits=index.get(normalize(t.name))??[],groups=[];
+ const index=new Map();for(const s of source){const key=normalizeName(s.name);if(!index.has(key))index.set(key,[]);index.get(key).push(s)}
+ return target.map(t=>{const hits=index.get(normalizeName(t.name))??[],groups=[];
   for(const s of hits){let g=groups.find(g=>g.code===s.code&&g.name===s.name);if(g){g.rows.push(s.row);g.requester=mergePeople(g.requester,s.requester);g.designer=mergePeople(g.designer,s.designer)}else groups.push({...s,rows:[s.row],count:codeCount(s.code)})}
   const candidates=groups.filter(g=>g.code);let selected=candidates.length===1?0:null,reason=selected===0?'name':null;
   if(candidates.length>1&&t.quantity!==null&&t.quantity!==undefined){const fitting=candidates.map((c,i)=>c.count===t.quantity?i:-1).filter(i=>i>=0);if(fitting.length===1){selected=fitting[0];reason='quantity'}}
