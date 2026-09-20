@@ -54,11 +54,14 @@ function codeCount(code){
 function mergePeople(a,b){const values=[...String(a??'').split('、'),...String(b??'').split('、')].map(s=>s.trim()).filter(Boolean);return[...new Set(values)].join('、')}
 function matchRows(target,source){
  const index=new Map();for(const s of source){const key=normalizeName(s.name);if(!index.has(key))index.set(key,[]);index.get(key).push(s)}
- return target.map(t=>{const hits=index.get(normalizeName(t.name))??[],groups=[];
+ return target.map(t=>{const targetKey=normalizeName(t.name);let hits=index.get(targetKey)??[],matchMode='exact';
+  if(!hits.length&&targetKey.length>=8){hits=source.filter(s=>normalizeName(s.name).endsWith(targetKey));if(hits.length)matchMode='suffix'}
+  const groups=[];
   for(const s of hits){let g=groups.find(g=>g.code===s.code&&g.name===s.name);if(g){g.rows.push(s.row);g.requester=mergePeople(g.requester,s.requester);g.designer=mergePeople(g.designer,s.designer)}else groups.push({...s,rows:[s.row],count:codeCount(s.code)})}
   const candidates=groups.filter(g=>g.code);let selected=candidates.length===1?0:null,reason=selected===0?'name':null;
   if(candidates.length>1&&t.quantity!==null&&t.quantity!==undefined){const fitting=candidates.map((c,i)=>c.count===t.quantity?i:-1).filter(i=>i>=0);if(fitting.length===1){selected=fitting[0];reason='quantity'}}
-  return{...t,candidates,selected,reason,status:candidates.length===1?'matched':candidates.length>1?'ambiguous':hits.length?'noCode':'missing'};
+  if(selected!==null&&reason==='name'&&matchMode==='suffix')reason='suffix';
+  return{...t,candidates,selected,reason,matchMode,status:candidates.length===1?'matched':candidates.length>1?'ambiguous':hits.length?'noCode':'missing'};
  })
 }
 
