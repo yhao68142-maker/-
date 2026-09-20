@@ -7,7 +7,8 @@ const nodes=(d,n)=>Array.from(d.getElementsByTagNameNS('*',n));
 const colNum=s=>[...s.replace(/\$/g,'').toUpperCase()].reduce((n,c)=>n*26+c.charCodeAt(0)-64,0);
 function colName(n){let s='';while(n){n--;s=String.fromCharCode(65+n%26)+s;n=Math.floor(n/26)}return s}
 function normalize(s){return String(s??'').normalize('NFKC').replace(/\s+/g,'').toUpperCase()}
-function normalizeName(s){return normalize(s).replace(/GEN(\d+)\.0(?!\d)/g,'GEN$1')}
+function normalizeName(s){return normalize(s).replace(/GEN(\d+)\.0(?!\d)/g,'GEN$1').replace(/[-‐‑‒–—_]/g,'')}
+function normalizeAliasName(s){return normalizeName(s).replace(/通用周转烘烤载条/g,'通用周转烘烤料盒').replace(/\(?返修\)?/g,'')}
 const requesterHeaders=['需求人','申请人','申请人姓名','需求申请人','申请者','申请人员'];
 const designerHeaders=['设计人','设计负责人','设计担当','设计者','设计人员','设计工程师'];
 function findHeader(items,names){const normalized=new Set(names.map(normalize));return items.find(([,v])=>normalized.has(normalize(v)))}
@@ -56,11 +57,11 @@ function matchRows(target,source){
  const index=new Map();for(const s of source){const key=normalizeName(s.name);if(!index.has(key))index.set(key,[]);index.get(key).push(s)}
  return target.map(t=>{const targetKey=normalizeName(t.name);let hits=index.get(targetKey)??[],matchMode='exact';
   if(!hits.length&&targetKey.length>=8){hits=source.filter(s=>normalizeName(s.name).endsWith(targetKey));if(hits.length)matchMode='suffix'}
+  if(!hits.length){const aliasKey=normalizeAliasName(t.name);hits=source.filter(s=>normalizeAliasName(s.name)===aliasKey);if(hits.length)matchMode='alias'}
   const groups=[];
   for(const s of hits){let g=groups.find(g=>g.code===s.code&&g.name===s.name);if(g){g.rows.push(s.row);g.requester=mergePeople(g.requester,s.requester);g.designer=mergePeople(g.designer,s.designer)}else groups.push({...s,rows:[s.row],count:codeCount(s.code)})}
-  const candidates=groups.filter(g=>g.code);let selected=candidates.length===1?0:null,reason=selected===0?'name':null;
+  const candidates=groups.filter(g=>g.code);let selected=candidates.length===1?0:null,reason=selected===0?(matchMode==='suffix'?'suffix':matchMode==='alias'?'alias':'name'):null;
   if(candidates.length>1&&t.quantity!==null&&t.quantity!==undefined){const fitting=candidates.map((c,i)=>c.count===t.quantity?i:-1).filter(i=>i>=0);if(fitting.length===1){selected=fitting[0];reason='quantity'}}
-  if(selected!==null&&reason==='name'&&matchMode==='suffix')reason='suffix';
   return{...t,candidates,selected,reason,matchMode,status:candidates.length===1?'matched':candidates.length>1?'ambiguous':hits.length?'noCode':'missing'};
  })
 }
