@@ -116,14 +116,14 @@
   let finalRows = [];
 
   const clean = v => String(v == null ? '' : v).trim();
-  const normalizeHeader = v => clean(v).replace(/s/g, '').replace(/^*+/, '');
+  const normalizeHeader = v => clean(v).replace(/\s/g, '').replace(/^\*+/, '');
 
-  function isExcel(file) { return /.(xlsx|xls)$/i.test(file.name || ''); }
+  function isExcel(file) { return /\.(xlsx|xls)$/i.test(file.name || ''); }
 
   function splitShortText(value) {
     const text = clean(value).replace(/^﻿/, '');
     if (!text) return { code:'', detail:'' };
-    const match = text.match(/^(S+)(?:s+([sS]*))?$/);
+    const match = text.match(/^(\S+)(?:\s+([\s\S]*))?$/);
     return { code: match ? clean(match[1]) : text, detail: match ? clean(match[2] || '') : '' };
   }
 
@@ -313,6 +313,16 @@
       updateUI();
     }
   }
+
+  // Prevent the browser from opening/navigating to dragged files anywhere on the page.
+  ['dragenter','dragover','drop'].forEach(ev => {
+    window.addEventListener(ev, e => {
+      const dt = e.dataTransfer;
+      if (dt && Array.from(dt.types || []).includes('Files')) {
+        e.preventDefault();
+      }
+    }, false);
+  });
 
   ['dragenter','dragover'].forEach(ev => dropZone.addEventListener(ev, e => { e.preventDefault(); e.stopPropagation(); dropZone.classList.add('is-dragover'); }));
   ['dragleave','drop'].forEach(ev => dropZone.addEventListener(ev, e => { e.preventDefault(); e.stopPropagation(); dropZone.classList.remove('is-dragover'); if (ev==='drop') handleFiles(e.dataTransfer.files); }));
