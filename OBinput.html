@@ -2,754 +2,345 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8" />
-  <title>治具短文本拆分 & 最终结果表生成工具</title>
-  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>OB 治具文档整理工具</title>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js" onerror="this.onerror=null;this.src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js'"></script>
   <style>
-    :root {
-      --primary: #2563eb;
-      --primary-light: #eff4ff;
-      --border-color: #e5e7eb;
-      --bg: #f3f4f6;
-    }
-    * { box-sizing: border-box; }
-    body {
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      margin: 0;
-      padding: 24px;
-      background: radial-gradient(circle at top left,#eff6ff,#f9fafb 40%,#f3f4f6);
-      color: #111827;
-    }
-    .page { max-width: 1100px; margin: 0 auto; }
-
-    .header {
-      padding: 18px 20px;
-      border-radius: 16px;
-      background: linear-gradient(135deg,#1d4ed8,#4f46e5);
-      color: white;
-      box-shadow: 0 16px 40px rgba(15,23,42,0.35);
-      margin-bottom: 22px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 16px;
-    }
-    .header-title {
-      font-size: 20px;
-      font-weight: 650;
-      letter-spacing: 0.03em;
-    }
-    .header-sub {
-      font-size: 12px;
-      opacity: 0.9;
-      margin-top: 4px;
-      line-height: 1.5;
-    }
-    .badge {
-      background: rgba(255,255,255,0.18);
-      border-radius: 999px;
-      padding: 4px 12px;
-      font-size: 11px;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .badge-dot {
-      width: 7px;
-      height: 7px;
-      border-radius: 999px;
-      background: #22c55e;
-      box-shadow: 0 0 0 4px rgba(34,197,94,0.25);
-    }
-
-    h2 {
-      font-size: 16px;
-      margin-bottom: 8px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    h2 span.step {
-      width: 22px;
-      height: 22px;
-      border-radius: 999px;
-      background: var(--primary-light);
-      color: var(--primary);
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 12px;
-      font-weight: 600;
-    }
-
-    .card {
-      background: white;
-      padding: 16px 18px 18px;
-      border-radius: 14px;
-      box-shadow: 0 6px 18px rgba(15,23,42,0.08);
-      margin-bottom: 18px;
-      border: 1px solid rgba(148,163,184,0.19);
-    }
-    .note {
-      font-size: 12px;
-      color: #4b5563;
-      margin-top: 4px;
-      line-height: 1.6;
-    }
-    .error {
-      color: #b91c1c;
-      font-size: 13px;
-      margin-top: 6px;
-      white-space: pre-line;
-    }
-    .ok {
-      color: #16a34a;
-      font-size: 13px;
-      margin-top: 6px;
-    }
-
-    .upload-row {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: 10px;
-      margin-top: 8px;
-      margin-bottom: 8px;
-    }
-
-    /* ---- 放大 + 高亮拖拽框 ---- */
-    .drop-zone {
-      position: relative;
-      flex: 1;
-
-      min-width: 360px;
-      min-height: 130px;
-      border-radius: 16px;
-
-      border: 2px dashed rgba(37, 99, 235, 0.9);
-      background: radial-gradient(circle at top left, #eff6ff, #ffffff 55%);
-
-      padding: 18px 20px;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      gap: 6px;
-      cursor: pointer;
-
-      box-shadow: 0 10px 28px rgba(15, 23, 42, 0.12);
-      transition: all 0.18s ease;
-    }
-    .drop-zone:hover {
-      border-color: #1d4ed8;
-      background: radial-gradient(circle at top left, #e0ecff, #ffffff 55%);
-      box-shadow: 0 14px 36px rgba(37, 99, 235, 0.25);
-      transform: translateY(-1px);
-    }
-    .drop-zone.is-dragover {
-      border-color: #22c55e;
-      background: radial-gradient(circle at top left, #dcfce7, #ffffff 55%);
-      box-shadow: 0 0 0 2px #bbf7d0 inset, 0 16px 40px rgba(22, 163, 74, 0.3);
-      transform: translateY(-1px);
-    }
-    .drop-zone-title {
-      font-size: 14px;
-      font-weight: 650;
-      color: #111827;
-    }
-    .drop-zone-sub {
-      font-size: 12px;
-      color: #4b5563;
-    }
-    .file-name {
-      font-size: 12px;
-      color: #6b7280;
-      margin-top: 4px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    input[type="file"] { display: none; }
-
-    button {
-      padding: 6px 14px;
-      border-radius: 999px;
-      border: none;
-      cursor: pointer;
-      font-size: 13px;
-      font-weight: 500;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      white-space: nowrap;
-    }
-    button.primary {
-      background: var(--primary);
-      color: white;
-      box-shadow: 0 6px 16px rgba(37,99,235,0.35);
-    }
-    button.secondary {
-      background: white;
-      color: #374151;
-      border: 1px solid var(--border-color);
-    }
-    button[disabled] {
-      opacity: 0.5;
-      cursor: not-allowed;
-      box-shadow: none;
-    }
-
-    table {
-      border-collapse: collapse;
-      width: 100%;
-      margin-top: 10px;
-      font-size: 12px;
-      background: white;
-    }
-    th, td {
-      border: 1px solid #e5e7eb;
-      padding: 4px 6px;
-      text-align: left;
-      word-break: break-all;
-    }
-    th {
-      background: #eff4ff;
-      font-weight: 600;
-    }
-    tbody tr:nth-child(even) {
-      background: #f9fafb;
-    }
-
-    @media (max-width: 720px) {
-      .header {
-        flex-direction: column;
-        align-items: flex-start;
-      }
-      .upload-row {
-        flex-direction: column;
-        align-items: stretch;
-      }
-    }
+    :root { --primary:#2563eb; --primary2:#4f46e5; --ok:#16a34a; --warn:#d97706; --danger:#b91c1c; --border:#dbe3ef; --muted:#64748b; }
+    * { box-sizing:border-box; }
+    body { margin:0; padding:24px; font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; color:#0f172a; background:radial-gradient(circle at top left,#eff6ff,#f8fafc 42%,#f1f5f9); }
+    .page { max-width:1120px; margin:0 auto; }
+    .header { background:linear-gradient(135deg,#1d4ed8,#4f46e5); color:#fff; border-radius:18px; padding:20px 22px; box-shadow:0 16px 40px rgba(15,23,42,.23); margin-bottom:18px; }
+    .header h1 { margin:0 0 6px; font-size:22px; }
+    .header p { margin:0; font-size:13px; line-height:1.7; opacity:.94; }
+    .card { background:#fff; border:1px solid rgba(148,163,184,.25); border-radius:16px; padding:18px; margin-bottom:16px; box-shadow:0 6px 18px rgba(15,23,42,.07); }
+    h2 { margin:0 0 8px; font-size:16px; }
+    .note { color:#475569; font-size:12px; line-height:1.65; margin:6px 0; }
+    .drop-zone { min-height:180px; border:2px dashed #60a5fa; border-radius:18px; display:flex; align-items:center; justify-content:center; text-align:center; padding:24px; cursor:pointer; background:linear-gradient(145deg,#eff6ff,#fff); transition:.18s ease; }
+    .drop-zone:hover { border-color:#2563eb; box-shadow:0 12px 30px rgba(37,99,235,.15); transform:translateY(-1px); }
+    .drop-zone.is-dragover { border-color:#16a34a; background:linear-gradient(145deg,#dcfce7,#fff); box-shadow:0 0 0 3px #bbf7d0 inset; }
+    .drop-icon { font-size:34px; margin-bottom:6px; }
+    .drop-title { font-weight:700; font-size:16px; }
+    .drop-sub { color:#64748b; font-size:12px; margin-top:7px; line-height:1.6; }
+    input[type=file] { display:none; }
+    .files { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; margin-top:12px; }
+    .file-card { border:1px solid var(--border); border-radius:12px; padding:12px; background:#f8fafc; min-height:76px; }
+    .file-role { font-size:12px; font-weight:700; color:#1d4ed8; margin-bottom:5px; }
+    .file-name { font-size:13px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .file-meta { color:#64748b; font-size:11px; margin-top:4px; }
+    .empty { color:#94a3b8; }
+    .status { margin-top:10px; font-size:13px; white-space:pre-line; line-height:1.6; }
+    .status.ok { color:var(--ok); } .status.warn { color:var(--warn); } .status.error { color:var(--danger); }
+    .actions { display:flex; gap:8px; flex-wrap:wrap; margin-top:12px; }
+    button { border:none; border-radius:999px; padding:8px 15px; font-size:13px; font-weight:600; cursor:pointer; }
+    button.primary { background:var(--primary); color:#fff; box-shadow:0 6px 16px rgba(37,99,235,.25); }
+    button.secondary { color:#334155; background:#fff; border:1px solid var(--border); }
+    button:disabled { opacity:.45; cursor:not-allowed; box-shadow:none; }
+    .summary { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; margin-top:12px; }
+    .metric { border-radius:12px; padding:12px; background:#f8fafc; border:1px solid #e2e8f0; }
+    .metric strong { display:block; font-size:20px; color:#0f172a; }
+    .metric span { font-size:11px; color:#64748b; }
+    .table-wrap { overflow:auto; margin-top:12px; }
+    table { border-collapse:collapse; width:100%; font-size:12px; background:#fff; }
+    th,td { border:1px solid #e2e8f0; padding:6px 8px; text-align:left; white-space:nowrap; }
+    th { position:sticky; top:0; background:#eff6ff; }
+    tr:nth-child(even) td { background:#f8fafc; }
+    @media(max-width:760px){ body{padding:12px}.files,.summary{grid-template-columns:1fr}.drop-zone{min-height:160px} }
   </style>
 </head>
 <body>
 <div class="page">
   <div class="header">
-    <div>
-      <div class="header-title">治具短文本拆分 & 最终结果表生成</div>
-      <div class="header-sub">
-        一键从请购单拆分短文本，自动生成只包含 7 个字段的治具需求表：<br/>
-        需求人 / 制程段 / 上线日期 / 使用设备型号（附编码） / 治具详细信息 / 需求数量 / 设计人员
-      </div>
-    </div>
-    <div class="badge">
-      <span class="badge-dot"></span>
-      设计人员按第二个表 P 栏备注自动分配
-    </div>
+    <h1>OB 治具文档整理</h1>
+    <p>把「请购单」和「OB 治工具图纸需求」两个 Excel 一起拖进来即可。系统会自动识别文件，不需要按顺序上传。<br>兼容旧版「短文本」列，也兼容新版「治具名称+型号」列。</p>
   </div>
 
-  <!-- 步骤1 -->
   <div class="card">
-    <h2><span class="step">1</span> 上传含「短文本」列的请购单</h2>
-    <p class="note">
-      文件中必须包含一列列名含有「短文本」，例如「短文本」或「 短文本 」等。<br/>
-      系统会按第一个空格拆分为「编号 + 说明」。
-    </p>
-
-    <div class="upload-row">
-      <div class="drop-zone" id="sourceDrop">
-        <div class="drop-zone-title">拖拽文件到此处，或点击选择请购单</div>
-        <div class="drop-zone-sub">支持 .xlsx / .xls（示例：WK45治工具请购单 2025-11-28.xlsx）</div>
-        <div class="file-name" id="sourceFileName">当前未选择文件</div>
-        <input type="file" id="fileSource" accept=".xlsx,.xls">
+    <h2>1. 一次上传两个 Excel</h2>
+    <div id="dropZone" class="drop-zone">
+      <div>
+        <div class="drop-icon">⇩</div>
+        <div class="drop-title">直接把两个表格拖到这里</div>
+        <div class="drop-sub">也可以点击这里一次选择两个文件<br>支持 .xlsx / .xls；顺序不限，系统自动判断“请购单”和“图纸需求表”</div>
       </div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;">
-        <button id="downloadMappingCsvBtn" class="secondary" disabled>下载拆分结果（CSV）</button>
-        <button id="downloadMappingXlsxBtn" class="secondary" disabled>下载拆分结果 Excel</button>
-      </div>
+      <input id="fileInput" type="file" accept=".xlsx,.xls" multiple />
     </div>
 
-    <div id="msgSource" class="error"></div>
-    <div id="mappingInfo" class="note"></div>
-    <div id="previewMapping"></div>
+    <div class="files">
+      <div class="file-card"><div class="file-role">请购单</div><div id="sourceName" class="file-name empty">尚未识别</div><div id="sourceMeta" class="file-meta"></div></div>
+      <div class="file-card"><div class="file-role">OB 图纸需求表</div><div id="targetName" class="file-name empty">尚未识别</div><div id="targetMeta" class="file-meta"></div></div>
+    </div>
+    <div id="status" class="status"></div>
   </div>
 
-  <!-- 步骤2 -->
   <div class="card">
-    <h2><span class="step">2</span> 上传目标表并生成 7 列结果表</h2>
-    <p class="note">
-      上传包含「需求人 / 制程段 / 上线日期 / 使用设备型号 / *需求数量 / 备注」等列的 Excel（如：OB 图纸需求表）。<br/>
-      · 上线日期统一改为当前日期（YYYY/MM/DD）<br/>
-      · 使用设备型号 = 原使用设备型号 + 空格 + 拆分出来的编码<br/>
-      · *治具详细信息使用拆分出来的说明；<br/>
-      · <b>设计人员：直接读取目标表 P 栏（第 16 列）的备注内容，苏州→杨昊，铜陵→沈万礼，泰国→陶子俊。</b>
-    </p>
-
-    <div class="upload-row">
-      <div class="drop-zone" id="targetDrop">
-        <div class="drop-zone-title">拖拽文件到此处，或点击选择目标表</div>
-        <div class="drop-zone-sub">支持 .xlsx / .xls（示例：WK31-OB治工具图纸需求.xlsx）</div>
-        <div class="file-name" id="targetFileName">当前未选择文件</div>
-        <input type="file" id="fileTarget" accept=".xlsx,.xls">
-      </div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;">
-        <button id="runGenerateBtn" class="primary" disabled>生成最终结果表并下载</button>
-        <button id="addMappingSheetBtn" class="secondary" disabled>目标表中附加「短文本拆分结果」Sheet</button>
-      </div>
+    <h2>2. 自动整理结果</h2>
+    <p class="note">生成字段：需求人 / 制程段 / 上线日期 / 使用设备型号（附编码） / 治具详细信息 / 需求数量 / 设计人员。设计人员仍按图纸需求表 P 栏判断：苏州→杨昊，铜陵→沈万礼，泰国→陶子俊。</p>
+    <div class="summary">
+      <div class="metric"><strong id="sourceCount">0</strong><span>请购单可用记录</span></div>
+      <div class="metric"><strong id="targetCount">0</strong><span>图纸需求记录</span></div>
+      <div class="metric"><strong id="resultCount">0</strong><span>将生成记录</span></div>
     </div>
-
-    <div id="msgTarget" class="error"></div>
-    <div id="msgTargetOk" class="ok"></div>
-    <div id="previewFinal"></div>
+    <div class="actions">
+      <button id="downloadFinalBtn" class="primary" disabled>生成最终结果表并下载</button>
+      <button id="downloadSplitBtn" class="secondary" disabled>下载编码拆分结果</button>
+      <button id="resetBtn" class="secondary">清空重新上传</button>
+    </div>
+    <div id="resultStatus" class="status"></div>
+    <div id="preview" class="table-wrap"></div>
   </div>
 </div>
 
 <script>
-  // ===== DOM 元素 =====
-  const fileSourceInput = document.getElementById('fileSource');
-  const fileTargetInput = document.getElementById('fileTarget');
-  const sourceDrop = document.getElementById('sourceDrop');
-  const targetDrop = document.getElementById('targetDrop');
-  const sourceFileName = document.getElementById('sourceFileName');
-  const targetFileName = document.getElementById('targetFileName');
+(() => {
+  const dropZone = document.getElementById('dropZone');
+  const fileInput = document.getElementById('fileInput');
+  const sourceName = document.getElementById('sourceName');
+  const targetName = document.getElementById('targetName');
+  const sourceMeta = document.getElementById('sourceMeta');
+  const targetMeta = document.getElementById('targetMeta');
+  const status = document.getElementById('status');
+  const resultStatus = document.getElementById('resultStatus');
+  const sourceCount = document.getElementById('sourceCount');
+  const targetCount = document.getElementById('targetCount');
+  const resultCount = document.getElementById('resultCount');
+  const preview = document.getElementById('preview');
+  const downloadFinalBtn = document.getElementById('downloadFinalBtn');
+  const downloadSplitBtn = document.getElementById('downloadSplitBtn');
+  const resetBtn = document.getElementById('resetBtn');
 
-  const downloadMappingCsvBtn = document.getElementById('downloadMappingCsvBtn');
-  const downloadMappingXlsxBtn = document.getElementById('downloadMappingXlsxBtn');
+  let sourceInfo = null;
+  let targetInfo = null;
+  let splitData = [];
+  let targetData = [];
+  let finalRows = [];
 
-  const runGenerateBtn = document.getElementById('runGenerateBtn');
-  const addMappingSheetBtn = document.getElementById('addMappingSheetBtn');
+  const clean = v => String(v == null ? '' : v).trim();
+  const normalizeHeader = v => clean(v).replace(/s/g, '').replace(/^*+/, '');
 
-  const msgSource = document.getElementById('msgSource');
-  const mappingInfo = document.getElementById('mappingInfo');
-  const previewMapping = document.getElementById('previewMapping');
+  function isExcel(file) { return /.(xlsx|xls)$/i.test(file.name || ''); }
 
-  const msgTarget = document.getElementById('msgTarget');
-  const msgTargetOk = document.getElementById('msgTargetOk');
-  const previewFinal = document.getElementById('previewFinal');
-
-  let splitData = [];      // [{序号, 原始短文本, 拆分_编号, 拆分_说明}]
-  let targetWb = null;
-  let targetSheetName = null;
-  let targetRows = [];
-  let targetHeaders = [];
-  let targetMatrix = [];   // 目标表二维数组（header:1），用于按 P 列取备注
-
-  // ===== 小工具 =====
-  function splitShortText(str) {
-    if (typeof str !== 'string') {
-      if (str == null) return { left: '', right: '' };
-      str = String(str);
-    }
-    const trimmed = str.trim();
-    if (!trimmed) return { left: '', right: '' };
-    const idx = trimmed.indexOf(' ');
-    if (idx === -1) return { left: trimmed, right: '' };
-    return { left: trimmed.substring(0, idx), right: trimmed.substring(idx + 1) };
+  function splitShortText(value) {
+    const text = clean(value).replace(/^﻿/, '');
+    if (!text) return { code:'', detail:'' };
+    const match = text.match(/^(S+)(?:s+([sS]*))?$/);
+    return { code: match ? clean(match[1]) : text, detail: match ? clean(match[2] || '') : '' };
   }
 
-  function renderTableFromJson(container, data, maxRows = 50) {
-    container.innerHTML = '';
-    if (!data.length) {
-      container.innerHTML = '<p class="note">没有数据。</p>';
-      return;
-    }
-    const headers = Object.keys(data[0]);
-    const shown = data.slice(0, maxRows);
-    const table = document.createElement('table');
-
-    const thead = document.createElement('thead');
-    const trHead = document.createElement('tr');
-    headers.forEach(h => {
-      const th = document.createElement('th');
-      th.textContent = h;
-      trHead.appendChild(th);
+  function readFileBuffer(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = e => resolve(e.target.result);
+      reader.onerror = () => reject(new Error('读取文件失败：' + file.name));
+      reader.readAsArrayBuffer(file);
     });
-    thead.appendChild(trHead);
-    table.appendChild(thead);
-
-    const tbody = document.createElement('tbody');
-    shown.forEach(row => {
-      const tr = document.createElement('tr');
-      headers.forEach(h => {
-        const td = document.createElement('td');
-        td.textContent = row[h] == null ? '' : String(row[h]);
-        tr.appendChild(td);
-      });
-      tbody.appendChild(tr);
-    });
-    table.appendChild(tbody);
-
-    container.appendChild(table);
-    if (data.length > maxRows) {
-      const note = document.createElement('p');
-      note.className = 'note';
-      note.textContent = '只显示前 ' + maxRows + ' 行，实际总行数：' + data.length;
-      container.appendChild(note);
-    }
   }
 
-  // 设计人员：看目标表 P 栏备注
-  function getDesignerFromRemark(remark) {
-    if (!remark) return '';
-    const s = String(remark);
+  function locateRoleInWorkbook(wb) {
+    let sourceCandidate = null;
+    let targetCandidate = null;
+    for (const sheetName of wb.SheetNames) {
+      const sheet = wb.Sheets[sheetName];
+      const matrix = XLSX.utils.sheet_to_json(sheet, { header:1, defval:'', raw:true });
+      const limit = Math.min(matrix.length, 15);
+      for (let r = 0; r < limit; r++) {
+        const rawHeaders = matrix[r] || [];
+        const headers = rawHeaders.map(normalizeHeader);
+        const hasSourceKey = headers.some(h => h === '短文本' || h.includes('治具名称+型号'));
+        const hasDemandUser = headers.some(h => h === '需求人');
+        const hasProcess = headers.some(h => h === '制程段');
+        const hasQty = headers.some(h => h.includes('需求数量'));
+        if (!sourceCandidate && hasSourceKey) sourceCandidate = { role:'source', sheetName, matrix, headerRow:r, rawHeaders, headers };
+        if (!targetCandidate && hasDemandUser && hasProcess && hasQty) targetCandidate = { role:'target', sheetName, matrix, headerRow:r, rawHeaders, headers };
+      }
+    }
+    if (targetCandidate) return targetCandidate;
+    if (sourceCandidate) return sourceCandidate;
+    return null;
+  }
+
+  async function inspectFile(file) {
+    if (!window.XLSX) throw new Error('Excel 解析组件加载失败，请刷新页面后重试。');
+    const buffer = await readFileBuffer(file);
+    const wb = XLSX.read(buffer, { type:'array', cellDates:true });
+    const located = locateRoleInWorkbook(wb);
+    if (!located) throw new Error('无法识别文件类型：' + file.name + '。请确认是请购单或 OB 图纸需求表。');
+    return { file, wb, ...located };
+  }
+
+  function idxBy(info, tests) {
+    for (let i = 0; i < info.headers.length; i++) {
+      if (tests.some(fn => fn(info.headers[i], info.rawHeaders[i]))) return i;
+    }
+    return -1;
+  }
+
+  function parseSource(info) {
+    const col = idxBy(info, [h => h === '短文本', h => h.includes('治具名称+型号')]);
+    if (col < 0) throw new Error('请购单没有找到「短文本」或「治具名称+型号」列。');
+    const out = [];
+    for (let r = info.headerRow + 1; r < info.matrix.length; r++) {
+      const raw = info.matrix[r]?.[col];
+      if (!clean(raw)) continue;
+      const s = splitShortText(raw);
+      if (!s.code && !s.detail) continue;
+      out.push({ 序号:out.length + 1, 原始内容:clean(raw), 拆分_编号:s.code, 拆分_说明:s.detail });
+    }
+    if (!out.length) throw new Error('请购单中没有可整理的治具编码/名称数据。');
+    return out;
+  }
+
+  function parseTarget(info) {
+    const demandIdx = idxBy(info, [h => h === '需求人']);
+    const processIdx = idxBy(info, [h => h === '制程段']);
+    const equipIdx = idxBy(info, [h => h === '使用设备型号', h => h.includes('使用设备型号')]);
+    const qtyIdx = idxBy(info, [h => h.includes('需求数量')]);
+    if (demandIdx < 0 || processIdx < 0 || qtyIdx < 0) throw new Error('图纸需求表缺少需求人 / 制程段 / 需求数量等必要列。');
+    const rows = [];
+    for (let r = info.headerRow + 1; r < info.matrix.length; r++) {
+      const row = info.matrix[r] || [];
+      if (![row[demandIdx], row[processIdx], row[qtyIdx]].some(v => clean(v))) continue;
+      rows.push({ row, excelRow:r + 1, demandIdx, processIdx, equipIdx, qtyIdx });
+    }
+    if (!rows.length) throw new Error('图纸需求表中没有可处理的数据行。');
+    return rows;
+  }
+
+  function getDesignerFromRemark(value) {
+    const s = clean(value);
     if (s.includes('苏州')) return '杨昊';
     if (s.includes('铜陵')) return '沈万礼';
     if (s.includes('泰国')) return '陶子俊';
     return '';
   }
 
-  function findColumn(headers, keyword) {
-    return headers.find(h => h.includes(keyword));
+  function todayStr() {
+    const d = new Date();
+    return `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}`;
   }
 
-  function getTodayStr() {
-    const today = new Date();
-    const y = today.getFullYear();
-    const m = String(today.getMonth() + 1).padStart(2, '0');
-    const d = String(today.getDate()).padStart(2, '0');
-    return `${y}/${m}/${d}`;
-  }
-
-  // ===== 步骤1：请购单处理 =====
-  function handleSourceFile(file) {
-    if (!file) return;
-    sourceFileName.textContent = file.name;
-
-    msgSource.textContent = '';
-    mappingInfo.textContent = '';
-    previewMapping.innerHTML = '';
-    splitData = [];
-    downloadMappingCsvBtn.disabled = true;
-    downloadMappingXlsxBtn.disabled = true;
-
-    const reader = new FileReader();
-    reader.onload = function(evt) {
-      try {
-        const data = evt.target.result;
-        const wb = XLSX.read(data, { type: 'array' });
-        const firstSheetName = wb.SheetNames[0];
-        const sheet = wb.Sheets[firstSheetName];
-
-        const rows = XLSX.utils.sheet_to_json(sheet, { defval: "" });
-        if (!rows.length) {
-          msgSource.textContent = '请购单表是空的。';
-          return;
-        }
-
-        const headerRow = rows[0];
-        const colNames = Object.keys(headerRow);
-
-        const shortColName =
-          colNames.find(name => name.replace(/\s/g, '') === '短文本') ||
-          colNames.find(name => name.includes('短文本'));
-
-        if (!shortColName) {
-          msgSource.textContent =
-            '在请购单中找不到「短文本」这一列，请确认列名包含“短文本”。当前表头：' +
-            colNames.join(' / ');
-          return;
-        }
-
-        splitData = [];
-        rows.forEach(row => {
-          const raw = row[shortColName];
-          if (!raw || String(raw).trim() === '') return;
-          const { left, right } = splitShortText(raw);
-          if (left || right) {
-            splitData.push({
-              序号: splitData.length + 1,
-              原始短文本: raw,
-              拆分_编号: left,
-              拆分_说明: right
-            });
-          }
-        });
-
-        if (!splitData.length) {
-          msgSource.textContent = '没有找到需要拆分的「短文本」内容。';
-          return;
-        }
-
-        mappingInfo.textContent =
-          '已从请购单中解析出 ' + splitData.length +
-          ' 条短文本记录。使用的列名：' + shortColName;
-
-        renderTableFromJson(previewMapping, splitData, 20);
-        downloadMappingCsvBtn.disabled = false;
-        downloadMappingXlsxBtn.disabled = false;
-      } catch (err) {
-        console.error(err);
-        msgSource.textContent = '解析请购单 Excel 失败，请确认文件格式正确。';
-      }
-    };
-    reader.readAsArrayBuffer(file);
-  }
-
-  fileSourceInput.addEventListener('change', e => handleSourceFile(e.target.files[0]));
-
-  // 拖拽（步骤1）
-  ['dragenter','dragover'].forEach(name => {
-    sourceDrop.addEventListener(name, e => {
-      e.preventDefault(); e.stopPropagation();
-      sourceDrop.classList.add('is-dragover');
-    });
-  });
-  ['dragleave','drop'].forEach(name => {
-    sourceDrop.addEventListener(name, e => {
-      e.preventDefault(); e.stopPropagation();
-      if (name === 'drop') {
-        const files = e.dataTransfer.files;
-        if (files && files.length) handleSourceFile(files[0]);
-      }
-      sourceDrop.classList.remove('is-dragover');
-    });
-  });
-  sourceDrop.addEventListener('click', () => fileSourceInput.click());
-
-  // 下载拆分结果 CSV
-  downloadMappingCsvBtn.addEventListener('click', function() {
-    if (!splitData.length) return;
-    const headers = Object.keys(splitData[0]);
-    const csvRows = [];
-    csvRows.push(headers.join(','));
-    splitData.forEach(row => {
-      const values = headers.map(h => {
-        let val = row[h] == null ? '' : String(row[h]);
-        val = val.replace(/"/g, '""');
-        return `"${val}"`;
+  function buildFinalRows() {
+    finalRows = [];
+    if (!splitData.length || !targetData.length) return;
+    const count = Math.min(splitData.length, targetData.length);
+    for (let i = 0; i < count; i++) {
+      const t = targetData[i];
+      const s = splitData[i];
+      const originalEquip = t.equipIdx >= 0 ? clean(t.row[t.equipIdx]) : '';
+      const equip = s.拆分_编号 ? [originalEquip, s.拆分_编号].filter(Boolean).join(' ') : originalEquip;
+      finalRows.push({
+        '需求人': t.row[t.demandIdx] ?? '',
+        '制程段': t.row[t.processIdx] ?? '',
+        '上线日期': todayStr(),
+        '使用设备型号': equip,
+        '*治具详细信息（机种全名+治具名称，TX需特别标注）': s.拆分_说明,
+        '*需求\n数量': t.row[t.qtyIdx] ?? '',
+        '设计人员': getDesignerFromRemark(t.row[15])
       });
-      csvRows.push(values.join(','));
-    });
-    const csvString = csvRows.join('\r\n');
-    const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = '短文本拆分结果.csv';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  });
+    }
+  }
 
-  // 下载拆分结果 Excel
-  downloadMappingXlsxBtn.addEventListener('click', function () {
+  function renderPreview() {
+    preview.innerHTML = '';
+    if (!finalRows.length) return;
+    const shown = finalRows.slice(0,20);
+    const headers = Object.keys(shown[0]);
+    const table = document.createElement('table');
+    const thead = document.createElement('thead');
+    const hr = document.createElement('tr');
+    headers.forEach(h => { const th=document.createElement('th'); th.textContent=h; hr.appendChild(th); });
+    thead.appendChild(hr); table.appendChild(thead);
+    const tbody = document.createElement('tbody');
+    shown.forEach(row => { const tr=document.createElement('tr'); headers.forEach(h => { const td=document.createElement('td'); td.textContent=row[h] == null ? '' : String(row[h]); tr.appendChild(td); }); tbody.appendChild(tr); });
+    table.appendChild(tbody); preview.appendChild(table);
+    if (finalRows.length > 20) { const p=document.createElement('p'); p.className='note'; p.textContent=`只预览前 20 行，共 ${finalRows.length} 行。`; preview.appendChild(p); }
+  }
+
+  function updateUI() {
+    sourceName.textContent = sourceInfo ? sourceInfo.file.name : '尚未识别';
+    targetName.textContent = targetInfo ? targetInfo.file.name : '尚未识别';
+    sourceName.classList.toggle('empty', !sourceInfo); targetName.classList.toggle('empty', !targetInfo);
+    sourceMeta.textContent = sourceInfo ? `Sheet：${sourceInfo.sheetName}；表头第 ${sourceInfo.headerRow + 1} 行` : '';
+    targetMeta.textContent = targetInfo ? `Sheet：${targetInfo.sheetName}；表头第 ${targetInfo.headerRow + 1} 行` : '';
+    sourceCount.textContent = splitData.length;
+    targetCount.textContent = targetData.length;
+    resultCount.textContent = finalRows.length;
+    downloadSplitBtn.disabled = !splitData.length;
+    downloadFinalBtn.disabled = !finalRows.length;
+    renderPreview();
+  }
+
+  function resetAll(clearMessage = true) {
+    sourceInfo = null; targetInfo = null; splitData = []; targetData = []; finalRows = [];
+    fileInput.value = '';
+    if (clearMessage) { status.textContent = ''; resultStatus.textContent = ''; }
+    updateUI();
+  }
+
+  async function handleFiles(fileList) {
+    const files = Array.from(fileList || []).filter(Boolean);
+    if (!files.length) return;
+    const invalid = files.filter(f => !isExcel(f));
+    if (invalid.length) { status.className='status error'; status.textContent='只支持 .xlsx / .xls 文件：' + invalid.map(f=>f.name).join('、'); return; }
+    if (files.length > 2) { status.className='status error'; status.textContent='一次最多上传两个 Excel。请拖入“请购单 + 图纸需求表”两个文件。'; return; }
+
+    status.className='status'; status.textContent='正在识别文件…'; resultStatus.textContent='';
+    try {
+      const infos = [];
+      for (const file of files) infos.push(await inspectFile(file));
+      for (const info of infos) {
+        if (info.role === 'source') sourceInfo = info;
+        if (info.role === 'target') targetInfo = info;
+      }
+      splitData = sourceInfo ? parseSource(sourceInfo) : [];
+      targetData = targetInfo ? parseTarget(targetInfo) : [];
+      buildFinalRows();
+      updateUI();
+
+      if (sourceInfo && targetInfo) {
+        const mismatch = splitData.length !== targetData.length;
+        status.className = mismatch ? 'status warn' : 'status ok';
+        status.textContent = mismatch
+          ? `两个文件已自动识别。请购单 ${splitData.length} 条，图纸需求表 ${targetData.length} 条；数量不一致，将按顺序生成前 ${finalRows.length} 条，请确认预览。`
+          : `两个文件已自动识别并整理完成，共 ${finalRows.length} 条。确认预览后可直接下载最终结果。`;
+      } else {
+        status.className='status warn';
+        status.textContent = sourceInfo ? '已识别请购单，请再拖入 OB 图纸需求表。' : '已识别 OB 图纸需求表，请再拖入请购单。';
+      }
+    } catch (err) {
+      console.error(err);
+      status.className='status error'; status.textContent=err.message || '处理 Excel 失败。';
+      updateUI();
+    }
+  }
+
+  ['dragenter','dragover'].forEach(ev => dropZone.addEventListener(ev, e => { e.preventDefault(); e.stopPropagation(); dropZone.classList.add('is-dragover'); }));
+  ['dragleave','drop'].forEach(ev => dropZone.addEventListener(ev, e => { e.preventDefault(); e.stopPropagation(); dropZone.classList.remove('is-dragover'); if (ev==='drop') handleFiles(e.dataTransfer.files); }));
+  dropZone.addEventListener('click', () => fileInput.click());
+  fileInput.addEventListener('change', e => handleFiles(e.target.files));
+  resetBtn.addEventListener('click', () => resetAll(true));
+
+  downloadSplitBtn.addEventListener('click', () => {
     if (!splitData.length) return;
     const wb = XLSX.utils.book_new();
-    const ws = XLSX.utils.json_to_sheet(splitData);
-    XLSX.utils.book_append_sheet(wb, ws, '短文本拆分结果');
-    XLSX.writeFile(wb, '短文本拆分结果.xlsx');
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(splitData), '编码拆分结果');
+    XLSX.writeFile(wb, '治具编码拆分结果.xlsx');
   });
 
-  // ===== 步骤2：目标表处理 =====
-  function handleTargetFile(file) {
-    if (!file) return;
-    targetFileName.textContent = file.name;
-
-    msgTarget.textContent = '';
-    msgTargetOk.textContent = '';
-    previewFinal.innerHTML = '';
-    targetWb = null;
-    targetRows = [];
-    targetHeaders = [];
-    targetMatrix = [];
-    runGenerateBtn.disabled = true;
-    addMappingSheetBtn.disabled = true;
-
-    if (!splitData.length) {
-      msgTarget.textContent = '请先完成步骤1：上传请购单并生成拆分结果。';
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onload = function(evt) {
-      try {
-        const data = evt.target.result;
-        targetWb = XLSX.read(data, { type: 'array' });
-        targetSheetName = targetWb.SheetNames[0];
-        const sheet = targetWb.Sheets[targetSheetName];
-
-        // 一份按表头读（方便拿列名）
-        targetRows = XLSX.utils.sheet_to_json(sheet, { defval: "" });
-        if (!targetRows.length) {
-          msgTarget.textContent = '目标表（第一张 Sheet）是空的。';
-          return;
-        }
-        targetHeaders = Object.keys(targetRows[0]);
-
-        // 再读一份 header:1 的二维数组，用来按 P 列取备注
-        targetMatrix = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "" });
-
-        // 简单提示一下 P 列的表头
-        const headerRow = targetMatrix[0] || [];
-        const pHeader = headerRow[15] != null ? String(headerRow[15]) : '(无表头)';
-        msgTarget.textContent = '';
-        msgTargetOk.textContent =
-          '已加载目标表。P 列（第 16 列）表头内容为：' + pHeader + '。将按该列内容判断设计人员。';
-
-        runGenerateBtn.disabled = false;
-        addMappingSheetBtn.disabled = false;
-
-        renderFinalPreview();
-      } catch (err) {
-        console.error(err);
-        msgTarget.textContent = '解析目标 Excel 失败，请确认文件格式正确。';
-      }
-    };
-    reader.readAsArrayBuffer(file);
-  }
-
-  fileTargetInput.addEventListener('change', e => handleTargetFile(e.target.files[0]));
-
-  // 拖拽（步骤2）
-  ['dragenter','dragover'].forEach(name => {
-    targetDrop.addEventListener(name, e => {
-      e.preventDefault(); e.stopPropagation();
-      targetDrop.classList.add('is-dragover');
-    });
-  });
-  ['dragleave','drop'].forEach(name => {
-    targetDrop.addEventListener(name, e => {
-      e.preventDefault(); e.stopPropagation();
-      if (name === 'drop') {
-        const files = e.dataTransfer.files;
-        if (files && files.length) handleTargetFile(files[0]);
-      }
-      targetDrop.classList.remove('is-dragover');
-    });
-  });
-  targetDrop.addEventListener('click', () => fileTargetInput.click());
-
-  // 预览最终结果（前 20 行）
-  function renderFinalPreview() {
-    if (!targetRows.length || !splitData.length) return;
-
-    const h = targetHeaders;
-    const colDemandUser   = findColumn(h, '需求人')   || h[0];
-    const colProcess      = findColumn(h, '制程段')   || h[1] || h[0];
-    const colEquipModel   = findColumn(h, '使用设备型号') ||
-                            findColumn(h, '使用设备') || h[3] || h[0];
-    const colQty          = h.find(name => name.replace(/\s/g,'').includes('需求数量')) ||
-                            findColumn(h, '数量') || h[4] || h[0];
-
-    const todayStr = getTodayStr();
-    const count = Math.min(targetRows.length, splitData.length);
-    const previewData = [];
-
-    for (let i = 0; i < Math.min(count, 20); i++) {
-      const row = targetRows[i];
-      const split = splitData[i];
-
-      const demandUser   = row[colDemandUser];
-      const process      = row[colProcess];
-      const onlineDate   = todayStr;
-
-      const originalEquip = row[colEquipModel] == null ? '' : String(row[colEquipModel]);
-      const code          = split.拆分_编号 == null ? '' : String(split.拆分_编号);
-      let equipModel      = originalEquip;
-      if (code) {
-        equipModel = originalEquip ? (originalEquip + ' ' + code) : code;
-      }
-
-      const detail       = split.拆分_说明;
-      const qty          = row[colQty];
-
-      // 备注来自 P 列：matrix 的第 (i+1) 行、第 16 列
-      const matrixRow = targetMatrix[i + 1] || [];
-      const remarkVal = matrixRow[15] != null ? matrixRow[15] : '';
-      const designer  = getDesignerFromRemark(remarkVal);
-
-      previewData.push({
-        行号: i + 2,
-        需求人: demandUser,
-        制程段: process,
-        上线日期: onlineDate,
-        使用设备型号: equipModel,
-        '*治具详细信息（机种全名+治具名称，TX需特别标注）': detail,
-        '"*需求\n数量"': qty,
-        设计人员: designer
-      });
-    }
-
-    previewFinal.innerHTML = '<p class="note">预览：只展示前 20 行，实际会生成前 ' +
-      Math.min(targetRows.length, splitData.length) + ' 条记录的结果表。</p>';
-    renderTableFromJson(previewFinal, previewData, 20);
-  }
-
-  // 生成最终结果表并下载
-  runGenerateBtn.addEventListener('click', function() {
-    if (!targetRows.length || !splitData.length) return;
-
-    const h = targetHeaders;
-    const colDemandUser   = findColumn(h, '需求人')   || h[0];
-    const colProcess      = findColumn(h, '制程段')   || h[1] || h[0];
-    const colEquipModel   = findColumn(h, '使用设备型号') ||
-                            findColumn(h, '使用设备') || h[3] || h[0];
-    const colQty          = h.find(name => name.replace(/\s/g,'').includes('需求数量')) ||
-                            findColumn(h, '数量') || h[4] || h[0];
-
-    const todayStr = getTodayStr();
-    const count = Math.min(targetRows.length, splitData.length);
-    const finalRows = [];
-
-    for (let i = 0; i < count; i++) {
-      const row = targetRows[i];
-      const split = splitData[i];
-
-      const originalEquip = row[colEquipModel] == null ? '' : String(row[colEquipModel]);
-      const code          = split.拆分_编号 == null ? '' : String(split.拆分_编号);
-      let equipModel      = originalEquip;
-      if (code) {
-        equipModel = originalEquip ? (originalEquip + ' ' + code) : code;
-      }
-
-      const matrixRow = targetMatrix[i + 1] || [];
-      const remarkVal = matrixRow[15] != null ? matrixRow[15] : '';
-      const designer  = getDesignerFromRemark(remarkVal);
-
-      finalRows.push({
-        '需求人': row[colDemandUser],
-        '制程段': row[colProcess],
-        '上线日期': todayStr,
-        '使用设备型号': equipModel,
-        '*治具详细信息（机种全名+治具名称，TX需特别标注）': split.拆分_说明,
-        '*需求\n数量': row[colQty],
-        '设计人员': designer
-      });
-    }
-
-    if (!finalRows.length) {
-      msgTarget.textContent = '没有可以生成的行，请确认目标表和拆分结果都有数据。';
-      return;
-    }
-
+  downloadFinalBtn.addEventListener('click', () => {
+    if (!finalRows.length) return;
     const wb = XLSX.utils.book_new();
     const ws = XLSX.utils.json_to_sheet(finalRows);
+    ws['!cols'] = [{wch:14},{wch:10},{wch:12},{wch:32},{wch:52},{wch:12},{wch:12}];
     XLSX.utils.book_append_sheet(wb, ws, '最终结果表');
-    const outFileName = '治具需求_最终结果表.xlsx';
-    XLSX.writeFile(wb, outFileName);
-
-    msgTargetOk.textContent =
-      '已生成 ' + finalRows.length + ' 行的最终结果表，并下载：' + outFileName;
-    renderFinalPreview();
+    const filename = 'OB治具需求_最终结果表.xlsx';
+    XLSX.writeFile(wb, filename);
+    resultStatus.className='status ok';
+    resultStatus.textContent=`已生成 ${finalRows.length} 条记录：${filename}`;
   });
 
-  // 可选：把拆分结果附加到目标表中
-  addMappingSheetBtn.addEventListener('click', function () {
-    if (!targetWb) {
-      msgTarget.textContent = '还没有上传目标 Excel。';
-      return;
-    }
-    if (!splitData.length) {
-      msgTarget.textContent = '还没有在步骤1生成拆分结果。';
-      return;
-    }
-    const wsMap = XLSX.utils.json_to_sheet(splitData);
-    XLSX.utils.book_append_sheet(targetWb, wsMap, '短文本拆分结果');
-    const outFileName = '目标表_附带拆分结果.xlsx';
-    XLSX.writeFile(targetWb, outFileName);
-    msgTargetOk.textContent =
-      '已在目标 Excel 中添加「短文本拆分结果」Sheet，并下载：' + outFileName;
-  });
+  updateUI();
+})();
 </script>
 </body>
 </html>
