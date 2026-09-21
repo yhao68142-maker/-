@@ -65,6 +65,7 @@
       </div>
       <input id="fileInput" type="file" accept=".xlsx,.xls" multiple />
     </div>
+    <p class="note" style="margin-top:10px"><b>拖拽说明：</b>请从 Windows 文件资源管理器/文件夹中拖入 Excel。浏览器右上角“下载”面板里的项目通常不会把本地文件内容交给网页，因此不能作为文件拖拽来源。</p>
 
     <div class="files">
       <div class="file-card"><div class="file-role">请购单</div><div id="sourceName" class="file-name empty">尚未识别</div><div id="sourceMeta" class="file-meta"></div></div>
@@ -314,18 +315,59 @@
     }
   }
 
-  // Prevent the browser from opening/navigating to dragged files anywhere on the page.
+  function extractDroppedFiles(dataTransfer) {
+    if (!dataTransfer) return [];
+    const directFiles = Array.from(dataTransfer.files || []).filter(Boolean);
+    if (directFiles.length) return directFiles;
+
+    const itemFiles = Array.from(dataTransfer.items || [])
+      .filter(item => item && item.kind === 'file')
+      .map(item => {
+        try { return item.getAsFile(); } catch (_) { return null; }
+      })
+      .filter(Boolean);
+    return itemFiles;
+  }
+
+  // Always suppress browser navigation/open-file behavior for drag/drop.
+  // Capture phase is used so Edge/Chrome cannot handle the drop before this page does.
   ['dragenter','dragover','drop'].forEach(ev => {
-    window.addEventListener(ev, e => {
-      const dt = e.dataTransfer;
-      if (dt && Array.from(dt.types || []).includes('Files')) {
-        e.preventDefault();
+    document.addEventListener(ev, e => {
+      e.preventDefault();
+      if (ev === 'dragover' && e.dataTransfer) {
+        try { e.dataTransfer.dropEffect = 'copy'; } catch (_) {}
       }
-    }, false);
+    }, true);
   });
 
-  ['dragenter','dragover'].forEach(ev => dropZone.addEventListener(ev, e => { e.preventDefault(); e.stopPropagation(); dropZone.classList.add('is-dragover'); }));
-  ['dragleave','drop'].forEach(ev => dropZone.addEventListener(ev, e => { e.preventDefault(); e.stopPropagation(); dropZone.classList.remove('is-dragover'); if (ev==='drop') handleFiles(e.dataTransfer.files); }));
+  ['dragenter','dragover'].forEach(ev => {
+    dropZone.addEventListener(ev, e => {
+      e.preventDefault();
+      e.stopPropagation();
+      dropZone.classList.add('is-dragover');
+    }, true);
+  });
+
+  dropZone.addEventListener('dragleave', e => {
+    e.preventDefault();
+    e.stopPropagation();
+    dropZone.classList.remove('is-dragover');
+  }, true);
+
+  dropZone.addEventListener('drop', e => {
+    e.preventDefault();
+    e.stopPropagation();
+    dropZone.classList.remove('is-dragover');
+
+    const files = extractDroppedFiles(e.dataTransfer);
+    if (!files.length) {
+      status.className = 'status warn';
+      status.textContent = '没有读取到本地文件。请不要从浏览器右上角“下载”面板拖拽；请先打开 Windows 文件资源管理器/下载文件夹，再把两个 Excel 从文件夹直接拖到蓝色区域。';
+      return;
+    }
+    handleFiles(files);
+  }, true);
+
   dropZone.addEventListener('click', () => fileInput.click());
   fileInput.addEventListener('change', e => handleFiles(e.target.files));
   resetBtn.addEventListener('click', () => resetAll(true));
