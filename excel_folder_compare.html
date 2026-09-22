@@ -1100,11 +1100,15 @@ function modeUI(){
     mode === 'tx';
 
 
+  /*
+   * 单模 / OB / TX 都显示厂区 / 工厂筛选。
+   * TX 流程统计表常见“公司代码（厂区）”列，
+   * findHeader 会通过“厂区”自动识别。
+   */
   $('factoryBox')
     .classList
-    .toggle(
-      'hidden',
-      isTX
+    .remove(
+      'hidden'
     );
 
 
@@ -1161,7 +1165,7 @@ function modeUI(){
   else{
 
     $('modeHint').textContent =
-      'TX发包文档：如存在“需求部门”列则筛选包含 TX 的行；流程统计表没有“需求部门”时读取当前工作表全部有效行。自动识别治工具编号 + 名称说明/治工具名称，第一优先级按编号匹配。';
+      'TX发包文档：支持按厂区 / 工厂筛选；如存在“需求部门”列则筛选包含 TX 的行，流程统计表没有“需求部门”时读取当前工作表全部有效行。自动识别治工具编号 + 名称说明/治工具名称，第一优先级按编号匹配。';
 
 
     refreshOwners();
@@ -3392,8 +3396,6 @@ function extract(){
 
 
   if(
-    mode !== 'tx'
-    &&
     $('factoryOn').checked
   ){
 
@@ -3476,6 +3478,22 @@ function extract(){
 
     let owner =
       '';
+
+
+    /*
+     * 单模 / OB / TX 共用厂区 / 工厂筛选。
+     */
+    if(
+      $('factoryOn').checked
+      &&
+      !selectedFactory(
+        row[
+          factoryColumn
+        ]
+      )
+    ){
+      continue;
+    }
 
 
     if(
@@ -3651,19 +3669,6 @@ function extract(){
     }
 
     else{
-
-      if(
-        $('factoryOn').checked
-        &&
-        !selectedFactory(
-          row[
-            factoryColumn
-          ]
-        )
-      ){
-        continue;
-      }
-
 
       display =
         String(
