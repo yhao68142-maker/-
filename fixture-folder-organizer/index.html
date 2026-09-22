@@ -7,7 +7,7 @@
 <meta name="description" content="读取TX审核表，匹配本地治具文件夹，预览后自动整理PDF、STEP和Excel资料并创建刻字TXT。文件仅在本机浏览器处理。">
 <style>
 :root{--bg:#f5f7fb;--card:#fff;--text:#172033;--muted:#667085;--line:#dbe3ee;--blue:#2563eb;--blue2:#1d4ed8;--green:#15803d;--amber:#b45309;--red:#b91c1c;--purple:#7c3aed;--shadow:0 12px 36px rgba(15,23,42,.08)}
-*{box-sizing:border-box}body{margin:0;background:linear-gradient(180deg,#eef4ff 0,#f8fafc 260px,#f5f7fb 100%);color:var(--text);font-family:"Segoe UI","Microsoft YaHei","PingFang SC",sans-serif}.page{max-width:1320px;margin:0 auto;padding:28px 18px 56px}.hero{border-radius:24px;padding:26px 28px;background:linear-gradient(135deg,#0f3f96,#2563eb 62%,#6d28d9);color:#fff;box-shadow:0 20px 50px rgba(37,99,235,.22);margin-bottom:18px}.hero-top{display:flex;justify-content:space-between;gap:18px;align-items:flex-start}.hero h1{margin:4px 0 9px;font-size:30px}.hero p{margin:0;line-height:1.7;opacity:.93}.privacy{white-space:nowrap;border:1px solid rgba(255,255,255,.45);border-radius:999px;padding:7px 12px;font-size:12px;background:rgba(255,255,255,.1)}.steps{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}.step{font-size:12px;padding:7px 11px;border-radius:999px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.24)}.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}.card{background:var(--card);border:1px solid rgba(148,163,184,.22);border-radius:18px;padding:18px;box-shadow:var(--shadow);margin-bottom:16px}.card h2{font-size:17px;margin:0 0 6px}.sub{font-size:12px;color:var(--muted);line-height:1.65}.drop{margin-top:12px;min-height:140px;border:2px dashed #8db2ff;border-radius:16px;background:#f7faff;display:flex;align-items:center;justify-content:center;text-align:center;padding:18px;cursor:pointer;transition:.18s}.drop:hover,.drop.drag{border-color:var(--blue);background:#eef4ff;transform:translateY(-1px)}.drop strong{display:block;font-size:15px}.drop span{display:block;color:var(--muted);font-size:12px;margin-top:6px;line-height:1.6}input[type=file]{display:none}.btns{display:flex;gap:9px;flex-wrap:wrap;margin-top:12px}button{border:0;border-radius:11px;padding:10px 16px;font-weight:700;font-size:13px;cursor:pointer}button.primary{color:#fff;background:linear-gradient(135deg,var(--blue),var(--blue2));box-shadow:0 7px 18px rgba(37,99,235,.22)}button.secondary{background:#fff;color:#334155;border:1px solid var(--line)}button.danger{background:#fff;color:var(--red);border:1px solid #fecaca}button:disabled{opacity:.45;cursor:not-allowed;box-shadow:none}.selected{margin-top:11px;padding:10px 12px;border-radius:12px;background:#f8fafc;border:1px solid #e5e7eb;font-size:12px;line-height:1.6}.selected b{color:#0f172a}.ok{color:var(--green)}.warn{color:var(--amber)}.error{color:var(--red)}.info{color:var(--blue)}.status{margin-top:10px;font-size:12px;line-height:1.65;white-space:pre-line}.settings{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}.pill{padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:#f8fafc;font-size:12px;color:#475569}.metrics{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:9px;margin:14px 0}.metric{border:1px solid #e5e7eb;background:#fafcff;border-radius:13px;padding:11px}.metric b{font-size:21px;display:block}.metric span{font-size:11px;color:var(--muted)}.metric.hot{background:#fff1f2;border-color:#fecdd3}.metric.hot b{color:#b91c1c}.dashboard{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px;margin:14px 0 6px}.dash{border-radius:16px;padding:16px;border:1px solid #dbe3ee;background:#fff;box-shadow:0 8px 20px rgba(15,23,42,.05)}.dash .num{font-size:28px;font-weight:800;line-height:1;margin-bottom:7px}.dash .label{font-size:13px;font-weight:700}.dash .hint{font-size:11px;color:#64748b;margin-top:5px;line-height:1.5}.dash.match{background:#eff6ff;border-color:#bfdbfe}.dash.edit{background:#fff7ed;border-color:#fed7aa}.dash.fail{background:#fff1f2;border-color:#fecdd3}.dash.done{background:#f0fdf4;border-color:#bbf7d0}.dash.total{background:#f8fafc}@media(max-width:900px){.dashboard{grid-template-columns:repeat(2,1fr)}}@media(max-width:560px){.dashboard{grid-template-columns:1fr}}.folder-card{border:2px solid #dbeafe;background:linear-gradient(180deg,#fff,#fbfdff)}.folder-card h2{display:flex;align-items:center;gap:8px}.folder-callout{margin:10px 0 12px;padding:12px 14px;border-radius:12px;background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;font-size:13px;line-height:1.6}.folder-callout b{font-size:18px}.row-unprocessed td{background:#fffaf0}.row-error td{background:#fff7f7}.row-done td{background:#f7fff9}.toolbar{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}.toolbar-left{display:flex;gap:8px;flex-wrap:wrap}.filter{border:1px solid var(--line);background:#fff;border-radius:10px;padding:9px 10px;font-size:12px;color:#334155}.multi-picker{position:relative;min-width:210px}.multi-picker summary{list-style:none;cursor:pointer;border:1px solid var(--line);background:#fff;border-radius:10px;padding:9px 34px 9px 11px;font-size:12px;color:#334155;position:relative;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.multi-picker summary::-webkit-details-marker{display:none}.multi-picker summary:after{content:'▾';position:absolute;right:11px;top:8px;color:#64748b}.multi-picker[open] summary:after{content:'▴'}.multi-menu{position:absolute;z-index:30;left:0;top:calc(100% + 6px);width:280px;max-height:330px;overflow:auto;background:#fff;border:1px solid #dbe3ee;border-radius:12px;box-shadow:0 16px 38px rgba(15,23,42,.16);padding:8px}.multi-actions{display:flex;gap:6px;position:sticky;top:-8px;background:#fff;padding:4px 0 8px;border-bottom:1px solid #eef2f7;margin-bottom:5px;z-index:2}.multi-actions .primary{margin-left:auto}.multi-actions button{padding:6px 9px;font-size:11px}.multi-option{display:flex;gap:8px;align-items:center;padding:7px 6px;border-radius:8px;cursor:pointer;font-size:12px}.multi-option:hover{background:#f8fafc}.multi-option input{margin:0}.filter-group{display:flex;align-items:center;gap:8px;padding:7px 9px;border:1px solid var(--line);border-radius:12px;background:#f8fafc}.filter-title{font-size:12px;color:#475569;font-weight:700}.table-wrap{overflow:auto;margin-top:12px;border:1px solid #e2e8f0;border-radius:14px;max-height:580px}table{width:100%;border-collapse:separate;border-spacing:0;font-size:12px;background:#fff}th,td{padding:8px 9px;border-right:1px solid #eef2f7;border-bottom:1px solid #eef2f7;vertical-align:top;white-space:nowrap}th{position:sticky;top:0;z-index:2;background:#eef4ff;color:#334155;text-align:left}td.name,td.code{white-space:normal;min-width:240px;line-height:1.5}.badge{display:inline-block;padding:4px 7px;border-radius:999px;font-size:11px;font-weight:700}.badge.ready{color:#166534;background:#dcfce7}.badge.done{color:#166534;background:#dcfce7}.badge.warn{color:#92400e;background:#fef3c7}.badge.err{color:#991b1b;background:#fee2e2}.badge.info{color:#1d4ed8;background:#dbeafe}.log{margin-top:12px;background:#0f172a;color:#dbeafe;border-radius:13px;padding:12px;max-height:220px;overflow:auto;font:12px/1.65 Consolas,monospace;white-space:pre-wrap}.hidden{display:none}.notice{margin-top:12px;padding:11px 12px;border-left:4px solid #60a5fa;background:#eff6ff;color:#334155;border-radius:9px;font-size:12px;line-height:1.65}.danger-note{border-left-color:#f59e0b;background:#fffbeb}.progress{height:8px;border-radius:999px;background:#e5e7eb;overflow:hidden;margin-top:10px}.progress>div{height:100%;width:0;background:linear-gradient(90deg,#2563eb,#7c3aed);transition:width .2s}.footer{font-size:11px;color:#64748b;text-align:center;margin-top:18px}@media(max-width:900px){.grid{grid-template-columns:1fr}.metrics{grid-template-columns:repeat(3,1fr)}.hero-top{display:block}.privacy{display:inline-block;margin-top:12px}}@media(max-width:560px){.metrics{grid-template-columns:repeat(2,1fr)}.hero{padding:20px}.hero h1{font-size:24px}.page{padding:14px 10px 40px}}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(180deg,#eef4ff 0,#f8fafc 260px,#f5f7fb 100%);color:var(--text);font-family:"Segoe UI","Microsoft YaHei","PingFang SC",sans-serif}.page{max-width:1320px;margin:0 auto;padding:28px 18px 56px}.hero{border-radius:24px;padding:26px 28px;background:linear-gradient(135deg,#0f3f96,#2563eb 62%,#6d28d9);color:#fff;box-shadow:0 20px 50px rgba(37,99,235,.22);margin-bottom:18px}.hero-top{display:flex;justify-content:space-between;gap:18px;align-items:flex-start}.hero h1{margin:4px 0 9px;font-size:30px}.hero p{margin:0;line-height:1.7;opacity:.93}.privacy{white-space:nowrap;border:1px solid rgba(255,255,255,.45);border-radius:999px;padding:7px 12px;font-size:12px;background:rgba(255,255,255,.1)}.steps{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}.step{font-size:12px;padding:7px 11px;border-radius:999px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.24)}.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}.card{background:var(--card);border:1px solid rgba(148,163,184,.22);border-radius:18px;padding:18px;box-shadow:var(--shadow);margin-bottom:16px}.card h2{font-size:17px;margin:0 0 6px}.sub{font-size:12px;color:var(--muted);line-height:1.65}.drop{margin-top:12px;min-height:140px;border:2px dashed #8db2ff;border-radius:16px;background:#f7faff;display:flex;align-items:center;justify-content:center;text-align:center;padding:18px;cursor:pointer;transition:.18s}.drop:hover,.drop.drag{border-color:var(--blue);background:#eef4ff;transform:translateY(-1px)}.drop strong{display:block;font-size:15px}.drop span{display:block;color:var(--muted);font-size:12px;margin-top:6px;line-height:1.6}input[type=file]{display:none}.btns{display:flex;gap:9px;flex-wrap:wrap;margin-top:12px}button{border:0;border-radius:11px;padding:10px 16px;font-weight:700;font-size:13px;cursor:pointer}button.primary{color:#fff;background:linear-gradient(135deg,var(--blue),var(--blue2));box-shadow:0 7px 18px rgba(37,99,235,.22)}button.secondary{background:#fff;color:#334155;border:1px solid var(--line)}button.danger{background:#fff;color:var(--red);border:1px solid #fecaca}button:disabled{opacity:.45;cursor:not-allowed;box-shadow:none}.selected{margin-top:11px;padding:10px 12px;border-radius:12px;background:#f8fafc;border:1px solid #e5e7eb;font-size:12px;line-height:1.6}.selected b{color:#0f172a}.ok{color:var(--green)}.warn{color:var(--amber)}.error{color:var(--red)}.info{color:var(--blue)}.status{margin-top:10px;font-size:12px;line-height:1.65;white-space:pre-line}.settings{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}.pill{padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:#f8fafc;font-size:12px;color:#475569}.metrics{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:9px;margin:14px 0}.metric{border:1px solid #e5e7eb;background:#fafcff;border-radius:13px;padding:11px}.metric b{font-size:21px;display:block}.metric span{font-size:11px;color:var(--muted)}.metric.hot{background:#fff1f2;border-color:#fecdd3}.metric.hot b{color:#b91c1c}.dashboard{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px;margin:14px 0 6px}.dash{border-radius:16px;padding:16px;border:1px solid #dbe3ee;background:#fff;box-shadow:0 8px 20px rgba(15,23,42,.05);cursor:pointer;transition:.16s;outline:none}.dash:hover{transform:translateY(-2px);box-shadow:0 12px 26px rgba(15,23,42,.10)}.dash:focus-visible{box-shadow:0 0 0 3px rgba(37,99,235,.22),0 12px 26px rgba(15,23,42,.10)}.dash.active{box-shadow:0 0 0 3px rgba(37,99,235,.28),0 12px 28px rgba(15,23,42,.12);transform:translateY(-1px)}.dash .num{font-size:28px;font-weight:800;line-height:1;margin-bottom:7px}.dash .label{font-size:13px;font-weight:700}.dash .hint{font-size:11px;color:#64748b;margin-top:5px;line-height:1.5}.dash.match{background:#eff6ff;border-color:#bfdbfe}.dash.edit{background:#fff7ed;border-color:#fed7aa}.dash.fail{background:#fff1f2;border-color:#fecdd3}.dash.done{background:#f0fdf4;border-color:#bbf7d0}.dash.total{background:#f8fafc}@media(max-width:900px){.dashboard{grid-template-columns:repeat(2,1fr)}}@media(max-width:560px){.dashboard{grid-template-columns:1fr}}.folder-card{border:2px solid #dbeafe;background:linear-gradient(180deg,#fff,#fbfdff)}.folder-card h2{display:flex;align-items:center;gap:8px}.folder-callout{margin:10px 0 12px;padding:12px 14px;border-radius:12px;background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;font-size:13px;line-height:1.6}.folder-callout b{font-size:18px}.row-unprocessed td{background:#fffaf0}.row-error td{background:#fff7f7}.row-done td{background:#f7fff9}.toolbar{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}.toolbar-left{display:flex;gap:8px;flex-wrap:wrap}.filter{border:1px solid var(--line);background:#fff;border-radius:10px;padding:9px 10px;font-size:12px;color:#334155}.multi-picker{position:relative;min-width:210px}.multi-picker summary{list-style:none;cursor:pointer;border:1px solid var(--line);background:#fff;border-radius:10px;padding:9px 34px 9px 11px;font-size:12px;color:#334155;position:relative;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.multi-picker summary::-webkit-details-marker{display:none}.multi-picker summary:after{content:'▾';position:absolute;right:11px;top:8px;color:#64748b}.multi-picker[open] summary:after{content:'▴'}.multi-menu{position:absolute;z-index:30;left:0;top:calc(100% + 6px);width:280px;max-height:330px;overflow:auto;background:#fff;border:1px solid #dbe3ee;border-radius:12px;box-shadow:0 16px 38px rgba(15,23,42,.16);padding:8px}.multi-actions{display:flex;gap:6px;position:sticky;top:-8px;background:#fff;padding:4px 0 8px;border-bottom:1px solid #eef2f7;margin-bottom:5px;z-index:2}.multi-actions .primary{margin-left:auto}.multi-actions button{padding:6px 9px;font-size:11px}.multi-option{display:flex;gap:8px;align-items:center;padding:7px 6px;border-radius:8px;cursor:pointer;font-size:12px}.multi-option:hover{background:#f8fafc}.multi-option input{margin:0}.filter-group{display:flex;align-items:center;gap:8px;padding:7px 9px;border:1px solid var(--line);border-radius:12px;background:#f8fafc}.filter-title{font-size:12px;color:#475569;font-weight:700}.table-wrap{overflow:auto;margin-top:12px;border:1px solid #e2e8f0;border-radius:14px;max-height:580px}.main-result-table tbody tr{height:auto}.main-result-table tbody td{padding:7px 8px;line-height:1.35;vertical-align:top}.cell-clamp{white-space:normal;word-break:break-word;overflow:hidden;line-height:1.4}.clamp-2{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;max-height:2.8em}.clamp-3{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;max-height:4.2em}.cell-status{max-width:280px}.cell-action{min-width:210px;max-width:300px}.cell-path{min-width:300px;max-width:520px}.detail-panel{margin:12px 0 8px;border:1px solid #bfdbfe;background:#f8fbff;border-radius:16px;padding:14px}.detail-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px}.detail-title{font-weight:800;font-size:15px}.detail-count{font-size:12px;color:#64748b;margin-left:8px}.detail-table-wrap{max-height:360px;margin-top:8px}.detail-table td{white-space:normal;vertical-align:top}.detail-table .path{min-width:300px;max-width:480px}.detail-table .reason{min-width:220px;max-width:360px}.detail-empty{text-align:center;color:#94a3b8;padding:28px!important}table{width:100%;border-collapse:separate;border-spacing:0;font-size:12px;background:#fff}th,td{padding:8px 9px;border-right:1px solid #eef2f7;border-bottom:1px solid #eef2f7;vertical-align:top;white-space:nowrap}th{position:sticky;top:0;z-index:2;background:#eef4ff;color:#334155;text-align:left}td.name,td.code{white-space:normal;min-width:240px;line-height:1.5}.badge{display:inline-block;padding:4px 7px;border-radius:999px;font-size:11px;font-weight:700}.badge.ready{color:#166534;background:#dcfce7}.badge.done{color:#166534;background:#dcfce7}.badge.warn{color:#92400e;background:#fef3c7}.badge.err{color:#991b1b;background:#fee2e2}.badge.info{color:#1d4ed8;background:#dbeafe}.log{margin-top:12px;background:#0f172a;color:#dbeafe;border-radius:13px;padding:12px;max-height:220px;overflow:auto;font:12px/1.65 Consolas,monospace;white-space:pre-wrap}.hidden{display:none}.notice{margin-top:12px;padding:11px 12px;border-left:4px solid #60a5fa;background:#eff6ff;color:#334155;border-radius:9px;font-size:12px;line-height:1.65}.danger-note{border-left-color:#f59e0b;background:#fffbeb}.progress{height:8px;border-radius:999px;background:#e5e7eb;overflow:hidden;margin-top:10px}.progress>div{height:100%;width:0;background:linear-gradient(90deg,#2563eb,#7c3aed);transition:width .2s}.footer{font-size:11px;color:#64748b;text-align:center;margin-top:18px}@media(max-width:900px){.grid{grid-template-columns:1fr}.metrics{grid-template-columns:repeat(3,1fr)}.hero-top{display:block}.privacy{display:inline-block;margin-top:12px}}@media(max-width:560px){.metrics{grid-template-columns:repeat(2,1fr)}.hero{padding:20px}.hero h1{font-size:24px}.page{padding:14px 10px 40px}}
 </style>
 </head>
 <body>
@@ -62,12 +62,26 @@
 
     
     <div class="dashboard" id="folderDashboard">
-      <div class="dash total"><div class="num" id="dTotal">0</div><div class="label">已扫描文件夹</div><div class="hint">包含所选根目录及其下所有层级目录</div></div>
-      <div class="dash match"><div class="num" id="dMatched">0</div><div class="label">已匹配治具文件夹</div><div class="hint">已找到对应 Excel 项的治具文件夹</div></div>
-      <div class="dash edit"><div class="num" id="dNeedEdit">0</div><div class="label">需要修改 / 整理</div><div class="hint">PDF、STEP 齐全，可执行重命名或建文件夹</div></div>
-      <div class="dash fail"><div class="num" id="dUnmatched">0</div><div class="label">不能自动匹配</div><div class="hint">未找到安全对应，或存在多个候选，需要人工确认</div></div>
-      <div class="dash done"><div class="num" id="dDone">0</div><div class="label">已经完成</div><div class="hint">目标结构已经存在或已执行整理完成</div></div>
-      <div class="dash fail"><div class="num" id="dMissingDemand">0</div><div class="label">Excel 有需求但文件夹没有</div><div class="hint">当前筛选需求人在 Excel 中有记录，但扫描目录里没有对应治具文件夹</div></div>
+      <div class="dash total" data-detail="scanned" role="button" tabindex="0" aria-expanded="false"><div class="num" id="dTotal">0</div><div class="label">已扫描文件夹</div><div class="hint">包含所选根目录及其下所有层级目录</div></div>
+      <div class="dash match" data-detail="matched" role="button" tabindex="0" aria-expanded="false"><div class="num" id="dMatched">0</div><div class="label">已匹配治具文件夹</div><div class="hint">已找到对应 Excel 项的治具文件夹</div></div>
+      <div class="dash edit" data-detail="edit" role="button" tabindex="0" aria-expanded="false"><div class="num" id="dNeedEdit">0</div><div class="label">需要修改 / 整理</div><div class="hint">PDF、STEP 齐全，可执行重命名或建文件夹</div></div>
+      <div class="dash fail" data-detail="unmatched" role="button" tabindex="0" aria-expanded="false"><div class="num" id="dUnmatched">0</div><div class="label">不能自动匹配</div><div class="hint">未找到安全对应，或存在多个候选，需要人工确认</div></div>
+      <div class="dash done" data-detail="done" role="button" tabindex="0" aria-expanded="false"><div class="num" id="dDone">0</div><div class="label">已经完成</div><div class="hint">目标结构已经存在或已执行整理完成</div></div>
+      <div class="dash fail" data-detail="missingDemand" role="button" tabindex="0" aria-expanded="false"><div class="num" id="dMissingDemand">0</div><div class="label">Excel 有需求但文件夹没有</div><div class="hint">当前筛选需求人在 Excel 中有记录，但扫描目录里没有对应治具文件夹</div></div>
+    </div>
+
+    <div id="dashboardDetail" class="detail-panel hidden">
+      <div class="detail-head">
+        <div><span id="dashboardDetailTitle" class="detail-title"></span><span id="dashboardDetailCount" class="detail-count"></span></div>
+        <button id="dashboardDetailClose" type="button" class="secondary" style="padding:7px 11px">关闭明细</button>
+      </div>
+      <div class="sub">明细按当前需求人 / 设计人筛选和最近一次扫描结果生成。</div>
+      <div class="table-wrap detail-table-wrap">
+        <table class="detail-table">
+          <thead><tr><th>文件夹路径</th><th>Excel行</th><th>需求人</th><th>设计人</th><th>治具名称+型号</th><th>编码+名称</th><th>状态 / 原因</th></tr></thead>
+          <tbody id="dashboardDetailRows"></tbody>
+        </table>
+      </div>
     </div>
 
     <div class="metrics">
@@ -84,21 +98,10 @@
       <div class="toolbar-left"><select id="filter" class="filter"><option value="all">显示全部</option><option value="ready">只看可整理</option><option value="issue">只看需要处理</option><option value="done">只看已整理</option></select><input id="search" class="filter" placeholder="搜索名称 / 编码 / 文件夹"></div>
       <div class="sub">目标文件夹名直接使用 Excel 的「编码+名称」</div>
     </div>
-    <div class="table-wrap"><table><thead><tr><th>Excel行</th><th>治具名称+型号</th><th>编码+名称</th><th>匹配文件夹</th><th>PDF</th><th>STEP</th><th>ZIP</th><th>状态</th><th>预定动作</th></tr></thead><tbody id="rows"></tbody></table></div>
+    <div class="table-wrap"><table class="main-result-table"><thead><tr><th>Excel行</th><th>治具名称+型号</th><th>编码+名称</th><th>匹配文件夹</th><th>PDF</th><th>STEP</th><th>ZIP</th><th>状态</th><th>预定动作</th></tr></thead><tbody id="rows"></tbody></table></div>
   </section>
 
 
-
-  <section class="card">
-    <h2>📋 Excel 有需求，但当前文件夹里没有</h2>
-    <div class="sub">按当前“需求人筛选”统计。这里专门列出 Excel 里有需求、但在你选择的文件夹树中没有找到对应治具文件夹的项目。</div>
-    <div class="table-wrap">
-      <table>
-        <thead><tr><th>Excel行</th><th>需求人</th><th>设计人</th><th>治具名称+型号</th><th>编码+名称</th><th>状态</th></tr></thead>
-        <tbody id="missingDemandRows"></tbody>
-      </table>
-    </div>
-  </section>
 
   <section class="card folder-card">
     <h2>📁 按治具文件夹看：可整理 / 未处理 / 已完成</h2>
@@ -146,8 +149,8 @@ var excelInput=document.getElementById('excelInput'),excelDrop=document.getEleme
 var folderDrop=document.getElementById('folderDrop'),pickFolder=document.getElementById('pickFolder'),clearFolder=document.getElementById('clearFolder'),folderSelected=document.getElementById('folderSelected'),folderStatus=document.getElementById('folderStatus');
 var scanBtn=document.getElementById('scanBtn'),resetBtn=document.getElementById('resetBtn'),scanStatus=document.getElementById('scanStatus'),executeBtn=document.getElementById('executeBtn'),executeStatus=document.getElementById('executeStatus'),rowsEl=document.getElementById('rows');
 var filterEl=document.getElementById('filter'),searchEl=document.getElementById('search'),progress=document.getElementById('progress'),progressBar=document.getElementById('progressBar'),logEl=document.getElementById('log');
-var folderRowsEl=document.getElementById('folderRows'),folderFilterEl=document.getElementById('folderFilter'),folderSearchEl=document.getElementById('folderSearch'),folderCallout=document.getElementById('folderCallout'),requesterFilterEl=document.getElementById('requesterFilter'),requesterOptionsEl=document.getElementById('requesterOptions'),requesterSummaryEl=document.getElementById('requesterSummary'),designerFilterEl=document.getElementById('designerFilter'),designerOptionsEl=document.getElementById('designerOptions'),designerSummaryEl=document.getElementById('designerSummary'),missingDemandRowsEl=document.getElementById('missingDemandRows');
-var records=[],rootHandle=null,plans=[],folderStates=[],scannedFolders=[],isBusy=false;
+var folderRowsEl=document.getElementById('folderRows'),folderFilterEl=document.getElementById('folderFilter'),folderSearchEl=document.getElementById('folderSearch'),folderCallout=document.getElementById('folderCallout'),requesterFilterEl=document.getElementById('requesterFilter'),requesterOptionsEl=document.getElementById('requesterOptions'),requesterSummaryEl=document.getElementById('requesterSummary'),designerFilterEl=document.getElementById('designerFilter'),designerOptionsEl=document.getElementById('designerOptions'),designerSummaryEl=document.getElementById('designerSummary'),missingDemandRowsEl=document.getElementById('missingDemandRows'),dashboardDetailEl=document.getElementById('dashboardDetail'),dashboardDetailTitleEl=document.getElementById('dashboardDetailTitle'),dashboardDetailCountEl=document.getElementById('dashboardDetailCount'),dashboardDetailRowsEl=document.getElementById('dashboardDetailRows'),dashboardDetailCloseEl=document.getElementById('dashboardDetailClose');
+var records=[],rootHandle=null,plans=[],folderStates=[],scannedFolders=[],isBusy=false,activeDashboardDetail=null;
 
 function clean(v){return String(v==null?'':v).trim();}
 function normHeader(v){return clean(v).normalize('NFKC').replace(/\s+/g,'').replace(/^\*+/, '');}
@@ -253,6 +256,7 @@ function populatePeopleFilters(){
   refreshPickerSummary();
 }
 function peopleFilterChanged(){
+  hideDashboardDetail();
   plans=[];folderStates=[];
   renderRows();renderFolderRows();renderMissingDemands();updateMetrics([]);
   refreshPickerSummary();
@@ -459,7 +463,38 @@ async function executeAll(){
 }
 
 function escapeHtml(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
-function renderRows(){var f=filterEl.value,q=normName(searchEl.value),html='';plans.forEach(function(p){var isIssue=['ready','done'].indexOf(p.state)<0;if(f==='ready'&&p.state!=='ready')return;if(f==='issue'&&!isIssue)return;if(f==='done'&&p.state!=='done')return;var hay=normName((p.name||'')+' '+(p.codeName||'')+' '+(p.folderName||''));if(q&&!hay.includes(q))return;var matchBadge=p.matchMode==='exact'?'<div style="margin-top:4px"><span class="badge done">同名匹配</span></div>':(p.matchMode==='fuzzy'?'<div style="margin-top:4px"><span class="badge info">近似 '+Math.round((p.matchScore||0)*100)+'%</span></div>':(p.matchMode==='manual'?'<div style="margin-top:4px"><span class="badge ready">人工确认</span></div>':''));var manualBtn=(p.candidateFolders&&p.candidateFolders.length)?'<div style="margin-top:8px"><button class="secondary" style="padding:6px 10px" onclick="manualBind('+p.row+')">选择匹配文件夹</button></div>':'';html+='<tr><td>'+p.row+'</td><td class="name">'+escapeHtml(p.name)+'</td><td class="code">'+escapeHtml(p.codeName||'')+'</td><td>'+escapeHtml(p.folderPath||p.folderName||'—')+matchBadge+'</td><td>'+(p.hasPdf?'✓':'—')+'</td><td>'+(p.hasStep?'✓':'—')+'</td><td>'+(p.hasZip?'✓':'—')+'</td><td><span class="badge '+statusClass(p)+'">'+escapeHtml(statusText(p))+'</span><div style="margin-top:5px;color:#64748b;white-space:normal;max-width:260px">'+escapeHtml(p.note||'')+'</div>'+manualBtn+'</td><td style="white-space:normal;min-width:220px">'+escapeHtml(actionText(p))+'</td></tr>';});rowsEl.innerHTML=html||'<tr><td colspan="9" style="text-align:center;color:#94a3b8;padding:26px">暂无扫描结果</td></tr>';}
+function renderRows(){
+  var f=filterEl.value,q=normName(searchEl.value),html='';
+  plans.forEach(function(p){
+    var isIssue=['ready','done'].indexOf(p.state)<0;
+    if(f==='ready'&&p.state!=='ready')return;
+    if(f==='issue'&&!isIssue)return;
+    if(f==='done'&&p.state!=='done')return;
+    var hay=normName((p.name||'')+' '+(p.codeName||'')+' '+(p.folderPath||p.folderName||''));
+    if(q&&!hay.includes(q))return;
+    var matchBadge=p.matchMode==='exact'
+      ?'<div style="margin-top:4px"><span class="badge done">同名匹配</span></div>'
+      :(p.matchMode==='fuzzy'
+        ?'<div style="margin-top:4px"><span class="badge info">近似 '+Math.round((p.matchScore||0)*100)+'%</span></div>'
+        :(p.matchMode==='manual'?'<div style="margin-top:4px"><span class="badge ready">人工确认</span></div>':''));
+    var manualBtn=(p.candidateFolders&&p.candidateFolders.length)
+      ?'<div style="margin-top:6px"><button class="secondary" style="padding:5px 9px" onclick="manualBind('+p.row+')">选择匹配文件夹</button></div>'
+      :'';
+    var path=p.folderPath||p.folderName||'—',note=p.note||'',action=actionText(p);
+    html+='<tr>'+
+      '<td>'+p.row+'</td>'+
+      '<td class="name"><div class="cell-clamp clamp-2" title="'+escapeHtml(p.name||'')+'">'+escapeHtml(p.name||'')+'</div></td>'+
+      '<td class="code"><div class="cell-clamp clamp-2" title="'+escapeHtml(p.codeName||'')+'">'+escapeHtml(p.codeName||'')+'</div></td>'+
+      '<td class="cell-path"><div class="cell-clamp clamp-2" title="'+escapeHtml(path)+'">'+escapeHtml(path)+'</div>'+matchBadge+'</td>'+
+      '<td>'+(p.hasPdf?'✓':'—')+'</td>'+
+      '<td>'+(p.hasStep?'✓':'—')+'</td>'+
+      '<td>'+(p.hasZip?'✓':'—')+'</td>'+
+      '<td class="cell-status"><span class="badge '+statusClass(p)+'">'+escapeHtml(statusText(p))+'</span><div class="cell-clamp clamp-3" style="margin-top:5px;color:#64748b" title="'+escapeHtml(note)+'">'+escapeHtml(note)+'</div>'+manualBtn+'</td>'+
+      '<td class="cell-action"><div class="cell-clamp clamp-3" title="'+escapeHtml(action)+'">'+escapeHtml(action)+'</div></td>'+
+      '</tr>';
+  });
+  rowsEl.innerHTML=html||'<tr><td colspan="9" style="text-align:center;color:#94a3b8;padding:26px">暂无扫描结果</td></tr>';
+}
 function folderStateText(s){var map={ready:'可以整理',done:'已完成',missing:'无法整理',ambiguous:'匹配不唯一',conflict:'目标已存在',invalid:'编码+名称无效',error:'执行/扫描失败',matched:'已匹配'};return map[s]||s;}
 function folderStateClass(s){if(s==='done')return'done';if(s==='ready')return'info';if(s==='unmatchedFolder')return'warn';return'err';}
 function renderFolderRows(){
@@ -480,12 +515,73 @@ function renderFolderRows(){
   if(!folderStates.length)folderCallout.innerHTML='完成递归扫描后，这里会直接统计<b>可整理</b>、<b>需要确认</b>和<b>已完成</b>的治具文件夹。';
   else folderCallout.innerHTML='可以整理 <b>'+readyCount+'</b> 个　｜　需要确认 <b>'+problemCount+'</b> 个　｜　已完成 <b>'+doneCount+'</b> 个'+(pendingCount?'。下面默认显示所有未完成项目。':'。✅ 当前已全部完成。');
 }
+function getRecordByRow(row){return records.find(function(r){return r.row===row;})||{};}
+function dashboardItems(type){
+  if(type==='scanned'){
+    return scannedFolders.map(function(folder){
+      var p=plans.find(function(x){return x.folderPath===folder.path;});
+      return{folderPath:folder.path,plan:p||null};
+    });
+  }
+  if(type==='matched')return plans.filter(function(p){return !!p.folderHandle&&!!p.folderPath;}).map(function(p){return{folderPath:p.folderPath,plan:p};});
+  if(type==='edit')return plans.filter(function(p){return p.state==='ready';}).map(function(p){return{folderPath:p.folderPath||'—',plan:p};});
+  if(type==='unmatched')return plans.filter(function(p){return !p.folderHandle&&(p.state==='missing'||p.state==='ambiguous');}).map(function(p){return{folderPath:p.folderName&&p.folderName!=='—'?p.folderName:'—',plan:p};});
+  if(type==='done')return plans.filter(function(p){return p.state==='done';}).map(function(p){return{folderPath:p.folderPath||'—',plan:p};});
+  if(type==='missingDemand')return plans.filter(function(p){return !p.folderHandle&&p.state==='missing'&&(!p.folderName||p.folderName==='—');}).map(function(p){return{folderPath:'—',plan:p};});
+  return[];
+}
+function dashboardTitle(type){
+  return{scanned:'已扫描文件夹明细',matched:'已匹配治具文件夹明细',edit:'需要修改 / 整理明细',unmatched:'不能自动匹配明细',done:'已经完成明细',missingDemand:'Excel 有需求但文件夹没有'}[type]||'明细';
+}
+function dashboardStatusText(item){
+  var p=item.plan;
+  if(!p)return'已扫描（当前人员筛选下未匹配为治具项目）';
+  var base=statusText(p);
+  return p.note?base+'：'+p.note:base;
+}
+function renderDashboardDetail(){
+  if(!activeDashboardDetail||!dashboardDetailEl)return;
+  var items=dashboardItems(activeDashboardDetail);
+  dashboardDetailTitleEl.textContent=dashboardTitle(activeDashboardDetail);
+  dashboardDetailCountEl.textContent='共 '+items.length+' 条';
+  var html=items.map(function(item){
+    var p=item.plan,rec=p?getRecordByRow(p.row):{};
+    var path=item.folderPath||'—',status=dashboardStatusText(item);
+    return '<tr>'+
+      '<td class="path"><div class="cell-clamp clamp-2" title="'+escapeHtml(path)+'">'+escapeHtml(path)+'</div></td>'+
+      '<td>'+(p&&p.row!=null?p.row:'—')+'</td>'+
+      '<td>'+escapeHtml(rec.requester||'—')+'</td>'+
+      '<td>'+escapeHtml(rec.designer||'—')+'</td>'+
+      '<td class="name"><div class="cell-clamp clamp-2" title="'+escapeHtml(p&&p.name||'')+'">'+escapeHtml(p&&p.name||'—')+'</div></td>'+
+      '<td class="code"><div class="cell-clamp clamp-2" title="'+escapeHtml(p&&p.codeName||'')+'">'+escapeHtml(p&&p.codeName||'—')+'</div></td>'+
+      '<td class="reason"><div class="cell-clamp clamp-3" title="'+escapeHtml(status)+'">'+escapeHtml(status)+'</div></td>'+
+      '</tr>';
+  }).join('');
+  dashboardDetailRowsEl.innerHTML=html||'<tr><td colspan="7" class="detail-empty">当前状态没有明细</td></tr>';
+}
+function hideDashboardDetail(){
+  activeDashboardDetail=null;
+  if(dashboardDetailEl)dashboardDetailEl.classList.add('hidden');
+  document.querySelectorAll('.dash[data-detail]').forEach(function(card){card.classList.remove('active');card.setAttribute('aria-expanded','false');});
+}
+function toggleDashboardDetail(type){
+  if(activeDashboardDetail===type&&!dashboardDetailEl.classList.contains('hidden')){hideDashboardDetail();return;}
+  activeDashboardDetail=type;
+  document.querySelectorAll('.dash[data-detail]').forEach(function(card){
+    var on=card.getAttribute('data-detail')===type;
+    card.classList.toggle('active',on);card.setAttribute('aria-expanded',on?'true':'false');
+  });
+  renderDashboardDetail();
+  dashboardDetailEl.classList.remove('hidden');
+}
+
 function updateMetrics(folderList){
   var scanned=(folderList&&folderList.length)?folderList.length:scannedFolders.length;
-  var matched=plans.filter(function(p){return !!p.folderHandle&&!!p.folderPath;}).length;
-  var needEdit=plans.filter(function(p){return p.state==='ready';}).length;
-  var unmatched=plans.filter(function(p){return !p.folderHandle && (p.state==='missing'||p.state==='ambiguous');}).length;
-  var done=plans.filter(function(p){return p.state==='done';}).length;
+  var matched=dashboardItems('matched').length;
+  var needEdit=dashboardItems('edit').length;
+  var unmatched=dashboardItems('unmatched').length;
+  var done=dashboardItems('done').length;
+  var missingDemand=dashboardItems('missingDemand').length;
   var selectedRecords=currentRecords();
   document.getElementById('mExcel').textContent=selectedRecords.length;
   document.getElementById('mMatched').textContent=matched;
@@ -499,16 +595,17 @@ function updateMetrics(folderList){
   document.getElementById('dNeedEdit').textContent=needEdit;
   document.getElementById('dUnmatched').textContent=unmatched;
   document.getElementById('dDone').textContent=done;
-  document.getElementById('dMissingDemand').textContent=unmatched;
+  document.getElementById('dMissingDemand').textContent=missingDemand;
+  if(activeDashboardDetail)renderDashboardDetail();
   updateReady();
 }
-function resetAll(){records=[];rootHandle=null;plans=[];folderStates=[];scannedFolders=[];if(requesterOptionsEl)requesterOptionsEl.innerHTML='';if(designerOptionsEl)designerOptionsEl.innerHTML='';if(requesterSummaryEl)requesterSummaryEl.textContent='全部需求人';if(designerSummaryEl)designerSummaryEl.textContent='全部设计人';excelInput.value='';excelSelected.textContent='尚未选择 Excel';folderSelected.textContent='尚未选择文件夹';clearFolder.disabled=true;setStatus(excelStatus,'','');setStatus(folderStatus,'','');setStatus(scanStatus,'','');setStatus(executeStatus,'','');document.getElementById('mFolders').textContent='0';logEl.textContent='';logEl.classList.add('hidden');renderRows();renderFolderRows();renderMissingDemands();updateMetrics([]);updateReady();}
+function resetAll(){hideDashboardDetail();records=[];rootHandle=null;plans=[];folderStates=[];scannedFolders=[];if(requesterOptionsEl)requesterOptionsEl.innerHTML='';if(designerOptionsEl)designerOptionsEl.innerHTML='';if(requesterSummaryEl)requesterSummaryEl.textContent='全部需求人';if(designerSummaryEl)designerSummaryEl.textContent='全部设计人';excelInput.value='';excelSelected.textContent='尚未选择 Excel';folderSelected.textContent='尚未选择文件夹';clearFolder.disabled=true;setStatus(excelStatus,'','');setStatus(folderStatus,'','');setStatus(scanStatus,'','');setStatus(executeStatus,'','');document.getElementById('mFolders').textContent='0';logEl.textContent='';logEl.classList.add('hidden');renderRows();renderFolderRows();renderMissingDemands();updateMetrics([]);updateReady();}
 
 excelDrop.addEventListener('click',function(){excelInput.click();});excelDrop.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' ')excelInput.click();});excelInput.addEventListener('change',function(e){handleExcel(e.target.files[0]);});
 ['dragenter','dragover'].forEach(function(ev){excelDrop.addEventListener(ev,function(e){e.preventDefault();excelDrop.classList.add('drag');});folderDrop.addEventListener(ev,function(e){e.preventDefault();folderDrop.classList.add('drag');});});
 ['dragleave','drop'].forEach(function(ev){excelDrop.addEventListener(ev,function(e){e.preventDefault();excelDrop.classList.remove('drag');});folderDrop.addEventListener(ev,function(e){e.preventDefault();folderDrop.classList.remove('drag');});});
 excelDrop.addEventListener('drop',function(e){var fs=Array.from(e.dataTransfer.files||[]);if(fs[0])handleExcel(fs[0]);});
-folderDrop.addEventListener('click',chooseFolder);pickFolder.addEventListener('click',chooseFolder);clearFolder.addEventListener('click',function(){rootHandle=null;plans=[];folderStates=[];folderSelected.textContent='尚未选择文件夹';clearFolder.disabled=true;setStatus(folderStatus,'','');renderRows();renderFolderRows();updateMetrics([]);updateReady();});
+folderDrop.addEventListener('click',chooseFolder);pickFolder.addEventListener('click',chooseFolder);clearFolder.addEventListener('click',function(){hideDashboardDetail();rootHandle=null;plans=[];folderStates=[];folderSelected.textContent='尚未选择文件夹';clearFolder.disabled=true;setStatus(folderStatus,'','');renderRows();renderFolderRows();updateMetrics([]);updateReady();});
 folderDrop.addEventListener('drop',async function(e){try{var items=Array.from(e.dataTransfer.items||[]);for(var i=0;i<items.length;i++){if(items[i].getAsFileSystemHandle){var h=await items[i].getAsFileSystemHandle();if(h&&h.kind==='directory'){rootHandle=h;folderSelected.innerHTML='<b>'+escapeHtml(h.name)+'</b><br>已从拖拽读取文件夹';setStatus(folderStatus,'已选择总文件夹。扫描阶段不会修改文件。','ok');clearFolder.disabled=false;plans=[];folderStates=[];renderRows();renderFolderRows();updateMetrics([]);updateReady();return;}}}setStatus(folderStatus,'没有读取到文件夹。请点击“选择总文件夹”。','warn');}catch(err){setStatus(folderStatus,'拖拽文件夹失败：'+(err.message||err),'warn');}});
 function closePeoplePickers(except){
   [requesterFilterEl,designerFilterEl].forEach(function(el){if(el&&el!==except)el.removeAttribute('open');});
@@ -528,6 +625,13 @@ document.querySelectorAll('[data-done-picker]').forEach(function(btn){btn.addEve
   var el=btn.getAttribute('data-done-picker')==='requester'?requesterFilterEl:designerFilterEl;
   if(el)el.removeAttribute('open');
 });});
+document.querySelectorAll('.dash[data-detail]').forEach(function(card){
+  card.addEventListener('click',function(){toggleDashboardDetail(card.getAttribute('data-detail'));});
+  card.addEventListener('keydown',function(e){
+    if(e.key==='Enter'||e.key===' '){e.preventDefault();toggleDashboardDetail(card.getAttribute('data-detail'));}
+  });
+});
+if(dashboardDetailCloseEl)dashboardDetailCloseEl.addEventListener('click',hideDashboardDetail);
 scanBtn.addEventListener('click',scanAll);executeBtn.addEventListener('click',executeAll);resetBtn.addEventListener('click',resetAll);filterEl.addEventListener('change',renderRows);searchEl.addEventListener('input',renderRows);folderFilterEl.addEventListener('change',renderFolderRows);folderSearchEl.addEventListener('input',renderFolderRows);requesterOptionsEl.addEventListener('change',peopleFilterChanged);designerOptionsEl.addEventListener('change',peopleFilterChanged);
 document.querySelectorAll('[data-clear-picker]').forEach(function(btn){btn.addEventListener('click',function(e){
   e.preventDefault();e.stopPropagation();
