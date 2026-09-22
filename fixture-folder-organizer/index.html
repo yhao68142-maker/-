@@ -40,7 +40,7 @@
   <section class="card">
     <h2>3. 扫描并预览</h2>
     <div class="sub">扫描不会修改任何文件。只有状态为「可整理」的项目才会进入执行队列。</div>
-    <div class="settings"><span class="pill">匹配：先精确，再做唯一高相似度匹配</span><span class="pill">忽略大小写/空格/连接符；Gen2.0 ≈ Gen2</span><span class="pill">STEP 同时识别 .step / .stp</span><span class="pill">直接文件：PDF / STEP / XLSX / XLS / XLSM / CSV / TXT</span></div>
+    <div class="settings"><span class="pill">匹配：先精确，再做唯一高相似度匹配</span><span class="pill">忽略大小写/空格/连接符；Gen2.0 ≈ Gen2</span><span class="pill">业务别名：CB Cover载盘 ≈ CB封盖底板</span><span class="pill">STEP 同时识别 .step / .stp</span><span class="pill">直接文件：PDF / STEP / XLSX / XLS / XLSM / CSV / TXT</span></div>
     <div class="btns"><button id="scanBtn" class="primary" disabled>开始扫描预览</button><button id="resetBtn" class="secondary">全部重置</button></div>
     <div id="scanStatus" class="status"></div>
     <div id="progress" class="progress hidden"><div id="progressBar"></div></div>
@@ -114,10 +114,15 @@ var records=[],rootHandle=null,plans=[],folderStates=[],isBusy=false;
 
 function clean(v){return String(v==null?'':v).trim();}
 function normHeader(v){return clean(v).normalize('NFKC').replace(/\s+/g,'').replace(/^\*+/, '');}
-function normName(v){return clean(v).normalize('NFKC').toUpperCase().replace(/GEN(\d+)\.0(?!\d)/g,'GEN$1').replace(/[\s\-‐‑‒–—_\.·・()（）\[\]【】]+/g,'');}
-function alphaNumSignature(v){
+function businessCanonical(v){
   return clean(v).normalize('NFKC').toUpperCase()
     .replace(/GEN(\d+)\.0(?!\d)/g,'GEN$1')
+    // 业务历史命名：Excel“CB Cover载盘”与现场文件夹“CB封盖底板”视为同一部件名称。
+    .replace(/CB\s*COVER\s*载盘/g,'CB封盖底板');
+}
+function normName(v){return businessCanonical(v).replace(/[\s\-‐‑‒–—_\.·・()（）\[\]【】]+/g,'');}
+function alphaNumSignature(v){
+  return businessCanonical(v)
     .match(/[A-Z0-9]+(?:\.[0-9]+)?/g)?.join('|')||'';
 }
 function editDistance(a,b){
