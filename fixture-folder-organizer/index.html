@@ -140,7 +140,7 @@
     <div id="log" class="log hidden"></div>
   </section>
 
-  <div class="footer">建议使用最新版桌面 Chrome / Edge。写回 Excel 前请先关闭 WPS/Excel；保存后重新打开文件查看最新状态列。工具版本：2026-09-22.4</div>
+  <div class="footer">建议使用最新版桌面 Chrome / Edge。写回 Excel 前请先关闭 WPS/Excel；保存后重新打开文件查看最新状态列。工具版本：2026-09-22.5</div>
 </div>
 <script src="../fixture-code-checker/excel.js?v=20260922-4"></script>
 <script>
@@ -331,7 +331,7 @@ function excelRowColor(p){
   return'FFEAF2F8';
 }
 function excelStatusText(p){
-  if(p.state==='done')return p.matchMode==='manual'?'人工匹配-已完成':(p.matchMode==='fuzzy'?'近似匹配-已完成':'自动匹配-已完成');
+  if(p.state==='done')return p.matchMode==='manual'?'人工匹配-已完成':(p.matchMode==='fuzzy'?'近似匹配-已完成':(p.matchMode==='target'?'目标名称匹配-已完成':'自动匹配-已完成'));
   if(p.state==='ready')return p.matchMode==='manual'?'人工匹配-可整理':(p.matchMode==='fuzzy'?'近似匹配-可整理':'自动匹配-可整理');
   if(p.state==='ambiguous')return'待人工确认';
   if(p.state==='missing'&&!p.folderHandle)return'没有文件夹';
@@ -402,7 +402,16 @@ async function scanOne(rec,folder){
   var targetName=safeName(rec.codeName),p={row:rec.row,name:rec.name,codeName:rec.codeName,targetName:targetName,folderName:folder.name,folderPath:folder.path||folder.name,folderHandle:folder.handle,state:'matched',action:null,note:'',hasPdf:false,hasStep:false,hasZip:false,sourceChildName:'',sourceChildHandle:null,moveFileNames:[]};
   if(!rec.validCodeName){p.state='invalid';p.note='「编码+名称」不像有效的“编码 + 名称”，为避免误改已跳过';return p;}
   try{
-    var info=await directInfo(folder.handle),targetExists=await entryExists(folder.handle,targetName,'dir');
+    var info=await directInfo(folder.handle);
+    var folderIsTarget=normName(folder.name)===normName(targetName)||ultraNorm(folder.name)===ultraNorm(targetName);
+    if(folderIsTarget){
+      p.hasPdf=info.hasPdf;p.hasStep=info.hasStep;p.hasZip=info.hasZip;
+      p.state='done';
+      p.note='当前文件夹名称已经是 Excel 的“编码+名称”，无需再次新建或改名'
+        +(info.hasPdf&&info.hasStep?'；已检测到 PDF + STEP':(info.hasZip?'；已检测到 ZIP 资料包':'；资料完整性可另行确认'));
+      return p;
+    }
+    var targetExists=await entryExists(folder.handle,targetName,'dir');
     if(info.dirs.length){
       var directCandidates=[];
       for(var i=0;i<info.dirs.length;i++){var ci=await directInfo(info.dirs[i].handle);if(ci.hasPdf&&ci.hasStep)directCandidates.push({dir:info.dirs[i],pdf:true,step:true,mode:'direct'});}
@@ -437,9 +446,26 @@ async function scanAll(){
     var collected=await collectDirectories(rootHandle,10,12000),folderList=collected.folders;scannedFolders=folderList;
     document.getElementById('mFolders').textContent=folderList.length;
     if(collected.limited)setStatus(scanStatus,'已扫描 12000 个文件夹，达到安全上限；以下结果基于已扫描范围。','warn');
-    var matchedFolders=new Set(),work=[],unmatchedRecords=[];
-    // 第一轮：逐个比较所有扫描到的目录。先普通规范化，再用更强的 ultraNorm 处理不可见字符/特殊标点。
+    var matchedFolders=new Set(),work=[],namePassRecords=[];
+    // 第一优先：已经整理过的目录通常直接叫“编码+名称”。
+    // 这类目录必须先识别，否则再次扫描时会被误判成“没有文件夹”。
     scanRecords.forEach(function(rec){
+      var target=safeName(rec.codeName),targetKey=normName(target),targetUltra=ultraNorm(target);
+      var hits=folderList.filter(function(x){
+        if(matchedFolders.has(x.path))return false;
+        return normName(x.name)===targetKey || ultraNorm(x.name)===targetUltra;
+      });
+      if(hits.length===1){
+        matchedFolders.add(hits[0].path);
+        work.push({rec:rec,folder:hits[0],matchMode:'target',score:1});
+      }else if(hits.length>1){
+        plans.push({row:rec.row,name:rec.name,codeName:rec.codeName,folderName:hits.map(function(x){return x.path;}).join(' / '),state:'ambiguous',note:'发现多个与 Excel“编码+名称”完全一致的文件夹，请人工确认',hasPdf:false,hasStep:false,candidateFolders:hits.slice(0,10).map(function(x){return{folder:x,score:1,coverage:1};})});
+      }else namePassRecords.push(rec);
+    });
+
+    var unmatchedRecords=[];
+    // 第二优先：按“治具名称+型号”精确匹配。
+    namePassRecords.forEach(function(rec){
       var recKey=normName(rec.name),recUltra=ultraNorm(rec.name);
       var hits=folderList.filter(function(x){
         if(matchedFolders.has(x.path))return false;
@@ -484,6 +510,7 @@ async function scanAll(){
       var result=await scanOne(work[i].rec,work[i].folder);
       result.matchMode=work[i].matchMode;result.matchScore=work[i].score;
       if(work[i].matchMode==='fuzzy')result.note='近似匹配 '+Math.round(work[i].score*100)+'%：'+work[i].folder.path+' ↔ '+work[i].rec.name+'；'+result.note;
+      if(work[i].matchMode==='target')result.note='目标名称匹配：'+work[i].folder.path+'；'+result.note;
       plans.push(result);done++;setProgress(done,Math.max(total,1));setStatus(scanStatus,'正在扫描 '+done+' / '+total+' …','info');
     }
     plans.sort(function(a,b){return a.row-b.row;});
@@ -562,11 +589,13 @@ function renderRows(){
     if(f==='done'&&p.state!=='done')return;
     var hay=normName((p.name||'')+' '+(p.codeName||'')+' '+(p.folderPath||p.folderName||''));
     if(q&&!hay.includes(q))return;
-    var matchBadge=p.matchMode==='exact'
+    var matchBadge=p.matchMode==='target'
+      ?'<div style="margin-top:4px"><span class="badge done">目标名称匹配</span></div>'
+      :(p.matchMode==='exact'
       ?'<div style="margin-top:4px"><span class="badge done">同名匹配</span></div>'
       :(p.matchMode==='fuzzy'
         ?'<div style="margin-top:4px"><span class="badge info">近似 '+Math.round((p.matchScore||0)*100)+'%</span></div>'
-        :(p.matchMode==='manual'?'<div style="margin-top:4px"><span class="badge ready">人工确认</span></div>':''));
+        :(p.matchMode==='manual'?'<div style="margin-top:4px"><span class="badge ready">人工确认</span></div>:'')));
     var manualBtn=(p.candidateFolders&&p.candidateFolders.length)
       ?'<div style="margin-top:6px"><button class="secondary" style="padding:5px 9px" onclick="manualBind('+p.row+')">选择匹配文件夹</button></div>'
       :'';
@@ -595,7 +624,7 @@ function renderFolderRows(){
     if(f==='pending'&&!pending)return;if(f==='ready'&&x.state!=='ready')return;if(f==='problem'&&!problem)return;if(f==='done'&&x.state!=='done')return;
     if(q&&!normName((x.folderPath||x.folderName)+' '+(x.name||'')).includes(q))return;
     var rowClass=x.state==='done'?'row-done':(problem?'row-error':'row-unprocessed');
-    html+='<tr class="'+rowClass+'"><td class="name"><b>'+escapeHtml(x.folderPath||x.folderName)+'</b>'+(x.matchMode==='exact'?'<div style="margin-top:5px"><span class="badge done">同名匹配</span></div>':(x.matchMode==='fuzzy'?'<div style="margin-top:5px"><span class="badge info">近似匹配 '+Math.round((x.matchScore||0)*100)+'%</span></div>':(x.matchMode==='manual'?'<div style="margin-top:5px"><span class="badge ready">人工确认</span></div>':'')))+'</td><td class="name">'+escapeHtml(x.name||'—')+'</td><td>'+(x.hasPdf?'✓':'—')+'</td><td>'+(x.hasStep?'✓':'—')+'</td><td>'+(x.hasZip?'✓':'—')+'</td><td><span class="badge '+folderStateClass(x.state)+'">'+escapeHtml(folderStateText(x.state))+'</span></td><td style="white-space:normal;min-width:320px">'+escapeHtml(x.note||'—')+'</td></tr>';
+    html+='<tr class="'+rowClass+'"><td class="name"><b>'+escapeHtml(x.folderPath||x.folderName)+'</b>'+(x.matchMode==='target'?'<div style="margin-top:5px"><span class="badge done">目标名称匹配</span></div>':(x.matchMode==='exact'?'<div style="margin-top:5px"><span class="badge done">同名匹配</span></div>':(x.matchMode==='fuzzy'?'<div style="margin-top:5px"><span class="badge info">近似匹配 '+Math.round((x.matchScore||0)*100)+'%</span></div>':(x.matchMode==='manual'?'<div style="margin-top:5px"><span class="badge ready">人工确认</span></div>':'')))+'</td><td class="name">'+escapeHtml(x.name||'—')+'</td><td>'+(x.hasPdf?'✓':'—')+'</td><td>'+(x.hasStep?'✓':'—')+'</td><td>'+(x.hasZip?'✓':'—')+'</td><td><span class="badge '+folderStateClass(x.state)+'">'+escapeHtml(folderStateText(x.state))+'</span></td><td style="white-space:normal;min-width:320px">'+escapeHtml(x.note||'—')+'</td></tr>';
   });
   folderRowsEl.innerHTML=html||'<tr><td colspan="7" style="text-align:center;color:#94a3b8;padding:26px">当前筛选条件下没有文件夹</td></tr>';
   var readyCount=folderStates.filter(function(x){return x.state==='ready';}).length,
