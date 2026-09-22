@@ -57,7 +57,7 @@
       </div>
       <span class="pill">支持多选；同时选择需求人和设计人时按两者交集匹配</span>
     </div>
-    <div class="btns"><button id="scanBtn" class="primary" disabled>开始扫描预览</button><button id="colorExcelBtn" class="secondary" disabled>按状态上色并保存原 Excel</button><button id="resetBtn" class="secondary">全部重置</button></div>
+    <div class="btns"><button id="scanBtn" class="primary" disabled>开始扫描预览</button><button id="colorExcelBtn" class="secondary" disabled>写入状态并上色保存原 Excel</button><button id="resetBtn" class="secondary">全部重置</button></div>
     <div class="sub" style="margin-top:8px">保存时会在“需求人”前新增/更新「状态」列，同时按状态上色：已完成=浅绿，可整理=浅蓝，不能自动匹配=浅黄，Excel有需求但文件夹没有=浅红，其他异常=浅橙。</div>
     <div id="scanStatus" class="status"></div>
     <div id="progress" class="progress hidden"><div id="progressBar"></div></div>
@@ -134,7 +134,7 @@
     <h2>4. 执行整理</h2>
     <div class="notice danger-note"><b>安全规则：</b>执行前再次请求读写权限；目标文件夹已存在、匹配不唯一、缺 PDF/STEP 的项目不会自动处理。子文件夹“改名”采用先完整复制到新名称、成功后再删除旧目录的方式，复制失败时不会删除原目录。</div>
     <div class="notice"><b>TXT 文件名固定为：</b><br>刻字：文件名称+厂商代码-打标时间-二维码设计人：杨昊.txt</div>
-    <div class="btns"><button id="executeBtn" class="primary" disabled>执行可整理项目</button><button id="colorExcelBtnBottom" class="secondary" disabled>只给原 Excel 上色</button></div>
+    <div class="btns"><button id="executeBtn" class="primary" disabled>执行可整理项目</button><button id="colorExcelBtnBottom" class="secondary" disabled>写入状态并上色</button></div>
     <div class="sub" style="margin-top:8px">“执行整理”只处理可整理文件夹；“只给原 Excel 上色”会同时写入「状态」列，不要求存在可整理项目，只要已经扫描出结果就可以使用。</div>
     <div id="executeStatus" class="status"></div>
     <div id="log" class="log hidden"></div>
@@ -345,7 +345,7 @@ function excelStatusText(p){
 async function saveExcelColors(){
   if(!plans.length){setStatus(scanStatus,'请先完成一次扫描，再执行上色。','warn');return;}
   if(!excelHandle||!currentBook||!currentSheet){var attached=await attachWritableExcelForCurrentScan();if(!attached)return;}
-  var ok=confirm('将直接修改当前原始 Excel 的行底色。\n\n浅绿=已完成\n浅蓝=可整理\n浅黄=不能自动匹配/需人工确认\n浅红=Excel有需求但文件夹没有\n浅橙=其他异常\n\n不会生成下载副本。确认继续吗？');
+  var ok=confirm('将直接修改当前原始 Excel：在“需求人”前新增/更新「状态」列，并给对应行上色。\n\n浅绿=已完成\n浅蓝=可整理\n浅黄=不能自动匹配/需人工确认\n浅红=Excel有需求但文件夹没有\n浅橙=其他异常\n\n不会生成下载副本。确认继续吗？');
   if(!ok)return;
   setBusy(true);setStatus(excelStatus,'正在生成完整 Excel 并写回原文件…','info');
   try{
