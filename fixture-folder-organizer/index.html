@@ -141,7 +141,7 @@
     <div id="log" class="log hidden"></div>
   </section>
 
-  <div class="footer">建议使用最新版桌面 Chrome / Edge。写回 Excel 前请先关闭 WPS/Excel；保存后重新打开文件查看最新状态列。工具版本：2026-09-22.7</div>
+  <div class="footer">建议使用最新版桌面 Chrome / Edge。写回 Excel 前请先关闭 WPS/Excel；保存后重新打开文件查看最新状态列。工具版本：2026-09-22.8</div>
 </div>
 <script src="../fixture-code-checker/excel.js?v=20260922-5"></script>
 <script>
@@ -225,8 +225,13 @@ function normalizeCodeKey(v){
   return clean(v).normalize('NFKC').toUpperCase().replace(/[～〜至]/g,'~').replace(/\s+/g,'');
 }
 function parseCodedFolderName(v){
-  var s=clean(v).normalize('NFKC');
-  var m=s.match(/^([A-Za-z][A-Za-z0-9]*\d+(?:\s*[~～〜至]\s*(?:[A-Za-z][A-Za-z0-9]*\d+|\d+))?)\s+(.+)$/);
+  var s=clean(v).normalize('NFKC'),m;
+  // 标准形式：编码 + 空格 + 名称。
+  m=s.match(/^([A-Za-z][A-Za-z0-9]*\d+(?:\s*[~～〜至]\s*(?:[A-Za-z][A-Za-z0-9]*\d+|\d+))?)\s+(.+)$/);
+  // 兼容短区间编码后没有空格，例如 SO2AS0004022~9RHS锁压条治具。
+  if(!m)m=s.match(/^([A-Za-z][A-Za-z0-9]*\d+\s*[~～〜至]\s*\d+)([A-Za-z\u4E00-\u9FFF].+)$/);
+  // 兼容单个编码后直接接中文名称，例如 T14122超声波清洗设备平台。
+  if(!m)m=s.match(/^([A-Za-z][A-Za-z0-9]*\d)([\u4E00-\u9FFF].+)$/);
   if(!m)return null;
   return{code:m[1].trim(),codeKey:normalizeCodeKey(m[1]),name:m[2].trim(),fullName:s};
 }
