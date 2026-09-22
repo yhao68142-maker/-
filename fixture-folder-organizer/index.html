@@ -58,7 +58,7 @@
       <span class="pill">支持多选；同时选择需求人和设计人时按两者交集匹配</span>
     </div>
     <div class="btns"><button id="scanBtn" class="primary" disabled>开始扫描预览</button><button id="colorExcelBtn" class="secondary" disabled>写入状态并上色保存原 Excel</button><button id="resetBtn" class="secondary">全部重置</button></div>
-    <div class="sub" style="margin-top:8px">保存时会在“需求人”前新增/更新「状态」列，同时按状态上色：已完成=浅绿，可整理=浅蓝，不能自动匹配=浅黄，Excel有需求但文件夹没有=浅红，其他异常=浅橙。</div>
+    <div class="sub" style="margin-top:8px">保存时会在“需求人”前新增/更新「状态」列，同时按状态上色。写回前请先关闭正在打开的 WPS/Excel；保存后重新打开文件查看最新内容。</div>
     <div id="scanStatus" class="status"></div>
     <div id="progress" class="progress hidden"><div id="progressBar"></div></div>
 
@@ -140,9 +140,9 @@
     <div id="log" class="log hidden"></div>
   </section>
 
-  <div class="footer">建议使用最新版桌面 Chrome / Edge。GitHub Pages 为 HTTPS，可使用 File System Access API。</div>
+  <div class="footer">建议使用最新版桌面 Chrome / Edge。写回 Excel 前请先关闭 WPS/Excel；保存后重新打开文件查看最新状态列。工具版本：2026-09-22.4</div>
 </div>
-<script src="../fixture-code-checker/excel.js?v=20260922-3"></script>
+<script src="../fixture-code-checker/excel.js?v=20260922-4"></script>
 <script>
 (function(){
 'use strict';
@@ -343,6 +343,7 @@ function excelStatusText(p){
   return'未处理';
 }
 async function saveExcelColors(){
+  if(!window.FixtureExcel||typeof window.FixtureExcel.applyStatusColumnAndRowFills!=='function'){setStatus(excelStatus,'当前页面仍是旧缓存版本，不能写入“状态”列。请按 Ctrl + F5 强制刷新后再试。','error');return;}
   if(!plans.length){setStatus(scanStatus,'请先完成一次扫描，再执行上色。','warn');return;}
   if(!excelHandle||!currentBook||!currentSheet){var attached=await attachWritableExcelForCurrentScan();if(!attached)return;}
   var ok=confirm('将直接修改当前原始 Excel：在“需求人”前新增/更新「状态」列，并给对应行上色。\n\n浅绿=已完成\n浅蓝=可整理\n浅黄=不能自动匹配/需人工确认\n浅红=Excel有需求但文件夹没有\n浅橙=其他异常\n\n不会生成下载副本。确认继续吗？');
@@ -356,8 +357,12 @@ async function saveExcelColors(){
     var blob=window.FixtureExcel.applyStatusColumnAndRowFills(currentBook,currentSheet,currentHeader,currentCols.requester,statusValues,rowColors);
     var writable=await excelHandle.createWritable();
     try{await writable.write(blob);await writable.close();}catch(e){try{await writable.abort();}catch(_){}throw e;}
-    var fresh=await excelHandle.getFile(),parsed=await parseExcel(fresh);currentBook=parsed.book;currentSheet=parsed.sheet;currentHeader=parsed.header;currentCols=parsed.cols;
-    setStatus(excelStatus,'已直接保存到原 Excel，并在“需求人”前写入状态列。没有生成下载文件。','ok');
+    var fresh=await excelHandle.getFile(),parsed=await parseExcel(fresh);
+    var headerRowObj=parsed.sheet.rows.find(function(r){return r.number===parsed.header;});
+    var statusValue=headerRowObj&&parsed.cols.requester?normHeader(headerRowObj.cells[parsed.cols.requester-1]||''):'';
+    if(statusValue!=='状态')throw new Error('文件已写入，但复核时没有检测到“状态”列，请先关闭 WPS/Excel 后重试');
+    currentBook=parsed.book;currentSheet=parsed.sheet;currentHeader=parsed.header;currentCols=parsed.cols;
+    setStatus(excelStatus,'保存成功：已在“需求人”前写入“状态”列并完成上色。若 WPS/Excel 已打开，请关闭后重新打开文件查看。','ok');
   }catch(e){
     setStatus(excelStatus,'写回 Excel 失败：'+(e.message||e)+'。如果文件正在 WPS/Excel 中打开，请先关闭后重试。','error');
   }finally{setBusy(false);updateReady();}
