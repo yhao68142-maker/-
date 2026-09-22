@@ -140,7 +140,7 @@
     <div id="log" class="log hidden"></div>
   </section>
 
-  <div class="footer">建议使用最新版桌面 Chrome / Edge。写回 Excel 前请先关闭 WPS/Excel；保存后重新打开文件查看最新状态列。工具版本：2026-09-22.5</div>
+  <div class="footer">建议使用最新版桌面 Chrome / Edge。写回 Excel 前请先关闭 WPS/Excel；保存后重新打开文件查看最新状态列。工具版本：2026-09-22.6</div>
 </div>
 <script src="../fixture-code-checker/excel.js?v=20260922-4"></script>
 <script>
@@ -580,6 +580,14 @@ async function executeAll(){
 }
 
 function escapeHtml(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+function matchBadgeHtml(p,marginTop){
+  var mt=marginTop||4;
+  if(p.matchMode==='target')return '<div style="margin-top:'+mt+'px"><span class="badge done">目标名称匹配</span></div>';
+  if(p.matchMode==='exact')return '<div style="margin-top:'+mt+'px"><span class="badge done">同名匹配</span></div>';
+  if(p.matchMode==='fuzzy')return '<div style="margin-top:'+mt+'px"><span class="badge info">近似匹配 '+Math.round((p.matchScore||0)*100)+'%</span></div>';
+  if(p.matchMode==='manual')return '<div style="margin-top:'+mt+'px"><span class="badge ready">人工确认</span></div>';
+  return '';
+}
 function renderRows(){
   var f=filterEl.value,q=normName(searchEl.value),html='';
   plans.forEach(function(p){
@@ -589,13 +597,7 @@ function renderRows(){
     if(f==='done'&&p.state!=='done')return;
     var hay=normName((p.name||'')+' '+(p.codeName||'')+' '+(p.folderPath||p.folderName||''));
     if(q&&!hay.includes(q))return;
-    var matchBadge=p.matchMode==='target'
-      ?'<div style="margin-top:4px"><span class="badge done">目标名称匹配</span></div>'
-      :(p.matchMode==='exact'
-      ?'<div style="margin-top:4px"><span class="badge done">同名匹配</span></div>'
-      :(p.matchMode==='fuzzy'
-        ?'<div style="margin-top:4px"><span class="badge info">近似 '+Math.round((p.matchScore||0)*100)+'%</span></div>'
-        :(p.matchMode==='manual'?'<div style="margin-top:4px"><span class="badge ready">人工确认</span></div>:'')));
+    var matchBadge=matchBadgeHtml(p,4);
     var manualBtn=(p.candidateFolders&&p.candidateFolders.length)
       ?'<div style="margin-top:6px"><button class="secondary" style="padding:5px 9px" onclick="manualBind('+p.row+')">选择匹配文件夹</button></div>'
       :'';
@@ -624,7 +626,7 @@ function renderFolderRows(){
     if(f==='pending'&&!pending)return;if(f==='ready'&&x.state!=='ready')return;if(f==='problem'&&!problem)return;if(f==='done'&&x.state!=='done')return;
     if(q&&!normName((x.folderPath||x.folderName)+' '+(x.name||'')).includes(q))return;
     var rowClass=x.state==='done'?'row-done':(problem?'row-error':'row-unprocessed');
-    html+='<tr class="'+rowClass+'"><td class="name"><b>'+escapeHtml(x.folderPath||x.folderName)+'</b>'+(x.matchMode==='target'?'<div style="margin-top:5px"><span class="badge done">目标名称匹配</span></div>':(x.matchMode==='exact'?'<div style="margin-top:5px"><span class="badge done">同名匹配</span></div>':(x.matchMode==='fuzzy'?'<div style="margin-top:5px"><span class="badge info">近似匹配 '+Math.round((x.matchScore||0)*100)+'%</span></div>':(x.matchMode==='manual'?'<div style="margin-top:5px"><span class="badge ready">人工确认</span></div>':'')))+'</td><td class="name">'+escapeHtml(x.name||'—')+'</td><td>'+(x.hasPdf?'✓':'—')+'</td><td>'+(x.hasStep?'✓':'—')+'</td><td>'+(x.hasZip?'✓':'—')+'</td><td><span class="badge '+folderStateClass(x.state)+'">'+escapeHtml(folderStateText(x.state))+'</span></td><td style="white-space:normal;min-width:320px">'+escapeHtml(x.note||'—')+'</td></tr>';
+    html+='<tr class="'+rowClass+'"><td class="name"><b>'+escapeHtml(x.folderPath||x.folderName)+'</b>'+matchBadgeHtml(x,5)+'</td><td class="name">'+escapeHtml(x.name||'—')+'</td><td>'+(x.hasPdf?'✓':'—')+'</td><td>'+(x.hasStep?'✓':'—')+'</td><td>'+(x.hasZip?'✓':'—')+'</td><td><span class="badge '+folderStateClass(x.state)+'">'+escapeHtml(folderStateText(x.state))+'</span></td><td style="white-space:normal;min-width:320px">'+escapeHtml(x.note||'—')+'</td></tr>';
   });
   folderRowsEl.innerHTML=html||'<tr><td colspan="7" style="text-align:center;color:#94a3b8;padding:26px">当前筛选条件下没有文件夹</td></tr>';
   var readyCount=folderStates.filter(function(x){return x.state==='ready';}).length,
