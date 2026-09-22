@@ -125,6 +125,7 @@ function businessCanonical(v){
     .replace(/CB\s*COVER/g,'CB封盖');
 }
 function normName(v){return formatCanonical(v).replace(/[\s\-‐‑‒–—_\.·・()（）\[\]【】]+/g,'');}
+function ultraNorm(v){return formatCanonical(v).replace(/[\u200B-\u200D\uFEFF]/g,'').replace(/[^A-Z0-9\u4E00-\u9FFF]+/g,'');}
 function fuzzyNorm(v){return businessCanonical(v).replace(/[\s\-‐‑‒–—_\.·・()（）\[\]【】]+/g,'');}
 function alphaNumTokens(v){
   return businessCanonical(v).match(/[A-Z]+\d*(?:\.\d+)?|\d+[A-Z]+(?:\d+)?|\d+(?:\.\d+)?/g)||[];
@@ -203,14 +204,16 @@ async function chooseFolder(){
 
 async function directInfo(dir){var files=[],dirs=[];for await(var pair of dir.entries()){var name=pair[0],h=pair[1];if(h.kind==='file')files.push({name:name,handle:h});else if(h.kind==='directory')dirs.push({name:name,handle:h});}return{files:files,dirs:dirs,hasPdf:files.some(function(x){return isPdf(x.name);}),hasStep:files.some(function(x){return isStep(x.name);})};}
 async function collectDirectories(root,maxDepth,maxCount){
-  var out=[],queue=[{handle:root,path:'',depth:0}],seen=0;
+  // 把用户选择的根目录本身也作为候选，避免用户直接选择某个治具文件夹时漏匹配。
+  var out=[{name:root.name,handle:root,path:root.name,depth:0,key:normName(root.name),ultraKey:ultraNorm(root.name)}],
+      queue=[{handle:root,path:root.name,depth:0}],seen=1;
   while(queue.length){
     var cur=queue.shift();
     if(cur.depth>=maxDepth)continue;
     for await(var pair of cur.handle.entries()){
       if(pair[1].kind!=='directory')continue;
       var path=cur.path?cur.path+' / '+pair[0]:pair[0];
-      var item={name:pair[0],handle:pair[1],path:path,depth:cur.depth+1,key:normName(pair[0])};
+      var item={name:pair[0],handle:pair[1],path:path,depth:cur.depth+1,key:normName(pair[0]),ultraKey:ultraNorm(pair[0])};
       out.push(item);seen++;
       if(seen>=maxCount)return{folders:out,limited:true};
       queue.push({handle:pair[1],path:path,depth:cur.depth+1});
@@ -250,13 +253,16 @@ async function scanAll(){
     var collected=await collectDirectories(rootHandle,10,12000),folderList=collected.folders;scannedFolders=folderList;
     document.getElementById('mFolders').textContent=folderList.length;
     if(collected.limited)setStatus(scanStatus,'已扫描 12000 个文件夹，达到安全上限；以下结果基于已扫描范围。','warn');
-    var map=new Map();folderList.forEach(function(f){if(!map.has(f.key))map.set(f.key,[]);map.get(f.key).push(f);});
     var matchedFolders=new Set(),work=[],unmatchedRecords=[];
-    // 第一轮：规范化后完全一致。
+    // 第一轮：逐个比较所有扫描到的目录。先普通规范化，再用更强的 ultraNorm 处理不可见字符/特殊标点。
     records.forEach(function(rec){
-      var hits=(map.get(normName(rec.name))||[]).filter(function(x){return !matchedFolders.has(x.path);});
+      var recKey=normName(rec.name),recUltra=ultraNorm(rec.name);
+      var hits=folderList.filter(function(x){
+        if(matchedFolders.has(x.path))return false;
+        return x.key===recKey || x.ultraKey===recUltra;
+      });
       if(hits.length===1){matchedFolders.add(hits[0].path);work.push({rec:rec,folder:hits[0],matchMode:'exact',score:1});}
-      else if(hits.length>1){plans.push({row:rec.row,name:rec.name,codeName:rec.codeName,folderName:hits.map(function(x){return x.path;}).join(' / '),state:'ambiguous',note:'在不同层级发现多个同名文件夹',hasPdf:false,hasStep:false});}
+      else if(hits.length>1){plans.push({row:rec.row,name:rec.name,codeName:rec.codeName,folderName:hits.map(function(x){return x.path;}).join(' / '),state:'ambiguous',note:'在不同层级发现多个同名/等价文件夹',hasPdf:false,hasStep:false,candidateFolders:hits.slice(0,10).map(function(x){return{folder:x,score:1,coverage:1};})});}
       else unmatchedRecords.push(rec);
     });
     // 第二轮：只在未占用文件夹里做“唯一高相似度”匹配。
@@ -284,7 +290,7 @@ async function scanAll(){
         var fallback=folderList.filter(function(f){return !matchedFolders.has(f.path);}).map(function(f){return{folder:f,score:nameSimilarity(rec.name,f.name),coverage:tokenCoverage(rec.name,f.name)};}).sort(function(a,b){return b.score-a.score;}).slice(0,6);
         plans.push({
           row:rec.row,name:rec.name,codeName:rec.codeName,folderName:'—',state:'missing',
-          note:fallback.length?'没有足够安全的自动匹配；可点“选择匹配文件夹”从最接近候选中人工确认。':'所有已扫描层级中都没有找到名称匹配项',
+          note:fallback.length?'没有足够安全的自动匹配；最接近：'+fallback[0].folder.path+'（'+Math.round(fallback[0].score*100)+'%）。可点“选择匹配文件夹”人工确认。':'所有已扫描层级中都没有找到名称匹配项',
           hasPdf:false,hasStep:false,candidateFolders:fallback
         });
       }
@@ -305,7 +311,7 @@ async function scanAll(){
     });
     renderRows();renderFolderRows();updateMetrics(folderList);
     var pending=folderStates.filter(function(x){return x.state!=='done';}).length;
-    setStatus(scanStatus,'递归扫描完成：共扫描 '+folderList.length+' 个文件夹，匹配到治具文件夹 '+folderStates.length+' 个，其中未处理 '+pending+' 个。下方按完整路径显示。','ok');
+    setStatus(scanStatus,'递归扫描完成：共扫描 '+folderList.length+' 个目录（包含你选择的根目录），匹配到治具文件夹 '+folderStates.length+' 个，其中未处理 '+pending+' 个。下方按完整路径显示。','ok');
   }catch(e){setStatus(scanStatus,'扫描失败：'+(e.message||e),'error');}
   finally{setBusy(false);updateReady();}
 }
