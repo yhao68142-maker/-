@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>治具文件夹自动整理</title>
+<meta name="description" content="读取TX审核表，匹配本地治具文件夹，预览后自动整理PDF、STEP和Excel资料并创建刻字TXT。文件仅在本机浏览器处理。">
+<style>
+:root{--bg:#f5f7fb;--card:#fff;--text:#172033;--muted:#667085;--line:#dbe3ee;--blue:#2563eb;--blue2:#1d4ed8;--green:#15803d;--amber:#b45309;--red:#b91c1c;--purple:#7c3aed;--shadow:0 12px 36px rgba(15,23,42,.08)}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(180deg,#eef4ff 0,#f8fafc 260px,#f5f7fb 100%);color:var(--text);font-family:"Segoe UI","Microsoft YaHei","PingFang SC",sans-serif}.page{max-width:1320px;margin:0 auto;padding:28px 18px 56px}.hero{border-radius:24px;padding:26px 28px;background:linear-gradient(135deg,#0f3f96,#2563eb 62%,#6d28d9);color:#fff;box-shadow:0 20px 50px rgba(37,99,235,.22);margin-bottom:18px}.hero-top{display:flex;justify-content:space-between;gap:18px;align-items:flex-start}.hero h1{margin:4px 0 9px;font-size:30px}.hero p{margin:0;line-height:1.7;opacity:.93}.privacy{white-space:nowrap;border:1px solid rgba(255,255,255,.45);border-radius:999px;padding:7px 12px;font-size:12px;background:rgba(255,255,255,.1)}.steps{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}.step{font-size:12px;padding:7px 11px;border-radius:999px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.24)}.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}.card{background:var(--card);border:1px solid rgba(148,163,184,.22);border-radius:18px;padding:18px;box-shadow:var(--shadow);margin-bottom:16px}.card h2{font-size:17px;margin:0 0 6px}.sub{font-size:12px;color:var(--muted);line-height:1.65}.drop{margin-top:12px;min-height:140px;border:2px dashed #8db2ff;border-radius:16px;background:#f7faff;display:flex;align-items:center;justify-content:center;text-align:center;padding:18px;cursor:pointer;transition:.18s}.drop:hover,.drop.drag{border-color:var(--blue);background:#eef4ff;transform:translateY(-1px)}.drop strong{display:block;font-size:15px}.drop span{display:block;color:var(--muted);font-size:12px;margin-top:6px;line-height:1.6}input[type=file]{display:none}.btns{display:flex;gap:9px;flex-wrap:wrap;margin-top:12px}button{border:0;border-radius:11px;padding:10px 16px;font-weight:700;font-size:13px;cursor:pointer}button.primary{color:#fff;background:linear-gradient(135deg,var(--blue),var(--blue2));box-shadow:0 7px 18px rgba(37,99,235,.22)}button.secondary{background:#fff;color:#334155;border:1px solid var(--line)}button.danger{background:#fff;color:var(--red);border:1px solid #fecaca}button:disabled{opacity:.45;cursor:not-allowed;box-shadow:none}.selected{margin-top:11px;padding:10px 12px;border-radius:12px;background:#f8fafc;border:1px solid #e5e7eb;font-size:12px;line-height:1.6}.selected b{color:#0f172a}.ok{color:var(--green)}.warn{color:var(--amber)}.error{color:var(--red)}.info{color:var(--blue)}.status{margin-top:10px;font-size:12px;line-height:1.65;white-space:pre-line}.settings{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}.pill{padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:#f8fafc;font-size:12px;color:#475569}.metrics{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:9px;margin:14px 0}.metric{border:1px solid #e5e7eb;background:#fafcff;border-radius:13px;padding:11px}.metric b{font-size:21px;display:block}.metric span{font-size:11px;color:var(--muted)}.toolbar{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}.toolbar-left{display:flex;gap:8px;flex-wrap:wrap}.filter{border:1px solid var(--line);background:#fff;border-radius:10px;padding:9px 10px;font-size:12px;color:#334155}.table-wrap{overflow:auto;margin-top:12px;border:1px solid #e2e8f0;border-radius:14px;max-height:580px}table{width:100%;border-collapse:separate;border-spacing:0;font-size:12px;background:#fff}th,td{padding:8px 9px;border-right:1px solid #eef2f7;border-bottom:1px solid #eef2f7;vertical-align:top;white-space:nowrap}th{position:sticky;top:0;z-index:2;background:#eef4ff;color:#334155;text-align:left}td.name,td.code{white-space:normal;min-width:240px;line-height:1.5}.badge{display:inline-block;padding:4px 7px;border-radius:999px;font-size:11px;font-weight:700}.badge.ready{color:#166534;background:#dcfce7}.badge.done{color:#166534;background:#dcfce7}.badge.warn{color:#92400e;background:#fef3c7}.badge.err{color:#991b1b;background:#fee2e2}.badge.info{color:#1d4ed8;background:#dbeafe}.log{margin-top:12px;background:#0f172a;color:#dbeafe;border-radius:13px;padding:12px;max-height:220px;overflow:auto;font:12px/1.65 Consolas,monospace;white-space:pre-wrap}.hidden{display:none}.notice{margin-top:12px;padding:11px 12px;border-left:4px solid #60a5fa;background:#eff6ff;color:#334155;border-radius:9px;font-size:12px;line-height:1.65}.danger-note{border-left-color:#f59e0b;background:#fffbeb}.progress{height:8px;border-radius:999px;background:#e5e7eb;overflow:hidden;margin-top:10px}.progress>div{height:100%;width:0;background:linear-gradient(90deg,#2563eb,#7c3aed);transition:width .2s}.footer{font-size:11px;color:#64748b;text-align:center;margin-top:18px}@media(max-width:900px){.grid{grid-template-columns:1fr}.metrics{grid-template-columns:repeat(3,1fr)}.hero-top{display:block}.privacy{display:inline-block;margin-top:12px}}@media(max-width:560px){.metrics{grid-template-columns:repeat(2,1fr)}.hero{padding:20px}.hero h1{font-size:24px}.page{padding:14px 10px 40px}}
+</style>
+</head>
+<body>
+<div class="page">
+  <section class="hero">
+    <div class="hero-top"><div><div style="font-size:12px;letter-spacing:.14em;opacity:.85">TX FIXTURE FOLDER ORGANIZER</div><h1>治具文件夹自动整理</h1><p>读取 TX 审核表的「治具名称+型号 / 编码+名称」，匹配本地治具文件夹。先扫描预览，确认后再整理 PDF、STEP、Excel 并创建刻字 TXT。</p></div><span class="privacy">🔒 文件只在本机处理</span></div>
+    <div class="steps"><span class="step">01 上传 Excel</span><span class="step">02 选择总文件夹</span><span class="step">03 扫描预览</span><span class="step">04 确认整理</span></div>
+  </section>
+
+  <section class="grid">
+    <div class="card">
+      <h2>1. 上传 TX 审核表</h2>
+      <div class="sub">读取「治工具」工作表中的「治具名称+型号」和「编码+名称」。支持 .xlsx。</div>
+      <div id="excelDrop" class="drop" tabindex="0"><div><strong>点击选择，或把 Excel 拖到这里</strong><span>例如：TX-治工具&耗材&配件审核表…_编码人员匹配.xlsx</span></div></div>
+      <input id="excelInput" type="file" accept=".xlsx">
+      <div id="excelSelected" class="selected">尚未选择 Excel</div>
+      <div id="excelStatus" class="status"></div>
+    </div>
+
+    <div class="card">
+      <h2>2. 选择本地治具总文件夹</h2>
+      <div class="sub">例如「张羽满勤加急治具-921」。Chrome / Edge 会请求本地文件夹权限。</div>
+      <div id="folderDrop" class="drop" tabindex="0"><div><strong>点击选择总文件夹</strong><span>也可从 Windows 资源管理器把文件夹拖到这里（浏览器支持时）</span></div></div>
+      <div class="btns"><button id="pickFolder" class="secondary">选择总文件夹</button><button id="clearFolder" class="secondary" disabled>清除选择</button></div>
+      <div id="folderSelected" class="selected">尚未选择文件夹</div>
+      <div id="folderStatus" class="status"></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>3. 扫描并预览</h2>
+    <div class="sub">扫描不会修改任何文件。只有状态为「可整理」的项目才会进入执行队列。</div>
+    <div class="settings"><span class="pill">匹配：忽略大小写/空格/常见连接符</span><span class="pill">Gen2.0 ≈ Gen2</span><span class="pill">STEP 同时识别 .step / .stp</span><span class="pill">直接文件：PDF / STEP / XLSX / XLS / XLSM / CSV / TXT</span></div>
+    <div class="btns"><button id="scanBtn" class="primary" disabled>开始扫描预览</button><button id="resetBtn" class="secondary">全部重置</button></div>
+    <div id="scanStatus" class="status"></div>
+    <div id="progress" class="progress hidden"><div id="progressBar"></div></div>
+
+    <div class="metrics">
+      <div class="metric"><b id="mExcel">0</b><span>Excel 有效项目</span></div>
+      <div class="metric"><b id="mFolders">0</b><span>一级文件夹</span></div>
+      <div class="metric"><b id="mMatched">0</b><span>名称已匹配</span></div>
+      <div class="metric"><b id="mReady">0</b><span>可整理</span></div>
+      <div class="metric"><b id="mDone">0</b><span>已经整理</span></div>
+      <div class="metric"><b id="mIssues">0</b><span>需要人工确认</span></div>
+    </div>
+
+    <div class="toolbar">
+      <div class="toolbar-left"><select id="filter" class="filter"><option value="all">显示全部</option><option value="ready">只看可整理</option><option value="issue">只看需要处理</option><option value="done">只看已整理</option></select><input id="search" class="filter" placeholder="搜索名称 / 编码 / 文件夹"></div>
+      <div class="sub">目标文件夹名直接使用 Excel 的「编码+名称」</div>
+    </div>
+    <div class="table-wrap"><table><thead><tr><th>Excel行</th><th>治具名称+型号</th><th>编码+名称</th><th>匹配文件夹</th><th>PDF</th><th>STEP</th><th>状态</th><th>预定动作</th></tr></thead><tbody id="rows"></tbody></table></div>
+  </section>
+
+  <section class="card">
+    <h2>4. 执行整理</h2>
+    <div class="notice danger-note"><b>安全规则：</b>执行前再次请求读写权限；目标文件夹已存在、匹配不唯一、缺 PDF/STEP 的项目不会自动处理。子文件夹“改名”采用先完整复制到新名称、成功后再删除旧目录的方式，复制失败时不会删除原目录。</div>
+    <div class="notice"><b>TXT 文件名固定为：</b><br>刻字：文件名称+厂商代码-打标时间-二维码设计人：杨昊.txt</div>
+    <div class="btns"><button id="executeBtn" class="primary" disabled>执行可整理项目</button></div>
+    <div id="executeStatus" class="status"></div>
+    <div id="log" class="log hidden"></div>
+  </section>
+
+  <div class="footer">建议使用最新版桌面 Chrome / Edge。GitHub Pages 为 HTTPS，可使用 File System Access API。</div>
+</div>
+<script src="../fixture-code-checker/excel.js?v=20260922-1"></script>
+<script>
+(function(){
+'use strict';
+var TXT_NAME='刻字：文件名称+厂商代码-打标时间-二维码设计人：杨昊.txt';
+var MOVE_EXT=new Set(['pdf','step','stp','xlsx','xls','xlsm','csv','txt']);
+var excelInput=document.getElementById('excelInput'),excelDrop=document.getElementById('excelDrop'),excelSelected=document.getElementById('excelSelected'),excelStatus=document.getElementById('excelStatus');
+var folderDrop=document.getElementById('folderDrop'),pickFolder=document.getElementById('pickFolder'),clearFolder=document.getElementById('clearFolder'),folderSelected=document.getElementById('folderSelected'),folderStatus=document.getElementById('folderStatus');
+var scanBtn=document.getElementById('scanBtn'),resetBtn=document.getElementById('resetBtn'),scanStatus=document.getElementById('scanStatus'),executeBtn=document.getElementById('executeBtn'),executeStatus=document.getElementById('executeStatus'),rowsEl=document.getElementById('rows');
+var filterEl=document.getElementById('filter'),searchEl=document.getElementById('search'),progress=document.getElementById('progress'),progressBar=document.getElementById('progressBar'),logEl=document.getElementById('log');
+var records=[],rootHandle=null,plans=[],isBusy=false;
+
+function clean(v){return String(v==null?'':v).trim();}
+function normHeader(v){return clean(v).normalize('NFKC').replace(/\s+/g,'').replace(/^\*+/, '');}
+function normName(v){return clean(v).normalize('NFKC').toUpperCase().replace(/GEN(\d+)\.0(?!\d)/g,'GEN$1').replace(/[\s\-‐‑‒–—_\.·・()（）\[\]【】]+/g,'');}
+function safeName(v){return clean(v).replace(/[\\/:*?"<>|]/g,function(ch){return {'\\':'＼','/':'／',':':'：','*':'＊','?':'？','"':'＂','<':'＜','>':'＞','|':'｜'}[ch]||'＿';}).replace(/[\. ]+$/g,'').slice(0,220);}
+function ext(name){var m=String(name||'').toLowerCase().match(/\.([^.]+)$/);return m?m[1]:'';}
+function isPdf(name){return ext(name)==='pdf';}
+function isStep(name){var e=ext(name);return e==='step'||e==='stp';}
+function statusClass(p){if(p.state==='ready')return'ready';if(p.state==='done')return'done';if(p.state==='matched')return'info';if(p.state==='missing'||p.state==='ambiguous'||p.state==='conflict'||p.state==='invalid')return'err';return'warn';}
+function statusText(p){var map={ready:'可整理',done:'已经整理',missing:'未匹配/缺文件',ambiguous:'匹配不唯一',conflict:'目标已存在',invalid:'编码+名称无效',matched:'已匹配',error:'扫描失败'};return map[p.state]||p.state;}
+function actionText(p){if(p.state==='done')return'无需处理';if(p.action==='renameChild')return'把“'+p.sourceChildName+'”整理为目标名称';if(p.action==='wrapRootFiles')return'新建目标子文件夹并移入 '+p.moveFileNames.length+' 个文件';return p.note||'—';}
+function setStatus(el,text,type){el.className='status '+(type||'');el.textContent=text||'';}
+function setBusy(v){isBusy=v;scanBtn.disabled=v||!records.length||!rootHandle;executeBtn.disabled=v||!plans.some(function(p){return p.state==='ready';});resetBtn.disabled=v;pickFolder.disabled=v;}
+function updateReady(){scanBtn.disabled=isBusy||!records.length||!rootHandle;executeBtn.disabled=isBusy||!plans.some(function(p){return p.state==='ready';});}
+function log(s){logEl.classList.remove('hidden');logEl.textContent+=(logEl.textContent?'\n':'')+s;logEl.scrollTop=logEl.scrollHeight;}
+function setProgress(done,total){progress.classList.remove('hidden');progressBar.style.width=(total?Math.round(done/total*100):0)+'%';if(done>=total)setTimeout(function(){progress.classList.add('hidden');},500);}
+
+function findSheetAndColumns(book){
+  for(var si=0;si<book.sheets.length;si++){
+    var sheet=book.sheets[si];
+    for(var ri=0;ri<Math.min(sheet.rows.length,30);ri++){
+      var row=sheet.rows[ri],items=Object.entries(row.cells),cols={};
+      items.forEach(function(pair){var c=Number(pair[0]),h=normHeader(pair[1]);if(h==='治具名称+型号'&&cols.name==null)cols.name=c;if(h==='编码+名称'&&cols.codeName==null)cols.codeName=c;if(h==='设计人'&&cols.designer==null)cols.designer=c;if(h==='需求人'&&cols.requester==null)cols.requester=c;});
+      if(cols.name!=null&&cols.codeName!=null)return{sheet:sheet,header:row.number,cols:cols};
+    }
+  }
+  throw new Error('没有找到同时包含「治具名称+型号」和「编码+名称」的工作表。');
+}
+function validCodeName(v){var s=clean(v);return /^[A-Za-z][A-Za-z0-9~～〜\-]*\s+.+/.test(s);}
+async function parseExcel(file){
+  if(!window.FixtureExcel)throw new Error('Excel 解析组件没有加载成功，请刷新页面后重试。');
+  var book=await window.FixtureExcel.readWorkbook(file),found=findSheetAndColumns(book),out=[];
+  found.sheet.rows.forEach(function(r){if(r.number<=found.header)return;var name=clean(r.cells[found.cols.name]),codeName=clean(r.cells[found.cols.codeName]);if(!name)return;out.push({row:r.number,name:name,codeName:codeName,designer:found.cols.designer?clean(r.cells[found.cols.designer]):'',requester:found.cols.requester?clean(r.cells[found.cols.requester]):'',validCodeName:validCodeName(codeName)});});
+  if(!out.length)throw new Error('没有读取到有效的「治具名称+型号」记录。');
+  return{rows:out,sheetName:found.sheet.name};
+}
+async function handleExcel(file){
+  if(!file)return;if(!/\.xlsx$/i.test(file.name)){setStatus(excelStatus,'只支持 .xlsx 文件；.xls 请先另存为 .xlsx。','error');return;}
+  setStatus(excelStatus,'正在读取 Excel…','info');plans=[];renderRows();updateMetrics([]);
+  try{var parsed=await parseExcel(file);records=parsed.rows;excelSelected.innerHTML='<b>'+escapeHtml(file.name)+'</b><br>工作表：'+escapeHtml(parsed.sheetName)+' · 有效项目：'+records.length;setStatus(excelStatus,'Excel 已读取。下一步选择总文件夹。','ok');}
+  catch(e){records=[];excelSelected.textContent='尚未选择 Excel';setStatus(excelStatus,e.message||String(e),'error');}
+  updateReady();
+}
+
+async function requestRW(handle){if(!handle)return false;if(!handle.requestPermission)return true;var q=handle.queryPermission?await handle.queryPermission({mode:'readwrite'}):'prompt';if(q==='granted')return true;return(await handle.requestPermission({mode:'readwrite'}))==='granted';}
+async function chooseFolder(){
+  if(!window.showDirectoryPicker){setStatus(folderStatus,'当前浏览器不支持本地文件夹读写。请使用最新版桌面 Chrome 或 Edge。','error');return;}
+  try{var h=await window.showDirectoryPicker({mode:'readwrite'});rootHandle=h;folderSelected.innerHTML='<b>'+escapeHtml(h.name)+'</b><br>已授权本地文件夹';setStatus(folderStatus,'已选择总文件夹。扫描阶段不会修改文件。','ok');clearFolder.disabled=false;plans=[];renderRows();updateMetrics([]);}
+  catch(e){if(e&&e.name!=='AbortError')setStatus(folderStatus,'选择文件夹失败：'+(e.message||e),'error');}
+  updateReady();
+}
+
+async function directInfo(dir){var files=[],dirs=[];for await(var pair of dir.entries()){var name=pair[0],h=pair[1];if(h.kind==='file')files.push({name:name,handle:h});else if(h.kind==='directory')dirs.push({name:name,handle:h});}return{files:files,dirs:dirs,hasPdf:files.some(function(x){return isPdf(x.name);}),hasStep:files.some(function(x){return isStep(x.name);})};}
+async function subtreeHas(dir,limit){var count=0,hasPdf=false,hasStep=false,stack=[dir];while(stack.length&&count<limit){var d=stack.pop();for await(var pair of d.entries()){count++;if(count>=limit)break;var n=pair[0],h=pair[1];if(h.kind==='file'){if(isPdf(n))hasPdf=true;if(isStep(n))hasStep=true;if(hasPdf&&hasStep)return{hasPdf:true,hasStep:true,limited:false};}else stack.push(h);}}return{hasPdf:hasPdf,hasStep:hasStep,limited:count>=limit};}
+async function entryExists(parent,name,kind){try{if(kind==='file'){await parent.getFileHandle(name);return true;}await parent.getDirectoryHandle(name);return true;}catch(e){if(e&&e.name==='NotFoundError')return false;throw e;}}
+
+async function scanOne(rec,folder){
+  var targetName=safeName(rec.codeName),p={row:rec.row,name:rec.name,codeName:rec.codeName,targetName:targetName,folderName:folder.name,folderHandle:folder.handle,state:'matched',action:null,note:'',hasPdf:false,hasStep:false,sourceChildName:'',sourceChildHandle:null,moveFileNames:[]};
+  if(!rec.validCodeName){p.state='invalid';p.note='「编码+名称」不像有效的“编码 + 名称”，为避免误改已跳过';return p;}
+  try{
+    var info=await directInfo(folder.handle),targetExists=await entryExists(folder.handle,targetName,'dir');
+    if(info.dirs.length){
+      var directCandidates=[];
+      for(var i=0;i<info.dirs.length;i++){var ci=await directInfo(info.dirs[i].handle);if(ci.hasPdf&&ci.hasStep)directCandidates.push({dir:info.dirs[i],pdf:true,step:true,mode:'direct'});}
+      var candidates=directCandidates;
+      if(!candidates.length){candidates=[];for(var j=0;j<info.dirs.length;j++){var sub=await subtreeHas(info.dirs[j].handle,5000);if(sub.hasPdf&&sub.hasStep)candidates.push({dir:info.dirs[j],pdf:true,step:true,mode:'recursive'});}}
+      if(candidates.length===1){var c=candidates[0];p.hasPdf=true;p.hasStep=true;p.sourceChildName=c.dir.name;p.sourceChildHandle=c.dir.handle;if(c.dir.name===targetName){p.state='done';p.note='已有目标名称，且检测到 PDF + STEP';return p;}if(targetExists){p.state='conflict';p.note='目标文件夹已存在，未自动合并';return p;}p.state='ready';p.action='renameChild';p.note=c.mode==='recursive'?'在子目录树中检测到 PDF + STEP':'子文件夹直接包含 PDF + STEP';return p;}
+      if(candidates.length>1){p.state='ambiguous';p.note='有 '+candidates.length+' 个子文件夹都包含 PDF + STEP：'+candidates.map(function(x){return x.dir.name;}).join('、');return p;}
+      p.hasPdf=info.hasPdf;p.hasStep=info.hasStep;p.state='missing';p.note='存在子文件夹，但没有找到唯一一个同时包含 PDF + STEP 的子文件夹';return p;
+    }
+    p.hasPdf=info.hasPdf;p.hasStep=info.hasStep;
+    if(!info.hasPdf||!info.hasStep){p.state='missing';p.note=!info.hasPdf&&!info.hasStep?'当前目录缺少 PDF 和 STEP':(!info.hasPdf?'当前目录缺少 PDF':'当前目录缺少 STEP');return p;}
+    if(targetExists){p.state='conflict';p.note='目标文件夹已经存在';return p;}
+    p.moveFileNames=info.files.filter(function(x){return MOVE_EXT.has(ext(x.name));}).map(function(x){return x.name;});
+    if(!p.moveFileNames.length){p.state='missing';p.note='没有找到需要移动的资料文件';return p;}
+    p.state='ready';p.action='wrapRootFiles';p.note='当前目录没有子文件夹，将新建目标文件夹并移入相关资料';return p;
+  }catch(e){p.state='error';p.note='扫描失败：'+(e.message||e);return p;}
+}
+
+async function scanAll(){
+  if(isBusy||!records.length||!rootHandle)return;setBusy(true);plans=[];rowsEl.innerHTML='';logEl.textContent='';logEl.classList.add('hidden');setStatus(scanStatus,'正在扫描一级文件夹并匹配 Excel…','info');
+  try{
+    var folderList=[];for await(var pair of rootHandle.entries())if(pair[1].kind==='directory')folderList.push({name:pair[0],handle:pair[1],key:normName(pair[0])});
+    document.getElementById('mFolders').textContent=folderList.length;
+    var map=new Map();folderList.forEach(function(f){if(!map.has(f.key))map.set(f.key,[]);map.get(f.key).push(f);});
+    var matchedFolders=new Set(),work=[];
+    records.forEach(function(rec){var hits=map.get(normName(rec.name))||[];if(hits.length===1&&!matchedFolders.has(hits[0].name)){matchedFolders.add(hits[0].name);work.push({rec:rec,folder:hits[0]});}else if(hits.length===1){plans.push({row:rec.row,name:rec.name,codeName:rec.codeName,folderName:hits[0].name,state:'ambiguous',note:'同一个文件夹已匹配到其他 Excel 行',hasPdf:false,hasStep:false});}else if(hits.length>1){plans.push({row:rec.row,name:rec.name,codeName:rec.codeName,folderName:hits.map(function(x){return x.name;}).join(' / '),state:'ambiguous',note:'发现多个同名文件夹',hasPdf:false,hasStep:false});}else{plans.push({row:rec.row,name:rec.name,codeName:rec.codeName,folderName:'—',state:'missing',note:'一级文件夹中没有找到名称匹配项',hasPdf:false,hasStep:false});}});
+    var done=0,total=work.length;setProgress(0,Math.max(total,1));
+    for(var i=0;i<work.length;i++){plans.push(await scanOne(work[i].rec,work[i].folder));done++;setProgress(done,Math.max(total,1));setStatus(scanStatus,'正在扫描 '+done+' / '+total+' …','info');}
+    plans.sort(function(a,b){return a.row-b.row;});renderRows();updateMetrics(folderList);setStatus(scanStatus,'扫描完成：可整理 '+plans.filter(function(p){return p.state==='ready';}).length+' 项；不会自动处理的异常 '+plans.filter(function(p){return ['ready','done'].indexOf(p.state)<0;}).length+' 项。','ok');
+  }catch(e){setStatus(scanStatus,'扫描失败：'+(e.message||e),'error');}
+  finally{setBusy(false);updateReady();}
+}
+
+async function copyFile(fileHandle,targetDir,name){var file=await fileHandle.getFile(),th=await targetDir.getFileHandle(name,{create:true}),w=await th.createWritable();try{await w.write(file);}finally{await w.close();}}
+async function copyDir(source,target){for await(var pair of source.entries()){var name=pair[0],h=pair[1];if(h.kind==='file')await copyFile(h,target,name);else{var sub=await target.getDirectoryHandle(name,{create:true});await copyDir(h,sub);}}}
+async function ensureTxt(dir){if(await entryExists(dir,TXT_NAME,'file'))return;var fh=await dir.getFileHandle(TXT_NAME,{create:true}),w=await fh.createWritable();await w.close();}
+async function executeRename(p){var parent=p.folderHandle;if(await entryExists(parent,p.targetName,'dir'))throw new Error('目标文件夹已存在');var target=await parent.getDirectoryHandle(p.targetName,{create:true});try{await copyDir(p.sourceChildHandle,target);await ensureTxt(target);}catch(e){try{await parent.removeEntry(p.targetName,{recursive:true});}catch(_){}throw e;}await parent.removeEntry(p.sourceChildName,{recursive:true});}
+async function executeWrap(p){var parent=p.folderHandle;if(await entryExists(parent,p.targetName,'dir'))throw new Error('目标文件夹已存在');var target=await parent.getDirectoryHandle(p.targetName,{create:true});var copied=[];try{for(var i=0;i<p.moveFileNames.length;i++){var n=p.moveFileNames[i],fh=await parent.getFileHandle(n);await copyFile(fh,target,n);copied.push(n);}await ensureTxt(target);}catch(e){try{await parent.removeEntry(p.targetName,{recursive:true});}catch(_){}throw e;}for(var j=0;j<copied.length;j++){try{await parent.removeEntry(copied[j]);}catch(_){} }}
+
+async function executeAll(){
+  var ready=plans.filter(function(p){return p.state==='ready';});if(!ready.length||isBusy)return;
+  var ok=confirm('将整理 '+ready.length+' 个项目。\n\n操作包含：创建文件夹、复制/移动文件、删除已成功复制的旧子文件夹。\n目标冲突和异常项不会处理。\n\n确认继续吗？');if(!ok)return;
+  setBusy(true);logEl.textContent='';logEl.classList.remove('hidden');setStatus(executeStatus,'正在请求文件夹读写权限…','info');
+  try{if(!(await requestRW(rootHandle)))throw new Error('没有获得本地文件夹读写权限。');var success=0,fail=0;setProgress(0,ready.length);
+    for(var i=0;i<ready.length;i++){var p=ready[i];log('['+(i+1)+'/'+ready.length+'] '+p.name);try{if(p.action==='renameChild')await executeRename(p);else if(p.action==='wrapRootFiles')await executeWrap(p);p.state='done';p.note='整理完成并已创建刻字 TXT';success++;log('  ✓ 完成：'+p.targetName);}catch(e){p.state='error';p.note='执行失败：'+(e.message||e);fail++;log('  ✗ 失败：'+(e.message||e));}setProgress(i+1,ready.length);renderRows();updateMetrics([]);}
+    setStatus(executeStatus,'执行结束：成功 '+success+' 项，失败 '+fail+' 项。建议再点击一次“开始扫描预览”确认最终结构。',fail?'warn':'ok');
+  }catch(e){setStatus(executeStatus,'执行失败：'+(e.message||e),'error');}
+  finally{setBusy(false);updateReady();}
+}
+
+function escapeHtml(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+function renderRows(){var f=filterEl.value,q=normName(searchEl.value),html='';plans.forEach(function(p){var isIssue=['ready','done'].indexOf(p.state)<0;if(f==='ready'&&p.state!=='ready')return;if(f==='issue'&&!isIssue)return;if(f==='done'&&p.state!=='done')return;var hay=normName((p.name||'')+' '+(p.codeName||'')+' '+(p.folderName||''));if(q&&!hay.includes(q))return;html+='<tr><td>'+p.row+'</td><td class="name">'+escapeHtml(p.name)+'</td><td class="code">'+escapeHtml(p.codeName||'')+'</td><td>'+escapeHtml(p.folderName||'—')+'</td><td>'+(p.hasPdf?'✓':'—')+'</td><td>'+(p.hasStep?'✓':'—')+'</td><td><span class="badge '+statusClass(p)+'">'+escapeHtml(statusText(p))+'</span><div style="margin-top:5px;color:#64748b;white-space:normal;max-width:260px">'+escapeHtml(p.note||'')+'</div></td><td style="white-space:normal;min-width:220px">'+escapeHtml(actionText(p))+'</td></tr>';});rowsEl.innerHTML=html||'<tr><td colspan="8" style="text-align:center;color:#94a3b8;padding:26px">暂无扫描结果</td></tr>';}
+function updateMetrics(folderList){document.getElementById('mExcel').textContent=records.length;document.getElementById('mMatched').textContent=plans.filter(function(p){return p.folderName&&p.folderName!=='—';}).length;document.getElementById('mReady').textContent=plans.filter(function(p){return p.state==='ready';}).length;document.getElementById('mDone').textContent=plans.filter(function(p){return p.state==='done';}).length;document.getElementById('mIssues').textContent=plans.filter(function(p){return ['ready','done'].indexOf(p.state)<0;}).length;if(folderList&&folderList.length)document.getElementById('mFolders').textContent=folderList.length;updateReady();}
+function resetAll(){records=[];rootHandle=null;plans=[];excelInput.value='';excelSelected.textContent='尚未选择 Excel';folderSelected.textContent='尚未选择文件夹';clearFolder.disabled=true;setStatus(excelStatus,'','');setStatus(folderStatus,'','');setStatus(scanStatus,'','');setStatus(executeStatus,'','');document.getElementById('mFolders').textContent='0';logEl.textContent='';logEl.classList.add('hidden');renderRows();updateMetrics([]);updateReady();}
+
+excelDrop.addEventListener('click',function(){excelInput.click();});excelDrop.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' ')excelInput.click();});excelInput.addEventListener('change',function(e){handleExcel(e.target.files[0]);});
+['dragenter','dragover'].forEach(function(ev){excelDrop.addEventListener(ev,function(e){e.preventDefault();excelDrop.classList.add('drag');});folderDrop.addEventListener(ev,function(e){e.preventDefault();folderDrop.classList.add('drag');});});
+['dragleave','drop'].forEach(function(ev){excelDrop.addEventListener(ev,function(e){e.preventDefault();excelDrop.classList.remove('drag');});folderDrop.addEventListener(ev,function(e){e.preventDefault();folderDrop.classList.remove('drag');});});
+excelDrop.addEventListener('drop',function(e){var fs=Array.from(e.dataTransfer.files||[]);if(fs[0])handleExcel(fs[0]);});
+folderDrop.addEventListener('click',chooseFolder);pickFolder.addEventListener('click',chooseFolder);clearFolder.addEventListener('click',function(){rootHandle=null;plans=[];folderSelected.textContent='尚未选择文件夹';clearFolder.disabled=true;setStatus(folderStatus,'','');renderRows();updateMetrics([]);updateReady();});
+folderDrop.addEventListener('drop',async function(e){try{var items=Array.from(e.dataTransfer.items||[]);for(var i=0;i<items.length;i++){if(items[i].getAsFileSystemHandle){var h=await items[i].getAsFileSystemHandle();if(h&&h.kind==='directory'){rootHandle=h;folderSelected.innerHTML='<b>'+escapeHtml(h.name)+'</b><br>已从拖拽读取文件夹';setStatus(folderStatus,'已选择总文件夹。扫描阶段不会修改文件。','ok');clearFolder.disabled=false;plans=[];renderRows();updateMetrics([]);updateReady();return;}}}setStatus(folderStatus,'没有读取到文件夹。请点击“选择总文件夹”。','warn');}catch(err){setStatus(folderStatus,'拖拽文件夹失败：'+(err.message||err),'warn');}});
+scanBtn.addEventListener('click',scanAll);executeBtn.addEventListener('click',executeAll);resetBtn.addEventListener('click',resetAll);filterEl.addEventListener('change',renderRows);searchEl.addEventListener('input',renderRows);
+document.addEventListener('dragover',function(e){e.preventDefault();},true);document.addEventListener('drop',function(e){if(!excelDrop.contains(e.target)&&!folderDrop.contains(e.target))e.preventDefault();},true);
+renderRows();updateMetrics([]);updateReady();
+})();
+</script>
+</body>
+</html>
