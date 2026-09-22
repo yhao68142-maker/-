@@ -639,11 +639,6 @@ document.querySelectorAll('[data-clear-picker]').forEach(function(btn){btn.addEv
   target.querySelectorAll('input[type="checkbox"]').forEach(function(x){x.checked=false;});
   peopleFilterChanged();
 });});
-document.querySelectorAll('.dash[data-dashboard]').forEach(function(card){
-  card.addEventListener('click',function(){renderDashboardDetail(card.getAttribute('data-dashboard'));});
-  card.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();renderDashboardDetail(card.getAttribute('data-dashboard'));}});
-});
-closeStatusDetail.addEventListener('click',closeDashboardDetail);
 document.addEventListener('dragover',function(e){e.preventDefault();},true);document.addEventListener('drop',function(e){if(!excelDrop.contains(e.target)&&!folderDrop.contains(e.target))e.preventDefault();},true);
 renderRows();renderFolderRows();renderMissingDemands();updateMetrics([]);updateReady();
 })();
