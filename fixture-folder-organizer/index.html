@@ -40,7 +40,7 @@
   <section class="card">
     <h2>3. 扫描并预览</h2>
     <div class="sub">扫描不会修改任何文件。只有状态为「可整理」的项目才会进入执行队列。</div>
-    <div class="settings"><span class="pill">匹配：忽略大小写/空格/常见连接符</span><span class="pill">Gen2.0 ≈ Gen2</span><span class="pill">STEP 同时识别 .step / .stp</span><span class="pill">直接文件：PDF / STEP / XLSX / XLS / XLSM / CSV / TXT</span></div>
+    <div class="settings"><span class="pill">匹配：先精确，再做唯一高相似度匹配</span><span class="pill">忽略大小写/空格/连接符；Gen2.0 ≈ Gen2</span><span class="pill">STEP 同时识别 .step / .stp</span><span class="pill">直接文件：PDF / STEP / XLSX / XLS / XLSM / CSV / TXT</span></div>
     <div class="btns"><button id="scanBtn" class="primary" disabled>开始扫描预览</button><button id="resetBtn" class="secondary">全部重置</button></div>
     <div id="scanStatus" class="status"></div>
     <div id="progress" class="progress hidden"><div id="progressBar"></div></div>
@@ -115,6 +115,25 @@ var records=[],rootHandle=null,plans=[],folderStates=[],isBusy=false;
 function clean(v){return String(v==null?'':v).trim();}
 function normHeader(v){return clean(v).normalize('NFKC').replace(/\s+/g,'').replace(/^\*+/, '');}
 function normName(v){return clean(v).normalize('NFKC').toUpperCase().replace(/GEN(\d+)\.0(?!\d)/g,'GEN$1').replace(/[\s\-‐‑‒–—_\.·・()（）\[\]【】]+/g,'');}
+function alphaNumSignature(v){
+  return clean(v).normalize('NFKC').toUpperCase()
+    .replace(/GEN(\d+)\.0(?!\d)/g,'GEN$1')
+    .match(/[A-Z0-9]+(?:\.[0-9]+)?/g)?.join('|')||'';
+}
+function editDistance(a,b){
+  if(a===b)return 0;if(!a.length)return b.length;if(!b.length)return a.length;
+  var prev=Array.from({length:b.length+1},function(_,i){return i;});
+  for(var i=1;i<=a.length;i++){var cur=[i];for(var j=1;j<=b.length;j++){cur[j]=Math.min(cur[j-1]+1,prev[j]+1,prev[j-1]+(a[i-1]===b[j-1]?0:1));}prev=cur;}
+  return prev[b.length];
+}
+function nameSimilarity(a,b){
+  var x=normName(a),y=normName(b);if(!x||!y)return 0;if(x===y)return 1;
+  if(alphaNumSignature(a)!==alphaNumSignature(b))return 0;
+  var ratio=1-editDistance(x,y)/Math.max(x.length,y.length);
+  if(x.includes(y)||y.includes(x))ratio=Math.max(ratio,Math.min(x.length,y.length)/Math.max(x.length,y.length));
+  return ratio;
+}
+
 function safeName(v){return clean(v).replace(/[\\/:*?"<>|]/g,function(ch){return {'\\':'＼','/':'／',':':'：','*':'＊','?':'？','"':'＂','<':'＜','>':'＞','|':'｜'}[ch]||'＿';}).replace(/[\. ]+$/g,'').slice(0,220);}
 function ext(name){var m=String(name||'').toLowerCase().match(/\.([^.]+)$/);return m?m[1]:'';}
 function isPdf(name){return ext(name)==='pdf';}
@@ -196,16 +215,36 @@ async function scanAll(){
     var folderList=[];for await(var pair of rootHandle.entries())if(pair[1].kind==='directory')folderList.push({name:pair[0],handle:pair[1],key:normName(pair[0])});
     document.getElementById('mFolders').textContent=folderList.length;
     var map=new Map();folderList.forEach(function(f){if(!map.has(f.key))map.set(f.key,[]);map.get(f.key).push(f);});
-    var matchedFolders=new Set(),work=[];
+    var matchedFolders=new Set(),work=[],unmatchedRecords=[];
+    // 第一轮：规范化后完全一致。
     records.forEach(function(rec){
-      var hits=map.get(normName(rec.name))||[];
-      if(hits.length===1&&!matchedFolders.has(hits[0].name)){matchedFolders.add(hits[0].name);work.push({rec:rec,folder:hits[0]});}
-      else if(hits.length===1){plans.push({row:rec.row,name:rec.name,codeName:rec.codeName,folderName:hits[0].name,state:'ambiguous',note:'同一个文件夹已匹配到其他 Excel 行',hasPdf:false,hasStep:false});}
+      var hits=(map.get(normName(rec.name))||[]).filter(function(x){return !matchedFolders.has(x.name);});
+      if(hits.length===1){matchedFolders.add(hits[0].name);work.push({rec:rec,folder:hits[0],matchMode:'exact',score:1});}
       else if(hits.length>1){plans.push({row:rec.row,name:rec.name,codeName:rec.codeName,folderName:hits.map(function(x){return x.name;}).join(' / '),state:'ambiguous',note:'发现多个同名文件夹',hasPdf:false,hasStep:false});}
-      else{plans.push({row:rec.row,name:rec.name,codeName:rec.codeName,folderName:'—',state:'missing',note:'一级文件夹中没有找到名称匹配项',hasPdf:false,hasStep:false});}
+      else unmatchedRecords.push(rec);
+    });
+    // 第二轮：只在未占用文件夹里做“唯一高相似度”匹配。
+    // 例如：Excel「垫块贴装中转台」与文件夹「垫块中转台」会被识别，
+    // 但相似候选太多或分数不足时仍保留为未匹配，避免误整理。
+    unmatchedRecords.forEach(function(rec){
+      var candidates=folderList.filter(function(f){return !matchedFolders.has(f.name);}).map(function(f){return{folder:f,score:nameSimilarity(rec.name,f.name)};}).filter(function(x){return x.score>=0.86;}).sort(function(a,b){return b.score-a.score;});
+      var best=candidates[0],second=candidates[1],unique=best&&(!second||best.score-second.score>=0.035);
+      if(best&&unique&&best.score>=0.88){
+        matchedFolders.add(best.folder.name);
+        work.push({rec:rec,folder:best.folder,matchMode:'fuzzy',score:best.score});
+      }else if(best){
+        plans.push({row:rec.row,name:rec.name,codeName:rec.codeName,folderName:candidates.slice(0,3).map(function(x){return x.folder.name+' ('+Math.round(x.score*100)+'%)';}).join(' / '),state:'ambiguous',note:'找到相似文件夹，但相似度不足以唯一确认，请人工确认',hasPdf:false,hasStep:false});
+      }else{
+        plans.push({row:rec.row,name:rec.name,codeName:rec.codeName,folderName:'—',state:'missing',note:'一级文件夹中没有找到名称匹配项',hasPdf:false,hasStep:false});
+      }
     });
     var done=0,total=work.length;setProgress(0,Math.max(total,1));
-    for(var i=0;i<work.length;i++){plans.push(await scanOne(work[i].rec,work[i].folder));done++;setProgress(done,Math.max(total,1));setStatus(scanStatus,'正在扫描 '+done+' / '+total+' …','info');}
+    for(var i=0;i<work.length;i++){
+      var result=await scanOne(work[i].rec,work[i].folder);
+      result.matchMode=work[i].matchMode;result.matchScore=work[i].score;
+      if(work[i].matchMode==='fuzzy')result.note='近似匹配 '+Math.round(work[i].score*100)+'%：'+work[i].folder.name+' ↔ '+work[i].rec.name+'；'+result.note;
+      plans.push(result);done++;setProgress(done,Math.max(total,1));setStatus(scanStatus,'正在扫描 '+done+' / '+total+' …','info');
+    }
     plans.sort(function(a,b){return a.row-b.row;});
 
     // 以实际一级文件夹为主生成状态清单。这样能直接看到“哪些文件夹还没处理”。
@@ -213,7 +252,7 @@ async function scanAll(){
       var related=plans.filter(function(p){return p.folderName===folder.name;});
       if(!related.length)return{folderName:folder.name,name:'—',state:'unmatchedFolder',hasPdf:false,hasStep:false,note:'这个一级文件夹在 Excel 的「治具名称+型号」中没有找到对应项，因此没有执行整理'};
       var p=related.find(function(x){return x.state==='done';})||related.find(function(x){return x.state==='ready';})||related[0];
-      return{folderName:folder.name,name:p.name||'—',state:p.state,hasPdf:!!p.hasPdf,hasStep:!!p.hasStep,note:p.note||actionText(p),plan:p};
+      return{folderName:folder.name,name:p.name||'—',state:p.state,hasPdf:!!p.hasPdf,hasStep:!!p.hasStep,note:p.note||actionText(p),matchMode:p.matchMode,matchScore:p.matchScore,plan:p};
     });
     renderRows();renderFolderRows();updateMetrics(folderList);
     var pending=folderStates.filter(function(x){return x.state!=='done';}).length;
@@ -240,7 +279,7 @@ async function executeAll(){
 }
 
 function escapeHtml(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
-function renderRows(){var f=filterEl.value,q=normName(searchEl.value),html='';plans.forEach(function(p){var isIssue=['ready','done'].indexOf(p.state)<0;if(f==='ready'&&p.state!=='ready')return;if(f==='issue'&&!isIssue)return;if(f==='done'&&p.state!=='done')return;var hay=normName((p.name||'')+' '+(p.codeName||'')+' '+(p.folderName||''));if(q&&!hay.includes(q))return;html+='<tr><td>'+p.row+'</td><td class="name">'+escapeHtml(p.name)+'</td><td class="code">'+escapeHtml(p.codeName||'')+'</td><td>'+escapeHtml(p.folderName||'—')+'</td><td>'+(p.hasPdf?'✓':'—')+'</td><td>'+(p.hasStep?'✓':'—')+'</td><td><span class="badge '+statusClass(p)+'">'+escapeHtml(statusText(p))+'</span><div style="margin-top:5px;color:#64748b;white-space:normal;max-width:260px">'+escapeHtml(p.note||'')+'</div></td><td style="white-space:normal;min-width:220px">'+escapeHtml(actionText(p))+'</td></tr>';});rowsEl.innerHTML=html||'<tr><td colspan="8" style="text-align:center;color:#94a3b8;padding:26px">暂无扫描结果</td></tr>';}
+function renderRows(){var f=filterEl.value,q=normName(searchEl.value),html='';plans.forEach(function(p){var isIssue=['ready','done'].indexOf(p.state)<0;if(f==='ready'&&p.state!=='ready')return;if(f==='issue'&&!isIssue)return;if(f==='done'&&p.state!=='done')return;var hay=normName((p.name||'')+' '+(p.codeName||'')+' '+(p.folderName||''));if(q&&!hay.includes(q))return;html+='<tr><td>'+p.row+'</td><td class="name">'+escapeHtml(p.name)+'</td><td class="code">'+escapeHtml(p.codeName||'')+'</td><td>'+escapeHtml(p.folderName||'—')+(p.matchMode==='fuzzy'?'<div style="margin-top:4px"><span class="badge info">近似 '+Math.round((p.matchScore||0)*100)+'%</span></div>':'')+'</td><td>'+(p.hasPdf?'✓':'—')+'</td><td>'+(p.hasStep?'✓':'—')+'</td><td><span class="badge '+statusClass(p)+'">'+escapeHtml(statusText(p))+'</span><div style="margin-top:5px;color:#64748b;white-space:normal;max-width:260px">'+escapeHtml(p.note||'')+'</div></td><td style="white-space:normal;min-width:220px">'+escapeHtml(actionText(p))+'</td></tr>';});rowsEl.innerHTML=html||'<tr><td colspan="8" style="text-align:center;color:#94a3b8;padding:26px">暂无扫描结果</td></tr>';}
 function folderStateText(s){var map={ready:'待整理',done:'已完成',missing:'无法整理',ambiguous:'匹配不唯一',conflict:'目标已存在',invalid:'编码+名称无效',error:'执行/扫描失败',unmatchedFolder:'Excel无对应项',matched:'已匹配'};return map[s]||s;}
 function folderStateClass(s){if(s==='done')return'done';if(s==='ready')return'info';if(s==='unmatchedFolder')return'warn';return'err';}
 function renderFolderRows(){
@@ -251,7 +290,7 @@ function renderFolderRows(){
     if(f==='pending'&&!pending)return;if(f==='ready'&&x.state!=='ready')return;if(f==='problem'&&!problem)return;if(f==='done'&&x.state!=='done')return;
     if(q&&!normName(x.folderName).includes(q))return;
     var rowClass=x.state==='done'?'row-done':(problem?'row-error':'row-unprocessed');
-    html+='<tr class="'+rowClass+'"><td class="name"><b>'+escapeHtml(x.folderName)+'</b></td><td class="name">'+escapeHtml(x.name||'—')+'</td><td>'+(x.hasPdf?'✓':'—')+'</td><td>'+(x.hasStep?'✓':'—')+'</td><td><span class="badge '+folderStateClass(x.state)+'">'+escapeHtml(folderStateText(x.state))+'</span></td><td style="white-space:normal;min-width:320px">'+escapeHtml(x.note||'—')+'</td></tr>';
+    html+='<tr class="'+rowClass+'"><td class="name"><b>'+escapeHtml(x.folderName)+'</b>'+(x.matchMode==='fuzzy'?'<div style="margin-top:5px"><span class="badge info">近似匹配 '+Math.round((x.matchScore||0)*100)+'%</span></div>':'')+'</td><td class="name">'+escapeHtml(x.name||'—')+'</td><td>'+(x.hasPdf?'✓':'—')+'</td><td>'+(x.hasStep?'✓':'—')+'</td><td><span class="badge '+folderStateClass(x.state)+'">'+escapeHtml(folderStateText(x.state))+'</span></td><td style="white-space:normal;min-width:320px">'+escapeHtml(x.note||'—')+'</td></tr>';
   });
   folderRowsEl.innerHTML=html||'<tr><td colspan="6" style="text-align:center;color:#94a3b8;padding:26px">当前筛选条件下没有文件夹</td></tr>';
   var pendingCount=folderStates.filter(function(x){return x.state!=='done';}).length,doneCount=folderStates.filter(function(x){return x.state==='done';}).length;
