@@ -65,9 +65,9 @@
       <div class="dash total" data-detail="scanned" role="button" tabindex="0" aria-expanded="false"><div class="num" id="dTotal">0</div><div class="label">已扫描文件夹</div><div class="hint">包含所选根目录及其下所有层级目录</div></div>
       <div class="dash match" data-detail="matched" role="button" tabindex="0" aria-expanded="false"><div class="num" id="dMatched">0</div><div class="label">已匹配治具文件夹</div><div class="hint">已找到对应 Excel 项的治具文件夹</div></div>
       <div class="dash edit" data-detail="edit" role="button" tabindex="0" aria-expanded="false"><div class="num" id="dNeedEdit">0</div><div class="label">需要修改 / 整理</div><div class="hint">PDF、STEP 齐全，可执行重命名或建文件夹</div></div>
-      <div class="dash fail" data-detail="unmatched" role="button" tabindex="0" aria-expanded="false"><div class="num" id="dUnmatched">0</div><div class="label">不能自动匹配</div><div class="hint">未找到安全对应，或存在多个候选，需要人工确认</div></div>
+      <div class="dash fail" data-detail="unmatched" role="button" tabindex="0" aria-expanded="false"><div class="num" id="dUnmatched">0</div><div class="label">不能自动匹配</div><div class="hint">存在多个相似候选，系统不安全自动决定，需要人工确认</div></div>
       <div class="dash done" data-detail="done" role="button" tabindex="0" aria-expanded="false"><div class="num" id="dDone">0</div><div class="label">已经完成</div><div class="hint">目标结构已经存在或已执行整理完成</div></div>
-      <div class="dash fail" data-detail="missingDemand" role="button" tabindex="0" aria-expanded="false"><div class="num" id="dMissingDemand">0</div><div class="label">Excel 有需求但文件夹没有</div><div class="hint">当前筛选需求人在 Excel 中有记录，但扫描目录里没有对应治具文件夹</div></div>
+      <div class="dash fail" data-detail="missingDemand" role="button" tabindex="0" aria-expanded="false"><div class="num" id="dMissingDemand">0</div><div class="label">Excel 有需求但文件夹没有</div><div class="hint">Excel 有需求，但扫描目录中没有找到可对应的治具文件夹</div></div>
     </div>
 
     <div id="dashboardDetail" class="detail-panel hidden">
@@ -80,19 +80,6 @@
         <table class="detail-table">
           <thead><tr><th>文件夹路径</th><th>Excel行</th><th>需求人</th><th>设计人</th><th>治具名称+型号</th><th>编码+名称</th><th>状态 / 原因</th></tr></thead>
           <tbody id="dashboardDetailRows"></tbody>
-        </table>
-      </div>
-    </div>
-
-    <div id="statusDetailPanel" class="status-detail hidden">
-      <div class="status-detail-head">
-        <div><h3 id="statusDetailTitle">状态明细</h3><div id="statusDetailCount" class="detail-count"></div></div>
-        <button id="closeStatusDetail" type="button" class="secondary">关闭明细</button>
-      </div>
-      <div class="table-wrap" style="max-height:460px">
-        <table>
-          <thead><tr><th>Excel行</th><th>需求人</th><th>设计人</th><th>治具名称+型号</th><th>文件夹路径</th><th>PDF</th><th>STEP</th><th>ZIP</th><th>状态 / 说明</th></tr></thead>
-          <tbody id="statusDetailRows"></tbody>
         </table>
       </div>
     </div>
@@ -111,7 +98,7 @@
       <div class="toolbar-left"><select id="filter" class="filter"><option value="all">显示全部</option><option value="ready">只看可整理</option><option value="issue">只看需要处理</option><option value="done">只看已整理</option></select><input id="search" class="filter" placeholder="搜索名称 / 编码 / 文件夹"></div>
       <div class="sub">目标文件夹名直接使用 Excel 的「编码+名称」</div>
     </div>
-    <div class="table-wrap"><table class="main-result-table"><thead><tr><th>Excel行</th><th>治具名称+型号</th><th>编码+名称</th><th>匹配文件夹</th><th>PDF</th><th>STEP</th><th>ZIP</th><th>状态</th><th>预定动作</th></tr></thead><tbody id="rows"></tbody></table></div>
+    <div class="table-wrap hidden" id="legacyMainResult"><table class="main-result-table"><thead><tr><th>Excel行</th><th>治具名称+型号</th><th>编码+名称</th><th>匹配文件夹</th><th>PDF</th><th>STEP</th><th>ZIP</th><th>状态</th><th>预定动作</th></tr></thead><tbody id="rows"></tbody></table></div>
   </section>
 
 
@@ -162,7 +149,7 @@ var excelInput=document.getElementById('excelInput'),excelDrop=document.getEleme
 var folderDrop=document.getElementById('folderDrop'),pickFolder=document.getElementById('pickFolder'),clearFolder=document.getElementById('clearFolder'),folderSelected=document.getElementById('folderSelected'),folderStatus=document.getElementById('folderStatus');
 var scanBtn=document.getElementById('scanBtn'),resetBtn=document.getElementById('resetBtn'),scanStatus=document.getElementById('scanStatus'),executeBtn=document.getElementById('executeBtn'),executeStatus=document.getElementById('executeStatus'),rowsEl=document.getElementById('rows');
 var filterEl=document.getElementById('filter'),searchEl=document.getElementById('search'),progress=document.getElementById('progress'),progressBar=document.getElementById('progressBar'),logEl=document.getElementById('log');
-var folderRowsEl=document.getElementById('folderRows'),folderFilterEl=document.getElementById('folderFilter'),folderSearchEl=document.getElementById('folderSearch'),folderCallout=document.getElementById('folderCallout'),statusDetailPanel=document.getElementById('statusDetailPanel'),statusDetailTitle=document.getElementById('statusDetailTitle'),statusDetailCount=document.getElementById('statusDetailCount'),statusDetailRows=document.getElementById('statusDetailRows'),closeStatusDetail=document.getElementById('closeStatusDetail'),requesterFilterEl=document.getElementById('requesterFilter'),requesterOptionsEl=document.getElementById('requesterOptions'),requesterSummaryEl=document.getElementById('requesterSummary'),designerFilterEl=document.getElementById('designerFilter'),designerOptionsEl=document.getElementById('designerOptions'),designerSummaryEl=document.getElementById('designerSummary'),missingDemandRowsEl=document.getElementById('missingDemandRows'),dashboardDetailEl=document.getElementById('dashboardDetail'),dashboardDetailTitleEl=document.getElementById('dashboardDetailTitle'),dashboardDetailCountEl=document.getElementById('dashboardDetailCount'),dashboardDetailRowsEl=document.getElementById('dashboardDetailRows'),dashboardDetailCloseEl=document.getElementById('dashboardDetailClose');
+var folderRowsEl=document.getElementById('folderRows'),folderFilterEl=document.getElementById('folderFilter'),folderSearchEl=document.getElementById('folderSearch'),folderCallout=document.getElementById('folderCallout'),requesterFilterEl=document.getElementById('requesterFilter'),requesterOptionsEl=document.getElementById('requesterOptions'),requesterSummaryEl=document.getElementById('requesterSummary'),designerFilterEl=document.getElementById('designerFilter'),designerOptionsEl=document.getElementById('designerOptions'),designerSummaryEl=document.getElementById('designerSummary'),missingDemandRowsEl=document.getElementById('missingDemandRows'),dashboardDetailEl=document.getElementById('dashboardDetail'),dashboardDetailTitleEl=document.getElementById('dashboardDetailTitle'),dashboardDetailCountEl=document.getElementById('dashboardDetailCount'),dashboardDetailRowsEl=document.getElementById('dashboardDetailRows'),dashboardDetailCloseEl=document.getElementById('dashboardDetailClose');
 var records=[],rootHandle=null,plans=[],folderStates=[],scannedFolders=[],isBusy=false,activeDashboardDetail=null;
 
 function clean(v){return String(v==null?'':v).trim();}
@@ -355,7 +342,7 @@ async function scanOne(rec,folder){
 }
 
 async function scanAll(){
-  closeDashboardDetail();var scanRecords=currentRecords();if(isBusy||!scanRecords.length||!rootHandle)return;setBusy(true);plans=[];folderStates=[];rowsEl.innerHTML='';folderRowsEl.innerHTML='';logEl.textContent='';logEl.classList.add('hidden');setStatus(scanStatus,'正在递归扫描所有层级文件夹并匹配 Excel…','info');
+  hideDashboardDetail();var scanRecords=currentRecords();if(isBusy||!scanRecords.length||!rootHandle)return;setBusy(true);plans=[];folderStates=[];rowsEl.innerHTML='';folderRowsEl.innerHTML='';logEl.textContent='';logEl.classList.add('hidden');setStatus(scanStatus,'正在递归扫描所有层级文件夹并匹配 Excel…','info');
   try{
     var collected=await collectDirectories(rootHandle,10,12000),folderList=collected.folders;scannedFolders=folderList;
     document.getElementById('mFolders').textContent=folderList.length;
@@ -476,36 +463,6 @@ async function executeAll(){
 }
 
 function escapeHtml(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
-function dashboardItems(type){
-  if(type==='total')return scannedFolders.map(function(f){return{kind:'folder',folderPath:f.path||f.name,name:'—',row:'—',state:'scanned'};});
-  if(type==='matched')return plans.filter(function(p){return !!p.folderHandle&&!!p.folderPath;});
-  if(type==='ready')return plans.filter(function(p){return p.state==='ready';});
-  if(type==='unmatched')return plans.filter(function(p){return !p.folderHandle&&p.state==='ambiguous';});
-  if(type==='done')return plans.filter(function(p){return p.state==='done';});
-  if(type==='missing')return plans.filter(function(p){return !p.folderHandle&&p.state==='missing';});
-  return[];
-}
-function dashboardTitle(type){
-  return{total:'已扫描文件夹明细',matched:'已匹配治具文件夹明细',ready:'需要修改 / 整理明细',unmatched:'不能自动匹配明细',done:'已经完成明细',missing:'Excel 有需求但文件夹没有'}[type]||'状态明细';
-}
-function renderDashboardDetail(type){
-  var items=dashboardItems(type);
-  document.querySelectorAll('.dash[data-dashboard]').forEach(function(x){x.classList.toggle('active',x.getAttribute('data-dashboard')===type);});
-  statusDetailTitle.textContent=dashboardTitle(type);
-  statusDetailCount.textContent='共 '+items.length+' 项';
-  statusDetailRows.innerHTML=items.map(function(p){
-    if(p.kind==='folder')return '<tr><td>—</td><td>—</td><td>—</td><td>—</td><td class="name"><b>'+escapeHtml(p.folderPath||'')+'</b></td><td>—</td><td>—</td><td>—</td><td>已扫描</td></tr>';
-    var rec=records.find(function(r){return r.row===p.row;})||{};
-    var state=statusText(p),note=p.note||actionText(p)||'—';
-    return '<tr><td>'+escapeHtml(p.row||'—')+'</td><td>'+escapeHtml(rec.requester||'—')+'</td><td>'+escapeHtml(rec.designer||'—')+'</td><td class="name">'+escapeHtml(p.name||'—')+'</td><td class="name">'+escapeHtml(p.folderPath||p.folderName||'—')+'</td><td>'+(p.hasPdf?'✓':'—')+'</td><td>'+(p.hasStep?'✓':'—')+'</td><td>'+(p.hasZip?'✓':'—')+'</td><td><span class="badge '+statusClass(p)+'">'+escapeHtml(state)+'</span><div class="cell-note" title="'+escapeHtml(note)+'">'+escapeHtml(note)+'</div></td></tr>';
-  }).join('')||'<tr><td colspan="9" style="text-align:center;color:#94a3b8;padding:26px">当前状态没有明细</td></tr>';
-  statusDetailPanel.classList.remove('hidden');
-  statusDetailPanel.scrollIntoView({behavior:'smooth',block:'nearest'});
-}
-function closeDashboardDetail(){
-  statusDetailPanel.classList.add('hidden');
-  document.querySelectorAll('.dash[data-dashboard]').forEach(function(x){x.classList.remove('active');});
-}
 function renderRows(){
   var f=filterEl.value,q=normName(searchEl.value),html='';
   plans.forEach(function(p){
@@ -568,9 +525,9 @@ function dashboardItems(type){
   }
   if(type==='matched')return plans.filter(function(p){return !!p.folderHandle&&!!p.folderPath;}).map(function(p){return{folderPath:p.folderPath,plan:p};});
   if(type==='edit')return plans.filter(function(p){return p.state==='ready';}).map(function(p){return{folderPath:p.folderPath||'—',plan:p};});
-  if(type==='unmatched')return plans.filter(function(p){return !p.folderHandle&&(p.state==='missing'||p.state==='ambiguous');}).map(function(p){return{folderPath:p.folderName&&p.folderName!=='—'?p.folderName:'—',plan:p};});
+  if(type==='unmatched')return plans.filter(function(p){return !p.folderHandle&&p.state==='ambiguous';}).map(function(p){return{folderPath:p.folderName&&p.folderName!=='—'?p.folderName:'—',plan:p};});
   if(type==='done')return plans.filter(function(p){return p.state==='done';}).map(function(p){return{folderPath:p.folderPath||'—',plan:p};});
-  if(type==='missingDemand')return plans.filter(function(p){return !p.folderHandle&&p.state==='missing'&&(!p.folderName||p.folderName==='—');}).map(function(p){return{folderPath:'—',plan:p};});
+  if(type==='missingDemand')return plans.filter(function(p){return !p.folderHandle&&p.state==='missing';}).map(function(p){return{folderPath:'—',plan:p};});
   return[];
 }
 function dashboardTitle(type){
