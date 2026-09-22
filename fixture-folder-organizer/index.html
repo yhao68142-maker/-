@@ -185,16 +185,39 @@ function editDistance(a,b){
   for(var i=1;i<=a.length;i++){var cur=[i];for(var j=1;j<=b.length;j++){cur[j]=Math.min(cur[j-1]+1,prev[j]+1,prev[j-1]+(a[i-1]===b[j-1]?0:1));}prev=cur;}
   return prev[b.length];
 }
+function descriptiveCore(v){
+  return businessCanonical(v)
+    .replace(/[A-Z]+\d*(?:\.\d+)?|\d+[A-Z]+(?:\d+)?|\d+(?:\.\d+)?/g,'')
+    .replace(/[\s\-‐‑‒–—_\.·・()（）\[\]【】]/g,'');
+}
+function descriptiveSimilarity(a,b){
+  var x=descriptiveCore(a),y=descriptiveCore(b);
+  if(!x||!y)return 0;
+  if(x===y)return 1;
+  var ratio=1-editDistance(x,y)/Math.max(x.length,y.length);
+  if(x.includes(y)||y.includes(x))ratio=Math.max(ratio,Math.min(x.length,y.length)/Math.max(x.length,y.length));
+  return Math.max(0,Math.min(1,ratio));
+}
+function criticalQualifierCompatible(a,b){
+  var A=businessCanonical(a),B=businessCanonical(b);
+  var critical=['返修','试做','试产','改造'];
+  for(var i=0;i<critical.length;i++){
+    var t=critical[i];
+    if(A.includes(t)!==B.includes(t))return false;
+  }
+  return true;
+}
 function nameSimilarity(a,b){
+  if(!criticalQualifierCompatible(a,b))return 0;
   var x=fuzzyNorm(a),y=fuzzyNorm(b);if(!x||!y)return 0;if(x===y)return 1;
   var charScore=1-editDistance(x,y)/Math.max(x.length,y.length);
   if(x.includes(y)||y.includes(x))charScore=Math.max(charScore,Math.min(x.length,y.length)/Math.max(x.length,y.length));
   var A=[...new Set(alphaNumTokens(a))],B=[...new Set(alphaNumTokens(b))];
   var common=A.filter(function(t){return B.includes(t);}).length;
   var union=new Set(A.concat(B)).size||1;
-  var coverage=tokenCoverage(a,b),jaccard=common/union;
-  // 英文/数字型号信息优先；中文描述允许少量增删、替换或历史叫法差异。
-  return Math.max(0,Math.min(1,charScore*0.58+coverage*0.30+jaccard*0.12));
+  var coverage=tokenCoverage(a,b),jaccard=common/union,desc=descriptiveSimilarity(a,b);
+  // 型号只做辅助，中文/业务描述必须也足够接近，避免“型号一样但治具完全不同”被误判为待人工确认。
+  return Math.max(0,Math.min(1,charScore*0.42+desc*0.34+coverage*0.16+jaccard*0.08));
 }
 
 function safeName(v){return clean(v).replace(/[\\/:*?"<>|]/g,function(ch){return {'\\':'＼','/':'／',':':'：','*':'＊','?':'？','"':'＂','<':'＜','>':'＞','|':'｜'}[ch]||'＿';}).replace(/[\. ]+$/g,'').slice(0,220);}
@@ -479,28 +502,41 @@ async function scanAll(){
     // 例如：Excel「垫块贴装中转台」与文件夹「垫块中转台」会被识别，
     // 但相似候选太多或分数不足时仍保留为未匹配，避免误整理。
     unmatchedRecords.forEach(function(rec){
-      var candidates=folderList.filter(function(f){return !matchedFolders.has(f.path);}).map(function(f){
-        return{folder:f,score:nameSimilarity(rec.name,f.name),coverage:tokenCoverage(rec.name,f.name)};
-      }).filter(function(x){return x.score>=0.60&&x.coverage>=0.55;}).sort(function(a,b){return b.score-a.score;});
+      var scored=folderList.filter(function(f){return !matchedFolders.has(f.path);}).map(function(f){
+        return{
+          folder:f,
+          score:nameSimilarity(rec.name,f.name),
+          coverage:tokenCoverage(rec.name,f.name),
+          desc:descriptiveSimilarity(rec.name,f.name),
+          qualifierOK:criticalQualifierCompatible(rec.name,f.name)
+        };
+      }).sort(function(a,b){return b.score-a.score;});
+
+      // 只有“业务描述也足够接近”的候选，才允许进入自动/人工确认。
+      // 单纯因为 800G / OSFP / 2XFR4 / Gen2 等型号相同，不再算成候选。
+      var candidates=scored.filter(function(x){
+        return x.qualifierOK&&x.score>=0.68&&x.coverage>=0.55&&x.desc>=0.50;
+      });
       var best=candidates[0],second=candidates[1];
       var unique=best&&(!second||best.score-second.score>=0.055);
-      // 只有“明显领先 + 分数足够高”的唯一候选才自动匹配。
-      if(best&&unique&&best.score>=0.84&&best.coverage>=0.70){
+
+      if(best&&unique&&best.score>=0.86&&best.coverage>=0.70&&best.desc>=0.62){
         matchedFolders.add(best.folder.path);
         work.push({rec:rec,folder:best.folder,matchMode:'fuzzy',score:best.score});
       }else if(best){
         var shortlist=candidates.slice(0,6);
         plans.push({
           row:rec.row,name:rec.name,codeName:rec.codeName,folderName:shortlist.map(function(x){return x.folder.path+' ('+Math.round(x.score*100)+'%)';}).join(' / '),
-          state:'ambiguous',note:'找到相似候选，但不够安全自动决定。请点“选择匹配文件夹”确认。',
+          state:'ambiguous',note:'找到真正相近的候选，但不够安全自动决定。请点“选择匹配文件夹”确认。',
           hasPdf:false,hasStep:false,candidateFolders:shortlist
         });
       }else{
-        // 即使没有达到候选阈值，也保留最接近的少量文件夹给人工确认。
-        var fallback=folderList.filter(function(f){return !matchedFolders.has(f.path);}).map(function(f){return{folder:f,score:nameSimilarity(rec.name,f.name),coverage:tokenCoverage(rec.name,f.name)};}).sort(function(a,b){return b.score-a.score;}).slice(0,6);
+        var fallback=scored.filter(function(x){return x.score>0;}).slice(0,6);
         plans.push({
           row:rec.row,name:rec.name,codeName:rec.codeName,folderName:'—',state:'missing',
-          note:fallback.length?'没有足够安全的自动匹配；最接近：'+fallback[0].folder.path+'（'+Math.round(fallback[0].score*100)+'%）。可点“选择匹配文件夹”人工确认。':'所有已扫描层级中都没有找到名称匹配项',
+          note:fallback.length
+            ?'当前文件夹树中没有达到匹配条件的治具文件夹；最接近仅 '+Math.round(fallback[0].score*100)+'%，因此按“没有文件夹”处理。'
+            :'所有已扫描层级中都没有找到名称匹配项',
           hasPdf:false,hasStep:false,candidateFolders:fallback
         });
       }
