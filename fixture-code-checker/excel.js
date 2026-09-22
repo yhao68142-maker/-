@@ -143,6 +143,80 @@ function exportColumns(book,sheet,cfg,columns,append=false){
 }
 function exportColumn(book,sheet,cfg,values,header='编码+名称',append=false){return exportColumns(book,sheet,cfg,[{header,values}],append)}
 
+
+function applyStatusColumnAndRowFills(book,sheet,headerRow,requesterCol,statusEntries,rowColorEntries){
+ const entries=new Map(book.entries),d=xml(serialize(sheet.doc));
+ if(!entries.has('xl/styles.xml'))throw Error('该 Excel 缺少样式文件，无法直接上色');
+ const header=sheet.rows.find(r=>r.number===headerRow);
+ if(!header)throw Error('没有找到表头行');
+ let statusCol=requesterCol-1,needInsert=normalize(header.cells?.[statusCol]??'')!=='状态';
+ if(needInsert){
+  statusCol=requesterCol;
+  if(nodes(d,'tablePart').length||nodes(d,'drawing').length||nodes(d,'legacyDrawing').length)throw Error('该工作表含结构化表格或绘图，暂不支持安全插入“状态”列。请使用普通审核表副本。');
+  for(const el of Array.from(d.getElementsByTagName('*'))){
+   for(const attr of ['r','ref','sqref','activeCell','topLeftCell'])if(el.hasAttribute(attr))el.setAttribute(attr,shiftRef(el.getAttribute(attr),statusCol,1));
+   if(el.localName==='row'&&el.hasAttribute('spans'))el.removeAttribute('spans');
+   if(el.localName==='col'){
+    const min=+el.getAttribute('min'),max=+el.getAttribute('max');
+    if(min>=statusCol){el.setAttribute('min',min+1);el.setAttribute('max',max+1)}
+    else if(max>=statusCol){const tail=el.cloneNode();tail.setAttribute('min',statusCol+1);tail.setAttribute('max',max+1);el.setAttribute('max',statusCol-1);el.parentNode.append(tail)}
+   }
+   if(el.localName==='pane'&&+el.getAttribute('xSplit')>=statusCol-1)el.setAttribute('xSplit',+el.getAttribute('xSplit')+1);
+  }
+  for(const other of book.sheets){
+   const sd=other.path===sheet.path?d:xml(serialize(other.doc));
+   for(const formula of [...nodes(sd,'f'),...nodes(sd,'formula'),...nodes(sd,'formula1'),...nodes(sd,'formula2')])formula.textContent=shiftFormula(formula.textContent,statusCol,1,sheet.name,other.name);
+   if(other.path!==sheet.path)entries.set(other.path,enc.encode(serialize(sd)));
+  }
+  const wd=xml(dec.decode(entries.get('xl/workbook.xml')));
+  for(const n of nodes(wd,'definedName'))n.textContent=shiftFormula(n.textContent,statusCol,1,sheet.name,book.sheets[Number(n.getAttribute('localSheetId'))]?.name??'');
+  entries.set('xl/workbook.xml',enc.encode(serialize(wd)));
+  let cols=nodes(d,'cols')[0];
+  if(!cols){cols=d.createElementNS(NS,'cols');d.documentElement.insertBefore(cols,nodes(d,'sheetData')[0])}
+  const col=d.createElementNS(NS,'col');col.setAttribute('min',statusCol);col.setAttribute('max',statusCol);col.setAttribute('width','18');col.setAttribute('customWidth','1');cols.append(col);
+  Array.from(cols.children).filter(n=>n.localName==='col').sort((a,b)=>+a.getAttribute('min')-+b.getAttribute('min')).forEach(n=>cols.append(n));
+  const dim=nodes(d,'dimension')[0];
+  if(dim){
+   const parts=dim.getAttribute('ref').split(':'),last=parts.at(-1),lastCol=colNum(last.match(/[A-Z]+/)[0]),lastRow=last.match(/\d+/)?.[0]??headerRow;
+   dim.setAttribute('ref',(parts.length===2?parts[0]:'A1')+':'+colName(lastCol+1)+lastRow);
+  }
+ }
+ const stylesDoc=xml(dec.decode(entries.get('xl/styles.xml'))),fills=nodes(stylesDoc,'fills')[0],cellXfs=nodes(stylesDoc,'cellXfs')[0];
+ if(!fills||!cellXfs)throw Error('Excel 样式结构无法识别');
+ const fillIds=new Map(),styleIds=new Map();
+ const getFillId=color=>{
+  color=String(color||'').replace(/^#/,'').toUpperCase();if(color.length===6)color='FF'+color;
+  if(!/^[0-9A-F]{8}$/.test(color))throw Error('无效的 Excel 填充颜色');
+  if(fillIds.has(color))return fillIds.get(color);
+  const directFills=Array.from(fills.children).filter(n=>n.localName==='fill'),fillId=directFills.length;
+  const fill=stylesDoc.createElementNS(NS,'fill'),pattern=stylesDoc.createElementNS(NS,'patternFill'),fg=stylesDoc.createElementNS(NS,'fgColor'),bg=stylesDoc.createElementNS(NS,'bgColor');
+  pattern.setAttribute('patternType','solid');fg.setAttribute('rgb',color);bg.setAttribute('indexed','64');pattern.append(fg,bg);fill.append(pattern);fills.append(fill);fills.setAttribute('count',String(fillId+1));fillIds.set(color,fillId);return fillId;
+ };
+ const styleFor=(baseStyle,color)=>{
+  const key=String(baseStyle??0)+'|'+color;if(styleIds.has(key))return styleIds.get(key);
+  const xfs=Array.from(cellXfs.children).filter(n=>n.localName==='xf'),base=xfs[Number(baseStyle??0)]??xfs[0];if(!base)return baseStyle??0;
+  const xf=base.cloneNode(true),id=xfs.length;xf.setAttribute('fillId',String(getFillId(color)));xf.setAttribute('applyFill','1');cellXfs.append(xf);cellXfs.setAttribute('count',String(id+1));styleIds.set(key,id);return id;
+ };
+ const rowsByNumber=new Map(nodes(d,'row').map(r=>[Number(r.getAttribute('r')),r]));
+ const writeInline=(rn,col,value)=>{
+  const row=rowsByNumber.get(Number(rn));if(!row)return;
+  const ref=colName(col)+rn,old=nodes(row,'c').find(cell=>cell.getAttribute('r')===ref);if(old)old.remove();
+  const cell=d.createElementNS(NS,'c');cell.setAttribute('r',ref);cell.setAttribute('t','inlineStr');
+  const templateRef=colName(needInsert?col+1:requesterCol)+rn;
+  const template=nodes(row,'c').find(x=>x.getAttribute('r')===templateRef);
+  if(template?.getAttribute('s')!=null)cell.setAttribute('s',template.getAttribute('s'));
+  const is=d.createElementNS(NS,'is'),t=d.createElementNS(NS,'t');t.setAttribute('xml:space','preserve');t.textContent=String(value??'');is.append(t);cell.append(is);
+  const next=nodes(row,'c').find(x=>colNum(x.getAttribute('r').match(/[A-Z]+/)[0])>col);row.insertBefore(cell,next??null);
+ };
+ writeInline(headerRow,statusCol,'状态');
+ for(const [rn,value] of statusEntries)writeInline(rn,statusCol,value);
+ for(const [rnRaw,color] of rowColorEntries){
+  const row=rowsByNumber.get(Number(rnRaw));if(!row)continue;
+  for(const cell of nodes(row,'c')){const base=cell.getAttribute('s')??'0';cell.setAttribute('s',String(styleFor(base,color)))}
+ }
+ entries.set('xl/styles.xml',enc.encode(serialize(stylesDoc)));entries.set(sheet.path,enc.encode(serialize(d)));return zip(entries);
+}
+
 function applyRowFills(book,sheet,rowColorEntries){
  const entries=new Map(book.entries),d=xml(serialize(sheet.doc));
  if(!entries.has('xl/styles.xml'))throw Error('该 Excel 缺少样式文件，无法直接上色');
@@ -172,5 +246,5 @@ function applyRowFills(book,sheet,rowColorEntries){
  }
  entries.set('xl/styles.xml',enc.encode(serialize(stylesDoc)));entries.set(sheet.path,enc.encode(serialize(d)));return zip(entries);
 }
-window.FixtureExcel={codeCount,parseQuantity,readWorkbook,detect,records,matchRows,exportColumn,exportColumns,applyRowFills,colName};
+window.FixtureExcel={codeCount,parseQuantity,readWorkbook,detect,records,matchRows,exportColumn,exportColumns,applyRowFills,applyStatusColumnAndRowFills,colName};
 })();
