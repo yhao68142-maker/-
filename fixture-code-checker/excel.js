@@ -226,17 +226,18 @@ function applyStatusColumnAndRowFills(book,sheet,headerRow,requesterCol,statusEn
    const is=d.createElementNS(NS,'is'),t=d.createElementNS(NS,'t');t.setAttribute('xml:space','preserve');t.textContent=String(value??'');is.append(t);cell.append(is);return cell;
   };
   const nameCol=adjustedCol(Number(cols.name||0)),codeCol=adjustedCol(Number(cols.codeName||0)),requesterOut=adjustedCol(Number(cols.requester||requesterCol)),designerOut=adjustedCol(Number(cols.designer||0));
+  const templateCols=Array.from(templateStyleByCol.keys()),maxTemplateCol=templateCols.length?Math.max(...templateCols):Math.max(nameCol,codeCol,statusCol,requesterOut,designerOut);
   for(const item of extraRows){
    const rn=++maxRow,row=d.createElementNS(NS,'row');row.setAttribute('r',String(rn));
    if(templateRow?.hasAttribute('ht'))row.setAttribute('ht',templateRow.getAttribute('ht'));
    if(templateRow?.hasAttribute('customHeight'))row.setAttribute('customHeight',templateRow.getAttribute('customHeight'));
-   const values=[];
-   if(nameCol)values.push([nameCol,item.name||'']);
-   if(codeCol)values.push([codeCol,item.codeName||'']);
-   values.push([statusCol,item.status||'文件夹有编码但Excel没有']);
-   if(requesterOut)values.push([requesterOut,item.requester||'']);
-   if(designerOut)values.push([designerOut,item.designer||'']);
-   values.sort((a,b)=>a[0]-b[0]).forEach(([col,value])=>row.append(makeCell(rn,col,value,item.color||'FFE4DFEC')));
+   const valueMap=new Map();
+   if(nameCol)valueMap.set(nameCol,item.name||'');
+   if(codeCol)valueMap.set(codeCol,item.codeName||'');
+   valueMap.set(statusCol,item.status||'文件夹有编码但Excel没有');
+   if(requesterOut)valueMap.set(requesterOut,item.requester||'');
+   if(designerOut)valueMap.set(designerOut,item.designer||'');
+   for(let col=1;col<=maxTemplateCol;col++)row.append(makeCell(rn,col,valueMap.get(col)||'',item.color||'FFE4DFEC'));
    sheetData.append(row);rowsByNumber.set(rn,row);
   }
  }
