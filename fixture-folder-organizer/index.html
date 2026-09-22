@@ -23,6 +23,7 @@
       <div class="sub">读取「治工具」工作表中的「治具名称+型号」和「编码+名称」。支持 .xlsx。</div>
       <div id="excelDrop" class="drop" tabindex="0"><div><strong>点击选择，或把 Excel 拖到这里</strong><span>例如：TX-治工具&耗材&配件审核表…_编码人员匹配.xlsx</span></div></div>
       <input id="excelInput" type="file" accept=".xlsx">
+      <div class="btns"><button id="pickWritableExcel" class="primary" type="button">选择可写 Excel</button><span class="sub" style="align-self:center">要直接给原表上色并保存，请用这个按钮选择文件。</span></div>
       <div id="excelSelected" class="selected">尚未选择 Excel</div>
       <div id="excelStatus" class="status"></div>
     </div>
@@ -56,7 +57,8 @@
       </div>
       <span class="pill">支持多选；同时选择需求人和设计人时按两者交集匹配</span>
     </div>
-    <div class="btns"><button id="scanBtn" class="primary" disabled>开始扫描预览</button><button id="resetBtn" class="secondary">全部重置</button></div>
+    <div class="btns"><button id="scanBtn" class="primary" disabled>开始扫描预览</button><button id="colorExcelBtn" class="secondary" disabled>按状态上色并保存原 Excel</button><button id="resetBtn" class="secondary">全部重置</button></div>
+    <div class="sub" style="margin-top:8px">上色规则：已完成=浅绿，可整理=浅蓝，不能自动匹配=浅黄，Excel有需求但文件夹没有=浅红，其他异常=浅橙。仅修改本次扫描对应的数据行。</div>
     <div id="scanStatus" class="status"></div>
     <div id="progress" class="progress hidden"><div id="progressBar"></div></div>
 
@@ -139,7 +141,7 @@
 
   <div class="footer">建议使用最新版桌面 Chrome / Edge。GitHub Pages 为 HTTPS，可使用 File System Access API。</div>
 </div>
-<script src="../fixture-code-checker/excel.js?v=20260922-1"></script>
+<script src="../fixture-code-checker/excel.js?v=20260922-2"></script>
 <script>
 (function(){
 'use strict';
@@ -147,10 +149,10 @@ var TXT_NAME='刻字：文件名称+厂商代码-打标时间-二维码设计人
 var MOVE_EXT=new Set(['pdf','step','stp','xlsx','xls','xlsm','csv','txt','zip']);
 var excelInput=document.getElementById('excelInput'),excelDrop=document.getElementById('excelDrop'),excelSelected=document.getElementById('excelSelected'),excelStatus=document.getElementById('excelStatus');
 var folderDrop=document.getElementById('folderDrop'),pickFolder=document.getElementById('pickFolder'),clearFolder=document.getElementById('clearFolder'),folderSelected=document.getElementById('folderSelected'),folderStatus=document.getElementById('folderStatus');
-var scanBtn=document.getElementById('scanBtn'),resetBtn=document.getElementById('resetBtn'),scanStatus=document.getElementById('scanStatus'),executeBtn=document.getElementById('executeBtn'),executeStatus=document.getElementById('executeStatus'),rowsEl=document.getElementById('rows');
+var scanBtn=document.getElementById('scanBtn'),colorExcelBtn=document.getElementById('colorExcelBtn'),pickWritableExcel=document.getElementById('pickWritableExcel'),resetBtn=document.getElementById('resetBtn'),scanStatus=document.getElementById('scanStatus'),executeBtn=document.getElementById('executeBtn'),executeStatus=document.getElementById('executeStatus'),rowsEl=document.getElementById('rows');
 var filterEl=document.getElementById('filter'),searchEl=document.getElementById('search'),progress=document.getElementById('progress'),progressBar=document.getElementById('progressBar'),logEl=document.getElementById('log');
 var folderRowsEl=document.getElementById('folderRows'),folderFilterEl=document.getElementById('folderFilter'),folderSearchEl=document.getElementById('folderSearch'),folderCallout=document.getElementById('folderCallout'),requesterFilterEl=document.getElementById('requesterFilter'),requesterOptionsEl=document.getElementById('requesterOptions'),requesterSummaryEl=document.getElementById('requesterSummary'),designerFilterEl=document.getElementById('designerFilter'),designerOptionsEl=document.getElementById('designerOptions'),designerSummaryEl=document.getElementById('designerSummary'),missingDemandRowsEl=document.getElementById('missingDemandRows'),dashboardDetailEl=document.getElementById('dashboardDetail'),dashboardDetailTitleEl=document.getElementById('dashboardDetailTitle'),dashboardDetailCountEl=document.getElementById('dashboardDetailCount'),dashboardDetailRowsEl=document.getElementById('dashboardDetailRows'),dashboardDetailCloseEl=document.getElementById('dashboardDetailClose');
-var records=[],rootHandle=null,plans=[],folderStates=[],scannedFolders=[],isBusy=false,activeDashboardDetail=null;
+var records=[],rootHandle=null,excelHandle=null,currentBook=null,currentSheet=null,plans=[],folderStates=[],scannedFolders=[],isBusy=false,activeDashboardDetail=null;
 
 function clean(v){return String(v==null?'':v).trim();}
 function normHeader(v){return clean(v).normalize('NFKC').replace(/\s+/g,'').replace(/^\*+/, '');}
@@ -202,8 +204,8 @@ function statusClass(p){if(p.state==='ready')return'ready';if(p.state==='done')r
 function statusText(p){var map={ready:'可整理',done:'已经整理',missing:'未匹配/缺文件',ambiguous:'匹配不唯一',conflict:'目标已存在',invalid:'编码+名称无效',matched:'已匹配',error:'扫描失败'};return map[p.state]||p.state;}
 function actionText(p){if(p.state==='done')return'无需处理';if(p.action==='renameChild')return'把“'+p.sourceChildName+'”整理为目标名称';if(p.action==='wrapRootFiles')return'新建目标子文件夹并移入 '+p.moveFileNames.length+' 个文件';return p.note||'—';}
 function setStatus(el,text,type){el.className='status '+(type||'');el.textContent=text||'';}
-function setBusy(v){isBusy=v;scanBtn.disabled=v||!records.length||!rootHandle;executeBtn.disabled=v||!plans.some(function(p){return p.state==='ready';});resetBtn.disabled=v;pickFolder.disabled=v;}
-function updateReady(){scanBtn.disabled=isBusy||!records.length||!rootHandle;executeBtn.disabled=isBusy||!plans.some(function(p){return p.state==='ready';});}
+function setBusy(v){isBusy=v;scanBtn.disabled=v||!records.length||!rootHandle;executeBtn.disabled=v||!plans.some(function(p){return p.state==='ready';});colorExcelBtn.disabled=v||!excelHandle||!plans.length;resetBtn.disabled=v;pickFolder.disabled=v;pickWritableExcel.disabled=v;}
+function updateReady(){scanBtn.disabled=isBusy||!records.length||!rootHandle;executeBtn.disabled=isBusy||!plans.some(function(p){return p.state==='ready';});colorExcelBtn.disabled=isBusy||!excelHandle||!plans.length;}
 function log(s){logEl.classList.remove('hidden');logEl.textContent+=(logEl.textContent?'\n':'')+s;logEl.scrollTop=logEl.scrollHeight;}
 function setProgress(done,total){progress.classList.remove('hidden');progressBar.style.width=(total?Math.round(done/total*100):0)+'%';if(done>=total)setTimeout(function(){progress.classList.add('hidden');},500);}
 
@@ -224,7 +226,7 @@ async function parseExcel(file){
   var book=await window.FixtureExcel.readWorkbook(file),found=findSheetAndColumns(book),out=[];
   found.sheet.rows.forEach(function(r){if(r.number<=found.header)return;var name=clean(r.cells[found.cols.name]),codeName=clean(r.cells[found.cols.codeName]);if(!name)return;out.push({row:r.number,name:name,codeName:codeName,designer:found.cols.designer?clean(r.cells[found.cols.designer]):'',requester:found.cols.requester?clean(r.cells[found.cols.requester]):'',validCodeName:validCodeName(codeName)});});
   if(!out.length)throw new Error('没有读取到有效的「治具名称+型号」记录。');
-  return{rows:out,sheetName:found.sheet.name};
+  return{rows:out,sheetName:found.sheet.name,book:book,sheet:found.sheet};
 }
 function selectedPickerValues(optionsEl){
   return optionsEl?Array.from(optionsEl.querySelectorAll('input[type="checkbox"]:checked')).map(function(x){return x.value;}):[];
@@ -270,12 +272,55 @@ function renderMissingDemands(){
     return '<tr><td>'+p.row+'</td><td>'+escapeHtml(rec.requester||'—')+'</td><td>'+escapeHtml(rec.designer||'—')+'</td><td class="name">'+escapeHtml(p.name||'')+'</td><td class="code">'+escapeHtml(p.codeName||'')+'</td><td><span class="badge err">文件夹未找到</span></td></tr>';
   }).join('')||'<tr><td colspan="6" style="text-align:center;color:#94a3b8;padding:26px">当前筛选下没有缺失需求</td></tr>';
 }
-async function handleExcel(file){
-  if(!file)return;if(!/\.xlsx$/i.test(file.name)){setStatus(excelStatus,'只支持 .xlsx 文件；.xls 请先另存为 .xlsx。','error');return;}
+async function handleExcel(file,handle){
+  if(!file)return;
+  if(!/\.xlsx$/i.test(file.name)){setStatus(excelStatus,'只支持 .xlsx 文件；.xls 请先另存为 .xlsx。','error');return;}
+  excelHandle=handle||null;currentBook=null;currentSheet=null;
   setStatus(excelStatus,'正在读取 Excel…','info');plans=[];folderStates=[];renderRows();renderFolderRows();renderMissingDemands();updateMetrics([]);
-  try{var parsed=await parseExcel(file);records=parsed.rows;populatePeopleFilters();excelSelected.innerHTML='<b>'+escapeHtml(file.name)+'</b><br>工作表：'+escapeHtml(parsed.sheetName)+' · 有效项目：'+records.length;setStatus(excelStatus,'Excel 已读取。可多选需求人/设计人，再选择总文件夹。','ok');}
-  catch(e){records=[];excelSelected.textContent='尚未选择 Excel';setStatus(excelStatus,e.message||String(e),'error');}
+  try{
+    var parsed=await parseExcel(file);
+    records=parsed.rows;currentBook=parsed.book;currentSheet=parsed.sheet;populatePeopleFilters();
+    excelSelected.innerHTML='<b>'+escapeHtml(file.name)+'</b><br>工作表：'+escapeHtml(parsed.sheetName)+' · 有效项目：'+records.length+' · '+(excelHandle?'<span class="ok">可直接保存原表</span>':'<span class="warn">只读模式</span>');
+    setStatus(excelStatus,excelHandle?'Excel 已读取，可扫描后直接给原表上色。':'Excel 已读取，但当前是只读方式。若要直接修改原表，请点击“选择可写 Excel”。',excelHandle?'ok':'warn');
+  }catch(e){
+    records=[];excelHandle=null;currentBook=null;currentSheet=null;excelSelected.textContent='尚未选择 Excel';setStatus(excelStatus,e.message||String(e),'error');
+  }
   updateReady();
+}
+
+async function chooseWritableExcel(){
+  if(!window.showOpenFilePicker){setStatus(excelStatus,'当前浏览器不支持直接写回文件，请使用最新版桌面 Chrome / Edge。','error');return;}
+  try{
+    var handles=await window.showOpenFilePicker({multiple:false,types:[{description:'Excel 工作簿',accept:{'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet':['.xlsx']}}]});
+    if(handles&&handles[0]){var h=handles[0],file=await h.getFile();await handleExcel(file,h);}
+  }catch(e){if(e&&e.name!=='AbortError')setStatus(excelStatus,'选择可写 Excel 失败：'+(e.message||e),'error');}
+}
+
+function excelRowColor(p){
+  if(p.state==='done')return'FFD9EAD3';
+  if(p.state==='ready')return'FFD9EAF7';
+  if(p.state==='ambiguous')return'FFFFF2CC';
+  if(p.state==='missing'&&!p.folderHandle)return'FFF4CCCC';
+  if(['conflict','invalid','error','missing'].includes(p.state))return'FFFCE5CD';
+  return'FFEAF2F8';
+}
+async function saveExcelColors(){
+  if(!excelHandle||!currentBook||!currentSheet){setStatus(excelStatus,'当前 Excel 不是可写模式，请先点击“选择可写 Excel”。','warn');return;}
+  if(!plans.length){setStatus(scanStatus,'请先完成一次扫描，再执行上色。','warn');return;}
+  var ok=confirm('将直接修改当前原始 Excel 的行底色。\n\n浅绿=已完成\n浅蓝=可整理\n浅黄=不能自动匹配/需人工确认\n浅红=Excel有需求但文件夹没有\n浅橙=其他异常\n\n不会生成下载副本。确认继续吗？');
+  if(!ok)return;
+  setBusy(true);setStatus(excelStatus,'正在生成完整 Excel 并写回原文件…','info');
+  try{
+    if(!(await requestRW(excelHandle)))throw new Error('没有获得 Excel 文件写入权限');
+    var rowColors=plans.map(function(p){return[p.row,excelRowColor(p)];});
+    var blob=window.FixtureExcel.applyRowFills(currentBook,currentSheet,rowColors);
+    var writable=await excelHandle.createWritable();
+    try{await writable.write(blob);await writable.close();}catch(e){try{await writable.abort();}catch(_){}throw e;}
+    var fresh=await excelHandle.getFile(),parsed=await parseExcel(fresh);currentBook=parsed.book;currentSheet=parsed.sheet;
+    setStatus(excelStatus,'已直接保存到原 Excel。没有生成下载文件。','ok');
+  }catch(e){
+    setStatus(excelStatus,'写回 Excel 失败：'+(e.message||e)+'。如果文件正在 WPS/Excel 中打开，请先关闭后重试。','error');
+  }finally{setBusy(false);updateReady();}
 }
 
 async function requestRW(handle){if(!handle)return false;if(!handle.requestPermission)return true;var q=handle.queryPermission?await handle.queryPermission({mode:'readwrite'}):'prompt';if(q==='granted')return true;return(await handle.requestPermission({mode:'readwrite'}))==='granted';}
@@ -599,12 +644,23 @@ function updateMetrics(folderList){
   if(activeDashboardDetail)renderDashboardDetail();
   updateReady();
 }
-function resetAll(){hideDashboardDetail();records=[];rootHandle=null;plans=[];folderStates=[];scannedFolders=[];if(requesterOptionsEl)requesterOptionsEl.innerHTML='';if(designerOptionsEl)designerOptionsEl.innerHTML='';if(requesterSummaryEl)requesterSummaryEl.textContent='全部需求人';if(designerSummaryEl)designerSummaryEl.textContent='全部设计人';excelInput.value='';excelSelected.textContent='尚未选择 Excel';folderSelected.textContent='尚未选择文件夹';clearFolder.disabled=true;setStatus(excelStatus,'','');setStatus(folderStatus,'','');setStatus(scanStatus,'','');setStatus(executeStatus,'','');document.getElementById('mFolders').textContent='0';logEl.textContent='';logEl.classList.add('hidden');renderRows();renderFolderRows();renderMissingDemands();updateMetrics([]);updateReady();}
+function resetAll(){hideDashboardDetail();records=[];rootHandle=null;excelHandle=null;currentBook=null;currentSheet=null;plans=[];folderStates=[];scannedFolders=[];if(requesterOptionsEl)requesterOptionsEl.innerHTML='';if(designerOptionsEl)designerOptionsEl.innerHTML='';if(requesterSummaryEl)requesterSummaryEl.textContent='全部需求人';if(designerSummaryEl)designerSummaryEl.textContent='全部设计人';excelInput.value='';excelSelected.textContent='尚未选择 Excel';folderSelected.textContent='尚未选择文件夹';clearFolder.disabled=true;setStatus(excelStatus,'','');setStatus(folderStatus,'','');setStatus(scanStatus,'','');setStatus(executeStatus,'','');document.getElementById('mFolders').textContent='0';logEl.textContent='';logEl.classList.add('hidden');renderRows();renderFolderRows();renderMissingDemands();updateMetrics([]);updateReady();}
 
-excelDrop.addEventListener('click',function(){excelInput.click();});excelDrop.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' ')excelInput.click();});excelInput.addEventListener('change',function(e){handleExcel(e.target.files[0]);});
+excelDrop.addEventListener('click',function(){excelInput.click();});excelDrop.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' ')excelInput.click();});excelInput.addEventListener('change',function(e){handleExcel(e.target.files[0],null);});pickWritableExcel.addEventListener('click',chooseWritableExcel);colorExcelBtn.addEventListener('click',saveExcelColors);
 ['dragenter','dragover'].forEach(function(ev){excelDrop.addEventListener(ev,function(e){e.preventDefault();excelDrop.classList.add('drag');});folderDrop.addEventListener(ev,function(e){e.preventDefault();folderDrop.classList.add('drag');});});
 ['dragleave','drop'].forEach(function(ev){excelDrop.addEventListener(ev,function(e){e.preventDefault();excelDrop.classList.remove('drag');});folderDrop.addEventListener(ev,function(e){e.preventDefault();folderDrop.classList.remove('drag');});});
-excelDrop.addEventListener('drop',function(e){var fs=Array.from(e.dataTransfer.files||[]);if(fs[0])handleExcel(fs[0]);});
+excelDrop.addEventListener('drop',async function(e){
+  try{
+    var items=Array.from(e.dataTransfer.items||[]);
+    for(var i=0;i<items.length;i++){
+      if(items[i].getAsFileSystemHandle){
+        var h=await items[i].getAsFileSystemHandle();
+        if(h&&h.kind==='file'&&/\.xlsx$/i.test(h.name)){await handleExcel(await h.getFile(),h);return;}
+      }
+    }
+    var fs=Array.from(e.dataTransfer.files||[]);if(fs[0])await handleExcel(fs[0],null);
+  }catch(err){setStatus(excelStatus,'拖入 Excel 失败：'+(err.message||err),'error');}
+});
 folderDrop.addEventListener('click',chooseFolder);pickFolder.addEventListener('click',chooseFolder);clearFolder.addEventListener('click',function(){hideDashboardDetail();rootHandle=null;plans=[];folderStates=[];folderSelected.textContent='尚未选择文件夹';clearFolder.disabled=true;setStatus(folderStatus,'','');renderRows();renderFolderRows();updateMetrics([]);updateReady();});
 folderDrop.addEventListener('drop',async function(e){try{var items=Array.from(e.dataTransfer.items||[]);for(var i=0;i<items.length;i++){if(items[i].getAsFileSystemHandle){var h=await items[i].getAsFileSystemHandle();if(h&&h.kind==='directory'){rootHandle=h;folderSelected.innerHTML='<b>'+escapeHtml(h.name)+'</b><br>已从拖拽读取文件夹';setStatus(folderStatus,'已选择总文件夹。扫描阶段不会修改文件。','ok');clearFolder.disabled=false;plans=[];folderStates=[];renderRows();renderFolderRows();updateMetrics([]);updateReady();return;}}}setStatus(folderStatus,'没有读取到文件夹。请点击“选择总文件夹”。','warn');}catch(err){setStatus(folderStatus,'拖拽文件夹失败：'+(err.message||err),'warn');}});
 function closePeoplePickers(except){
