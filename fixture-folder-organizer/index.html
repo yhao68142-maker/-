@@ -252,7 +252,7 @@ async function scanAll(){
       }else if(best){
         plans.push({row:rec.row,name:rec.name,codeName:rec.codeName,folderName:candidates.slice(0,3).map(function(x){return x.folder.path+' ('+Math.round(x.score*100)+'%)';}).join(' / '),state:'ambiguous',note:'找到相似文件夹，但相似度不足以唯一确认，请人工确认',hasPdf:false,hasStep:false});
       }else{
-        plans.push({row:rec.row,name:rec.name,codeName:rec.codeName,folderName:'—',state:'missing',note:'一级文件夹中没有找到名称匹配项',hasPdf:false,hasStep:false});
+        plans.push({row:rec.row,name:rec.name,codeName:rec.codeName,folderName:'—',state:'missing',note:'所有已扫描层级中都没有找到名称匹配项',hasPdf:false,hasStep:false});
       }
     });
     var done=0,total=work.length;setProgress(0,Math.max(total,1));
@@ -287,7 +287,7 @@ async function executeAll(){
   var ok=confirm('将整理 '+ready.length+' 个项目。\n\n操作包含：创建文件夹、复制/移动文件、删除已成功复制的旧子文件夹。\n目标冲突和异常项不会处理。\n\n确认继续吗？');if(!ok)return;
   setBusy(true);logEl.textContent='';logEl.classList.remove('hidden');setStatus(executeStatus,'正在请求文件夹读写权限…','info');
   try{if(!(await requestRW(rootHandle)))throw new Error('没有获得本地文件夹读写权限。');var success=0,fail=0;setProgress(0,ready.length);
-    for(var i=0;i<ready.length;i++){var p=ready[i];log('['+(i+1)+'/'+ready.length+'] '+p.name);try{if(p.action==='renameChild')await executeRename(p);else if(p.action==='wrapRootFiles')await executeWrap(p);p.state='done';p.note='整理完成并已创建刻字 TXT';var fs=folderStates.find(function(x){return x.folderPath===p.folderPath;});if(fs){fs.state='done';fs.hasPdf=true;fs.hasStep=true;fs.note='整理完成并已创建刻字 TXT';}success++;log('  ✓ 完成：'+p.targetName);}catch(e){p.state='error';p.note='执行失败：'+(e.message||e);var fs2=folderStates.find(function(x){return x.folderName===p.folderName;});if(fs2){fs2.state='error';fs2.note=p.note;}fail++;log('  ✗ 失败：'+(e.message||e));}setProgress(i+1,ready.length);renderRows();renderFolderRows();updateMetrics([]);}
+    for(var i=0;i<ready.length;i++){var p=ready[i];log('['+(i+1)+'/'+ready.length+'] '+p.name);try{if(p.action==='renameChild')await executeRename(p);else if(p.action==='wrapRootFiles')await executeWrap(p);p.state='done';p.note='整理完成并已创建刻字 TXT';var fs=folderStates.find(function(x){return x.folderPath===p.folderPath;});if(fs){fs.state='done';fs.hasPdf=true;fs.hasStep=true;fs.note='整理完成并已创建刻字 TXT';}success++;log('  ✓ 完成：'+p.targetName);}catch(e){p.state='error';p.note='执行失败：'+(e.message||e);var fs2=folderStates.find(function(x){return x.folderPath===p.folderPath;});if(fs2){fs2.state='error';fs2.note=p.note;}fail++;log('  ✗ 失败：'+(e.message||e));}setProgress(i+1,ready.length);renderRows();renderFolderRows();updateMetrics([]);}
     setStatus(executeStatus,'执行结束：成功 '+success+' 项，失败 '+fail+' 项。建议再点击一次“开始扫描预览”确认最终结构。',fail?'warn':'ok');
   }catch(e){setStatus(executeStatus,'执行失败：'+(e.message||e),'error');}
   finally{setBusy(false);updateReady();}
