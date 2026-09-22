@@ -64,15 +64,15 @@
 
 
   <section class="card folder-card">
-    <h2>📁 按治具文件夹看：哪些还没有处理</h2>
+    <h2>📁 按治具文件夹看：可整理 / 未处理 / 已完成</h2>
     <div class="sub">这里会递归扫描你选择目录下的所有层级，并以真正匹配到 Excel 的治具文件夹为主显示。默认只看还没有完成整理的治具文件夹。</div>
-    <div id="folderCallout" class="folder-callout">完成递归扫描后，这里会直接列出<b>未处理的治具文件夹</b>及原因。</div>
+    <div id="folderCallout" class="folder-callout">完成递归扫描后，这里会直接统计<b>可整理</b>、<b>需要确认</b>和<b>已完成</b>的治具文件夹。</div>
     <div class="toolbar">
       <div class="toolbar-left">
         <select id="folderFilter" class="filter">
-          <option value="pending">只看未处理文件夹</option>
+          <option value="pending">显示未完成（可整理+异常）</option>
           <option value="all">显示全部文件夹</option>
-          <option value="ready">只看待整理</option>
+          <option value="ready">只看可以整理</option>
           <option value="problem">只看异常/无法整理</option>
           <option value="done">只看已完成</option>
         </select>
@@ -359,7 +359,7 @@ async function executeAll(){
 
 function escapeHtml(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
 function renderRows(){var f=filterEl.value,q=normName(searchEl.value),html='';plans.forEach(function(p){var isIssue=['ready','done'].indexOf(p.state)<0;if(f==='ready'&&p.state!=='ready')return;if(f==='issue'&&!isIssue)return;if(f==='done'&&p.state!=='done')return;var hay=normName((p.name||'')+' '+(p.codeName||'')+' '+(p.folderName||''));if(q&&!hay.includes(q))return;var matchBadge=p.matchMode==='fuzzy'?'<div style="margin-top:4px"><span class="badge info">近似 '+Math.round((p.matchScore||0)*100)+'%</span></div>':(p.matchMode==='manual'?'<div style="margin-top:4px"><span class="badge ready">人工确认</span></div>':'');var manualBtn=(p.candidateFolders&&p.candidateFolders.length)?'<div style="margin-top:8px"><button class="secondary" style="padding:6px 10px" onclick="manualBind('+p.row+')">选择匹配文件夹</button></div>':'';html+='<tr><td>'+p.row+'</td><td class="name">'+escapeHtml(p.name)+'</td><td class="code">'+escapeHtml(p.codeName||'')+'</td><td>'+escapeHtml(p.folderPath||p.folderName||'—')+matchBadge+'</td><td>'+(p.hasPdf?'✓':'—')+'</td><td>'+(p.hasStep?'✓':'—')+'</td><td><span class="badge '+statusClass(p)+'">'+escapeHtml(statusText(p))+'</span><div style="margin-top:5px;color:#64748b;white-space:normal;max-width:260px">'+escapeHtml(p.note||'')+'</div>'+manualBtn+'</td><td style="white-space:normal;min-width:220px">'+escapeHtml(actionText(p))+'</td></tr>';});rowsEl.innerHTML=html||'<tr><td colspan="8" style="text-align:center;color:#94a3b8;padding:26px">暂无扫描结果</td></tr>';}
-function folderStateText(s){var map={ready:'待整理',done:'已完成',missing:'无法整理',ambiguous:'匹配不唯一',conflict:'目标已存在',invalid:'编码+名称无效',error:'执行/扫描失败',matched:'已匹配'};return map[s]||s;}
+function folderStateText(s){var map={ready:'可以整理',done:'已完成',missing:'无法整理',ambiguous:'匹配不唯一',conflict:'目标已存在',invalid:'编码+名称无效',error:'执行/扫描失败',matched:'已匹配'};return map[s]||s;}
 function folderStateClass(s){if(s==='done')return'done';if(s==='ready')return'info';if(s==='unmatchedFolder')return'warn';return'err';}
 function renderFolderRows(){
   if(!folderRowsEl)return;
@@ -372,10 +372,12 @@ function renderFolderRows(){
     html+='<tr class="'+rowClass+'"><td class="name"><b>'+escapeHtml(x.folderPath||x.folderName)+'</b>'+(x.matchMode==='fuzzy'?'<div style="margin-top:5px"><span class="badge info">近似匹配 '+Math.round((x.matchScore||0)*100)+'%</span></div>':(x.matchMode==='manual'?'<div style="margin-top:5px"><span class="badge ready">人工确认</span></div>':''))+'</td><td class="name">'+escapeHtml(x.name||'—')+'</td><td>'+(x.hasPdf?'✓':'—')+'</td><td>'+(x.hasStep?'✓':'—')+'</td><td><span class="badge '+folderStateClass(x.state)+'">'+escapeHtml(folderStateText(x.state))+'</span></td><td style="white-space:normal;min-width:320px">'+escapeHtml(x.note||'—')+'</td></tr>';
   });
   folderRowsEl.innerHTML=html||'<tr><td colspan="6" style="text-align:center;color:#94a3b8;padding:26px">当前筛选条件下没有文件夹</td></tr>';
-  var pendingCount=folderStates.filter(function(x){return x.state!=='done';}).length,doneCount=folderStates.filter(function(x){return x.state==='done';}).length;
-  if(!folderStates.length)folderCallout.innerHTML='完成递归扫描后，这里会直接列出<b>未处理的治具文件夹</b>及原因。';
-  else if(pendingCount)folderCallout.innerHTML='还有 <b>'+pendingCount+'</b> 个治具文件夹没有完成处理；已完成 <b>'+doneCount+'</b> 个。下面默认只显示未处理项。';
-  else folderCallout.innerHTML='✅ 所有 <b>'+doneCount+'</b> 个已匹配治具文件夹都已经完成处理。';
+  var readyCount=folderStates.filter(function(x){return x.state==='ready';}).length,
+      problemCount=folderStates.filter(function(x){return !['ready','done'].includes(x.state);}).length,
+      doneCount=folderStates.filter(function(x){return x.state==='done';}).length,
+      pendingCount=readyCount+problemCount;
+  if(!folderStates.length)folderCallout.innerHTML='完成递归扫描后，这里会直接统计<b>可整理</b>、<b>需要确认</b>和<b>已完成</b>的治具文件夹。';
+  else folderCallout.innerHTML='可以整理 <b>'+readyCount+'</b> 个　｜　需要确认 <b>'+problemCount+'</b> 个　｜　已完成 <b>'+doneCount+'</b> 个'+(pendingCount?'。下面默认显示所有未完成项目。':'。✅ 当前已全部完成。');
 }
 function updateMetrics(folderList){document.getElementById('mExcel').textContent=records.length;document.getElementById('mMatched').textContent=plans.filter(function(p){return p.folderName&&p.folderName!=='—';}).length;document.getElementById('mReady').textContent=plans.filter(function(p){return p.state==='ready';}).length;document.getElementById('mDone').textContent=plans.filter(function(p){return p.state==='done';}).length;document.getElementById('mIssues').textContent=plans.filter(function(p){return ['ready','done'].indexOf(p.state)<0;}).length;document.getElementById('mFolderPending').textContent=folderStates.filter(function(x){return x.state!=='done';}).length;if(folderList&&folderList.length)document.getElementById('mFolders').textContent=folderList.length;updateReady();}
 function resetAll(){records=[];rootHandle=null;plans=[];folderStates=[];scannedFolders=[];excelInput.value='';excelSelected.textContent='尚未选择 Excel';folderSelected.textContent='尚未选择文件夹';clearFolder.disabled=true;setStatus(excelStatus,'','');setStatus(folderStatus,'','');setStatus(scanStatus,'','');setStatus(executeStatus,'','');document.getElementById('mFolders').textContent='0';logEl.textContent='';logEl.classList.add('hidden');renderRows();renderFolderRows();updateMetrics([]);updateReady();}
