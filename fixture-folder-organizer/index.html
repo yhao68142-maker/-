@@ -7,7 +7,7 @@
 <meta name="description" content="读取TX审核表，匹配本地治具文件夹，预览后自动整理PDF、STEP和Excel资料并创建刻字TXT。文件仅在本机浏览器处理。">
 <style>
 :root{--bg:#f5f7fb;--card:#fff;--text:#172033;--muted:#667085;--line:#dbe3ee;--blue:#2563eb;--blue2:#1d4ed8;--green:#15803d;--amber:#b45309;--red:#b91c1c;--purple:#7c3aed;--shadow:0 12px 36px rgba(15,23,42,.08)}
-*{box-sizing:border-box}body{margin:0;background:linear-gradient(180deg,#eef4ff 0,#f8fafc 260px,#f5f7fb 100%);color:var(--text);font-family:"Segoe UI","Microsoft YaHei","PingFang SC",sans-serif}.page{max-width:1320px;margin:0 auto;padding:28px 18px 56px}.hero{border-radius:24px;padding:26px 28px;background:linear-gradient(135deg,#0f3f96,#2563eb 62%,#6d28d9);color:#fff;box-shadow:0 20px 50px rgba(37,99,235,.22);margin-bottom:18px}.hero-top{display:flex;justify-content:space-between;gap:18px;align-items:flex-start}.hero h1{margin:4px 0 9px;font-size:30px}.hero p{margin:0;line-height:1.7;opacity:.93}.privacy{white-space:nowrap;border:1px solid rgba(255,255,255,.45);border-radius:999px;padding:7px 12px;font-size:12px;background:rgba(255,255,255,.1)}.steps{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}.step{font-size:12px;padding:7px 11px;border-radius:999px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.24)}.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}.card{background:var(--card);border:1px solid rgba(148,163,184,.22);border-radius:18px;padding:18px;box-shadow:var(--shadow);margin-bottom:16px}.card h2{font-size:17px;margin:0 0 6px}.sub{font-size:12px;color:var(--muted);line-height:1.65}.drop{margin-top:12px;min-height:140px;border:2px dashed #8db2ff;border-radius:16px;background:#f7faff;display:flex;align-items:center;justify-content:center;text-align:center;padding:18px;cursor:pointer;transition:.18s}.drop:hover,.drop.drag{border-color:var(--blue);background:#eef4ff;transform:translateY(-1px)}.drop strong{display:block;font-size:15px}.drop span{display:block;color:var(--muted);font-size:12px;margin-top:6px;line-height:1.6}input[type=file]{display:none}.btns{display:flex;gap:9px;flex-wrap:wrap;margin-top:12px}button{border:0;border-radius:11px;padding:10px 16px;font-weight:700;font-size:13px;cursor:pointer}button.primary{color:#fff;background:linear-gradient(135deg,var(--blue),var(--blue2));box-shadow:0 7px 18px rgba(37,99,235,.22)}button.secondary{background:#fff;color:#334155;border:1px solid var(--line)}button.danger{background:#fff;color:var(--red);border:1px solid #fecaca}button:disabled{opacity:.45;cursor:not-allowed;box-shadow:none}.selected{margin-top:11px;padding:10px 12px;border-radius:12px;background:#f8fafc;border:1px solid #e5e7eb;font-size:12px;line-height:1.6}.selected b{color:#0f172a}.ok{color:var(--green)}.warn{color:var(--amber)}.error{color:var(--red)}.info{color:var(--blue)}.status{margin-top:10px;font-size:12px;line-height:1.65;white-space:pre-line}.settings{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}.pill{padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:#f8fafc;font-size:12px;color:#475569}.metrics{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:9px;margin:14px 0}.metric{border:1px solid #e5e7eb;background:#fafcff;border-radius:13px;padding:11px}.metric b{font-size:21px;display:block}.metric span{font-size:11px;color:var(--muted)}.metric.hot{background:#fff1f2;border-color:#fecdd3}.metric.hot b{color:#b91c1c}.dashboard{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px;margin:14px 0 6px}.dash{border-radius:16px;padding:16px;border:1px solid #dbe3ee;background:#fff;box-shadow:0 8px 20px rgba(15,23,42,.05);cursor:pointer;transition:.16s;outline:none}.dash:hover{transform:translateY(-2px);box-shadow:0 12px 26px rgba(15,23,42,.10)}.dash:focus-visible{box-shadow:0 0 0 3px rgba(37,99,235,.22),0 12px 26px rgba(15,23,42,.10)}.dash.active{box-shadow:0 0 0 3px rgba(37,99,235,.28),0 12px 28px rgba(15,23,42,.12);transform:translateY(-1px)}.dash .num{font-size:28px;font-weight:800;line-height:1;margin-bottom:7px}.dash .label{font-size:13px;font-weight:700}.dash .hint{font-size:11px;color:#64748b;margin-top:5px;line-height:1.5}.dash.match{background:#eff6ff;border-color:#bfdbfe}.dash.edit{background:#fff7ed;border-color:#fed7aa}.dash.fail{background:#fff1f2;border-color:#fecdd3}.dash.done{background:#f0fdf4;border-color:#bbf7d0}.dash.total{background:#f8fafc}@media(max-width:900px){.dashboard{grid-template-columns:repeat(2,1fr)}}@media(max-width:560px){.dashboard{grid-template-columns:1fr}}.folder-card{border:2px solid #dbeafe;background:linear-gradient(180deg,#fff,#fbfdff)}.folder-card h2{display:flex;align-items:center;gap:8px}.folder-callout{margin:10px 0 12px;padding:12px 14px;border-radius:12px;background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;font-size:13px;line-height:1.6}.folder-callout b{font-size:18px}.row-unprocessed td{background:#fffaf0}.row-error td{background:#fff7f7}.row-done td{background:#f7fff9}.toolbar{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}.toolbar-left{display:flex;gap:8px;flex-wrap:wrap}.filter{border:1px solid var(--line);background:#fff;border-radius:10px;padding:9px 10px;font-size:12px;color:#334155}.multi-picker{position:relative;min-width:210px}.multi-picker summary{list-style:none;cursor:pointer;border:1px solid var(--line);background:#fff;border-radius:10px;padding:9px 34px 9px 11px;font-size:12px;color:#334155;position:relative;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.multi-picker summary::-webkit-details-marker{display:none}.multi-picker summary:after{content:'▾';position:absolute;right:11px;top:8px;color:#64748b}.multi-picker[open] summary:after{content:'▴'}.multi-menu{position:absolute;z-index:30;left:0;top:calc(100% + 6px);width:280px;max-height:330px;overflow:auto;background:#fff;border:1px solid #dbe3ee;border-radius:12px;box-shadow:0 16px 38px rgba(15,23,42,.16);padding:8px}.multi-actions{display:flex;gap:6px;position:sticky;top:-8px;background:#fff;padding:4px 0 8px;border-bottom:1px solid #eef2f7;margin-bottom:5px;z-index:2}.multi-actions .primary{margin-left:auto}.multi-actions button{padding:6px 9px;font-size:11px}.multi-option{display:flex;gap:8px;align-items:center;padding:7px 6px;border-radius:8px;cursor:pointer;font-size:12px}.multi-option:hover{background:#f8fafc}.multi-option input{margin:0}.filter-group{display:flex;align-items:center;gap:8px;padding:7px 9px;border:1px solid var(--line);border-radius:12px;background:#f8fafc}.filter-title{font-size:12px;color:#475569;font-weight:700}.table-wrap{overflow:auto;margin-top:12px;border:1px solid #e2e8f0;border-radius:14px;max-height:580px}.main-result-table tbody tr{height:auto}.main-result-table tbody td{padding:7px 8px;line-height:1.35;vertical-align:top}.cell-clamp{white-space:normal;word-break:break-word;overflow:hidden;line-height:1.4}.clamp-2{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;max-height:2.8em}.clamp-3{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;max-height:4.2em}.cell-status{max-width:280px}.cell-action{min-width:210px;max-width:300px}.cell-path{min-width:300px;max-width:520px}.detail-panel{margin:12px 0 8px;border:1px solid #bfdbfe;background:#f8fbff;border-radius:16px;padding:14px}.detail-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px}.detail-title{font-weight:800;font-size:15px}.detail-count{font-size:12px;color:#64748b;margin-left:8px}.detail-table-wrap{max-height:360px;margin-top:8px}.detail-table td{white-space:normal;vertical-align:top}.detail-table .path{min-width:300px;max-width:480px}.detail-table .reason{min-width:220px;max-width:360px}.detail-empty{text-align:center;color:#94a3b8;padding:28px!important}table{width:100%;border-collapse:separate;border-spacing:0;font-size:12px;background:#fff}th,td{padding:8px 9px;border-right:1px solid #eef2f7;border-bottom:1px solid #eef2f7;vertical-align:top;white-space:nowrap}th{position:sticky;top:0;z-index:2;background:#eef4ff;color:#334155;text-align:left}td.name,td.code{white-space:normal;min-width:240px;line-height:1.5}.badge{display:inline-block;padding:4px 7px;border-radius:999px;font-size:11px;font-weight:700}.badge.ready{color:#166534;background:#dcfce7}.badge.done{color:#166534;background:#dcfce7}.badge.warn{color:#92400e;background:#fef3c7}.badge.err{color:#991b1b;background:#fee2e2}.badge.info{color:#1d4ed8;background:#dbeafe}.log{margin-top:12px;background:#0f172a;color:#dbeafe;border-radius:13px;padding:12px;max-height:220px;overflow:auto;font:12px/1.65 Consolas,monospace;white-space:pre-wrap}.hidden{display:none}.notice{margin-top:12px;padding:11px 12px;border-left:4px solid #60a5fa;background:#eff6ff;color:#334155;border-radius:9px;font-size:12px;line-height:1.65}.danger-note{border-left-color:#f59e0b;background:#fffbeb}.progress{height:8px;border-radius:999px;background:#e5e7eb;overflow:hidden;margin-top:10px}.progress>div{height:100%;width:0;background:linear-gradient(90deg,#2563eb,#7c3aed);transition:width .2s}.footer{font-size:11px;color:#64748b;text-align:center;margin-top:18px}@media(max-width:900px){.grid{grid-template-columns:1fr}.metrics{grid-template-columns:repeat(3,1fr)}.hero-top{display:block}.privacy{display:inline-block;margin-top:12px}}@media(max-width:560px){.metrics{grid-template-columns:repeat(2,1fr)}.hero{padding:20px}.hero h1{font-size:24px}.page{padding:14px 10px 40px}}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(180deg,#eef4ff 0,#f8fafc 260px,#f5f7fb 100%);color:var(--text);font-family:"Segoe UI","Microsoft YaHei","PingFang SC",sans-serif}.page{max-width:1320px;margin:0 auto;padding:28px 18px 56px}.hero{border-radius:24px;padding:26px 28px;background:linear-gradient(135deg,#0f3f96,#2563eb 62%,#6d28d9);color:#fff;box-shadow:0 20px 50px rgba(37,99,235,.22);margin-bottom:18px}.hero-top{display:flex;justify-content:space-between;gap:18px;align-items:flex-start}.hero h1{margin:4px 0 9px;font-size:30px}.hero p{margin:0;line-height:1.7;opacity:.93}.privacy{white-space:nowrap;border:1px solid rgba(255,255,255,.45);border-radius:999px;padding:7px 12px;font-size:12px;background:rgba(255,255,255,.1)}.steps{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}.step{font-size:12px;padding:7px 11px;border-radius:999px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.24)}.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}.card{background:var(--card);border:1px solid rgba(148,163,184,.22);border-radius:18px;padding:18px;box-shadow:var(--shadow);margin-bottom:16px}.card h2{font-size:17px;margin:0 0 6px}.sub{font-size:12px;color:var(--muted);line-height:1.65}.drop{margin-top:12px;min-height:140px;border:2px dashed #8db2ff;border-radius:16px;background:#f7faff;display:flex;align-items:center;justify-content:center;text-align:center;padding:18px;cursor:pointer;transition:.18s}.drop:hover,.drop.drag{border-color:var(--blue);background:#eef4ff;transform:translateY(-1px)}.drop strong{display:block;font-size:15px}.drop span{display:block;color:var(--muted);font-size:12px;margin-top:6px;line-height:1.6}input[type=file]{display:none}.btns{display:flex;gap:9px;flex-wrap:wrap;margin-top:12px}button{border:0;border-radius:11px;padding:10px 16px;font-weight:700;font-size:13px;cursor:pointer}button.primary{color:#fff;background:linear-gradient(135deg,var(--blue),var(--blue2));box-shadow:0 7px 18px rgba(37,99,235,.22)}button.secondary{background:#fff;color:#334155;border:1px solid var(--line)}button.danger{background:#fff;color:var(--red);border:1px solid #fecaca}button:disabled{opacity:.45;cursor:not-allowed;box-shadow:none}.selected{margin-top:11px;padding:10px 12px;border-radius:12px;background:#f8fafc;border:1px solid #e5e7eb;font-size:12px;line-height:1.6}.selected b{color:#0f172a}.ok{color:var(--green)}.warn{color:var(--amber)}.error{color:var(--red)}.info{color:var(--blue)}.status{margin-top:10px;font-size:12px;line-height:1.65;white-space:pre-line}.settings{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}.pill{padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:#f8fafc;font-size:12px;color:#475569}.metrics{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:9px;margin:14px 0}.metric{border:1px solid #e5e7eb;background:#fafcff;border-radius:13px;padding:11px}.metric b{font-size:21px;display:block}.metric span{font-size:11px;color:var(--muted)}.metric.hot{background:#fff1f2;border-color:#fecdd3}.metric.hot b{color:#b91c1c}.dashboard{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:12px;margin:14px 0 6px}.dash{border-radius:16px;padding:16px;border:1px solid #dbe3ee;background:#fff;box-shadow:0 8px 20px rgba(15,23,42,.05);cursor:pointer;transition:.16s;outline:none}.dash:hover{transform:translateY(-2px);box-shadow:0 12px 26px rgba(15,23,42,.10)}.dash:focus-visible{box-shadow:0 0 0 3px rgba(37,99,235,.22),0 12px 26px rgba(15,23,42,.10)}.dash.active{box-shadow:0 0 0 3px rgba(37,99,235,.28),0 12px 28px rgba(15,23,42,.12);transform:translateY(-1px)}.dash .num{font-size:28px;font-weight:800;line-height:1;margin-bottom:7px}.dash .label{font-size:13px;font-weight:700}.dash .hint{font-size:11px;color:#64748b;margin-top:5px;line-height:1.5}.dash.match{background:#eff6ff;border-color:#bfdbfe}.dash.edit{background:#fff7ed;border-color:#fed7aa}.dash.fail{background:#fff1f2;border-color:#fecdd3}.dash.done{background:#f0fdf4;border-color:#bbf7d0}.dash.extra{background:#f5f3ff;border-color:#ddd6fe}.dash.total{background:#f8fafc}@media(max-width:900px){.dashboard{grid-template-columns:repeat(2,1fr)}}@media(max-width:560px){.dashboard{grid-template-columns:1fr}}.folder-card{border:2px solid #dbeafe;background:linear-gradient(180deg,#fff,#fbfdff)}.folder-card h2{display:flex;align-items:center;gap:8px}.folder-callout{margin:10px 0 12px;padding:12px 14px;border-radius:12px;background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;font-size:13px;line-height:1.6}.folder-callout b{font-size:18px}.row-unprocessed td{background:#fffaf0}.row-error td{background:#fff7f7}.row-done td{background:#f7fff9}.toolbar{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}.toolbar-left{display:flex;gap:8px;flex-wrap:wrap}.filter{border:1px solid var(--line);background:#fff;border-radius:10px;padding:9px 10px;font-size:12px;color:#334155}.multi-picker{position:relative;min-width:210px}.multi-picker summary{list-style:none;cursor:pointer;border:1px solid var(--line);background:#fff;border-radius:10px;padding:9px 34px 9px 11px;font-size:12px;color:#334155;position:relative;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.multi-picker summary::-webkit-details-marker{display:none}.multi-picker summary:after{content:'▾';position:absolute;right:11px;top:8px;color:#64748b}.multi-picker[open] summary:after{content:'▴'}.multi-menu{position:absolute;z-index:30;left:0;top:calc(100% + 6px);width:280px;max-height:330px;overflow:auto;background:#fff;border:1px solid #dbe3ee;border-radius:12px;box-shadow:0 16px 38px rgba(15,23,42,.16);padding:8px}.multi-actions{display:flex;gap:6px;position:sticky;top:-8px;background:#fff;padding:4px 0 8px;border-bottom:1px solid #eef2f7;margin-bottom:5px;z-index:2}.multi-actions .primary{margin-left:auto}.multi-actions button{padding:6px 9px;font-size:11px}.multi-option{display:flex;gap:8px;align-items:center;padding:7px 6px;border-radius:8px;cursor:pointer;font-size:12px}.multi-option:hover{background:#f8fafc}.multi-option input{margin:0}.filter-group{display:flex;align-items:center;gap:8px;padding:7px 9px;border:1px solid var(--line);border-radius:12px;background:#f8fafc}.filter-title{font-size:12px;color:#475569;font-weight:700}.table-wrap{overflow:auto;margin-top:12px;border:1px solid #e2e8f0;border-radius:14px;max-height:580px}.main-result-table tbody tr{height:auto}.main-result-table tbody td{padding:7px 8px;line-height:1.35;vertical-align:top}.cell-clamp{white-space:normal;word-break:break-word;overflow:hidden;line-height:1.4}.clamp-2{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;max-height:2.8em}.clamp-3{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;max-height:4.2em}.cell-status{max-width:280px}.cell-action{min-width:210px;max-width:300px}.cell-path{min-width:300px;max-width:520px}.detail-panel{margin:12px 0 8px;border:1px solid #bfdbfe;background:#f8fbff;border-radius:16px;padding:14px}.detail-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px}.detail-title{font-weight:800;font-size:15px}.detail-count{font-size:12px;color:#64748b;margin-left:8px}.detail-table-wrap{max-height:360px;margin-top:8px}.detail-table td{white-space:normal;vertical-align:top}.detail-table .path{min-width:300px;max-width:480px}.detail-table .reason{min-width:220px;max-width:360px}.detail-empty{text-align:center;color:#94a3b8;padding:28px!important}table{width:100%;border-collapse:separate;border-spacing:0;font-size:12px;background:#fff}th,td{padding:8px 9px;border-right:1px solid #eef2f7;border-bottom:1px solid #eef2f7;vertical-align:top;white-space:nowrap}th{position:sticky;top:0;z-index:2;background:#eef4ff;color:#334155;text-align:left}td.name,td.code{white-space:normal;min-width:240px;line-height:1.5}.badge{display:inline-block;padding:4px 7px;border-radius:999px;font-size:11px;font-weight:700}.badge.ready{color:#166534;background:#dcfce7}.badge.done{color:#166534;background:#dcfce7}.badge.warn{color:#92400e;background:#fef3c7}.badge.err{color:#991b1b;background:#fee2e2}.badge.info{color:#1d4ed8;background:#dbeafe}.log{margin-top:12px;background:#0f172a;color:#dbeafe;border-radius:13px;padding:12px;max-height:220px;overflow:auto;font:12px/1.65 Consolas,monospace;white-space:pre-wrap}.hidden{display:none}.notice{margin-top:12px;padding:11px 12px;border-left:4px solid #60a5fa;background:#eff6ff;color:#334155;border-radius:9px;font-size:12px;line-height:1.65}.danger-note{border-left-color:#f59e0b;background:#fffbeb}.progress{height:8px;border-radius:999px;background:#e5e7eb;overflow:hidden;margin-top:10px}.progress>div{height:100%;width:0;background:linear-gradient(90deg,#2563eb,#7c3aed);transition:width .2s}.footer{font-size:11px;color:#64748b;text-align:center;margin-top:18px}@media(max-width:900px){.grid{grid-template-columns:1fr}.metrics{grid-template-columns:repeat(3,1fr)}.hero-top{display:block}.privacy{display:inline-block;margin-top:12px}}@media(max-width:560px){.metrics{grid-template-columns:repeat(2,1fr)}.hero{padding:20px}.hero h1{font-size:24px}.page{padding:14px 10px 40px}}
 </style>
 </head>
 <body>
@@ -58,7 +58,7 @@
       <span class="pill">支持多选；同时选择需求人和设计人时按两者交集匹配</span>
     </div>
     <div class="btns"><button id="scanBtn" class="primary" disabled>开始扫描预览</button><button id="colorExcelBtn" class="secondary" disabled>写入状态并上色保存原 Excel</button><button id="resetBtn" class="secondary">全部重置</button></div>
-    <div class="sub" style="margin-top:8px">保存时会在“需求人”前新增/更新「状态」列，同时按状态上色。写回前请先关闭正在打开的 WPS/Excel；保存后重新打开文件查看最新内容。</div>
+    <div class="sub" style="margin-top:8px">保存时会写入「状态」列并上色；另外，扫描到“文件夹有编码但 Excel 没有”的项目会追加到表格底部。写回前请先关闭 WPS/Excel。</div>
     <div id="scanStatus" class="status"></div>
     <div id="progress" class="progress hidden"><div id="progressBar"></div></div>
 
@@ -70,6 +70,7 @@
       <div class="dash fail" data-detail="unmatched" role="button" tabindex="0" aria-expanded="false"><div class="num" id="dUnmatched">0</div><div class="label">不能自动匹配</div><div class="hint">存在多个相似候选，系统不安全自动决定，需要人工确认</div></div>
       <div class="dash done" data-detail="done" role="button" tabindex="0" aria-expanded="false"><div class="num" id="dDone">0</div><div class="label">已经完成</div><div class="hint">目标结构已经存在或已执行整理完成</div></div>
       <div class="dash fail" data-detail="missingDemand" role="button" tabindex="0" aria-expanded="false"><div class="num" id="dMissingDemand">0</div><div class="label">Excel 有需求但文件夹没有</div><div class="hint">Excel 有需求，但扫描目录中没有找到可对应的治具文件夹</div></div>
+      <div class="dash extra" data-detail="extraCode" role="button" tabindex="0" aria-expanded="false"><div class="num" id="dExtraCode">0</div><div class="label">文件夹有编码但 Excel 没有</div><div class="hint">扫描到已经带治具编码的文件夹，但上传表格中没有该编码</div></div>
     </div>
 
     <div id="dashboardDetail" class="detail-panel hidden">
@@ -140,9 +141,9 @@
     <div id="log" class="log hidden"></div>
   </section>
 
-  <div class="footer">建议使用最新版桌面 Chrome / Edge。写回 Excel 前请先关闭 WPS/Excel；保存后重新打开文件查看最新状态列。工具版本：2026-09-22.6</div>
+  <div class="footer">建议使用最新版桌面 Chrome / Edge。写回 Excel 前请先关闭 WPS/Excel；保存后重新打开文件查看最新状态列。工具版本：2026-09-22.7</div>
 </div>
-<script src="../fixture-code-checker/excel.js?v=20260922-4"></script>
+<script src="../fixture-code-checker/excel.js?v=20260922-5"></script>
 <script>
 (function(){
 'use strict';
@@ -153,7 +154,7 @@ var folderDrop=document.getElementById('folderDrop'),pickFolder=document.getElem
 var scanBtn=document.getElementById('scanBtn'),colorExcelBtn=document.getElementById('colorExcelBtn'),colorExcelBtnBottom=document.getElementById('colorExcelBtnBottom'),pickWritableExcel=document.getElementById('pickWritableExcel'),resetBtn=document.getElementById('resetBtn'),scanStatus=document.getElementById('scanStatus'),executeBtn=document.getElementById('executeBtn'),executeStatus=document.getElementById('executeStatus'),rowsEl=document.getElementById('rows');
 var filterEl=document.getElementById('filter'),searchEl=document.getElementById('search'),progress=document.getElementById('progress'),progressBar=document.getElementById('progressBar'),logEl=document.getElementById('log');
 var folderRowsEl=document.getElementById('folderRows'),folderFilterEl=document.getElementById('folderFilter'),folderSearchEl=document.getElementById('folderSearch'),folderCallout=document.getElementById('folderCallout'),requesterFilterEl=document.getElementById('requesterFilter'),requesterOptionsEl=document.getElementById('requesterOptions'),requesterSummaryEl=document.getElementById('requesterSummary'),designerFilterEl=document.getElementById('designerFilter'),designerOptionsEl=document.getElementById('designerOptions'),designerSummaryEl=document.getElementById('designerSummary'),missingDemandRowsEl=document.getElementById('missingDemandRows'),dashboardDetailEl=document.getElementById('dashboardDetail'),dashboardDetailTitleEl=document.getElementById('dashboardDetailTitle'),dashboardDetailCountEl=document.getElementById('dashboardDetailCount'),dashboardDetailRowsEl=document.getElementById('dashboardDetailRows'),dashboardDetailCloseEl=document.getElementById('dashboardDetailClose');
-var records=[],rootHandle=null,excelHandle=null,currentExcelName='',currentBook=null,currentSheet=null,currentHeader=null,currentCols=null,plans=[],folderStates=[],scannedFolders=[],isBusy=false,activeDashboardDetail=null;
+var records=[],rootHandle=null,excelHandle=null,currentExcelName='',currentBook=null,currentSheet=null,currentHeader=null,currentCols=null,plans=[],folderStates=[],scannedFolders=[],extraCodeFolders=[],isBusy=false,activeDashboardDetail=null;
 
 function clean(v){return String(v==null?'':v).trim();}
 function normHeader(v){return clean(v).normalize('NFKC').replace(/\s+/g,'').replace(/^\*+/, '');}
@@ -220,16 +221,25 @@ function nameSimilarity(a,b){
   return Math.max(0,Math.min(1,charScore*0.42+desc*0.34+coverage*0.16+jaccard*0.08));
 }
 
+function normalizeCodeKey(v){
+  return clean(v).normalize('NFKC').toUpperCase().replace(/[～〜至]/g,'~').replace(/\s+/g,'');
+}
+function parseCodedFolderName(v){
+  var s=clean(v).normalize('NFKC');
+  var m=s.match(/^([A-Za-z][A-Za-z0-9]*\d+(?:\s*[~～〜至]\s*(?:[A-Za-z][A-Za-z0-9]*\d+|\d+))?)\s+(.+)$/);
+  if(!m)return null;
+  return{code:m[1].trim(),codeKey:normalizeCodeKey(m[1]),name:m[2].trim(),fullName:s};
+}
 function safeName(v){return clean(v).replace(/[\\/:*?"<>|]/g,function(ch){return {'\\':'＼','/':'／',':':'：','*':'＊','?':'？','"':'＂','<':'＜','>':'＞','|':'｜'}[ch]||'＿';}).replace(/[\. ]+$/g,'').slice(0,220);}
 function ext(name){var m=String(name||'').toLowerCase().match(/\.([^.]+)$/);return m?m[1]:'';}
 function isPdf(name){return ext(name)==='pdf';}
 function isStep(name){var e=ext(name);return e==='step'||e==='stp';}
-function statusClass(p){if(p.state==='ready')return'ready';if(p.state==='done')return'done';if(p.state==='matched')return'info';if(p.state==='missing'||p.state==='ambiguous'||p.state==='conflict'||p.state==='invalid')return'err';return'warn';}
-function statusText(p){var map={ready:'可整理',done:'已经整理',missing:'未匹配/缺文件',ambiguous:'匹配不唯一',conflict:'目标已存在',invalid:'编码+名称无效',matched:'已匹配',error:'扫描失败'};return map[p.state]||p.state;}
+function statusClass(p){if(p.state==='ready')return'ready';if(p.state==='done')return'done';if(p.state==='extraCode')return'warn';if(p.state==='matched')return'info';if(p.state==='missing'||p.state==='ambiguous'||p.state==='conflict'||p.state==='invalid')return'err';return'warn';}
+function statusText(p){var map={ready:'可整理',done:'已经整理',extraCode:'文件夹有编码但Excel没有',missing:'未匹配/缺文件',ambiguous:'匹配不唯一',conflict:'目标已存在',invalid:'编码+名称无效',matched:'已匹配',error:'扫描失败'};return map[p.state]||p.state;}
 function actionText(p){if(p.state==='done')return'无需处理';if(p.action==='renameChild')return'把“'+p.sourceChildName+'”整理为目标名称';if(p.action==='wrapRootFiles')return'新建目标子文件夹并移入 '+p.moveFileNames.length+' 个文件';return p.note||'—';}
 function setStatus(el,text,type){el.className='status '+(type||'');el.textContent=text||'';}
-function setBusy(v){isBusy=v;scanBtn.disabled=v||!records.length||!rootHandle;executeBtn.disabled=v||!plans.some(function(p){return p.state==='ready';});colorExcelBtn.disabled=v||!plans.length;colorExcelBtnBottom.disabled=v||!plans.length;resetBtn.disabled=v;pickFolder.disabled=v;pickWritableExcel.disabled=v;}
-function updateReady(){scanBtn.disabled=isBusy||!records.length||!rootHandle;executeBtn.disabled=isBusy||!plans.some(function(p){return p.state==='ready';});colorExcelBtn.disabled=isBusy||!plans.length;colorExcelBtnBottom.disabled=isBusy||!plans.length;}
+function setBusy(v){isBusy=v;scanBtn.disabled=v||!records.length||!rootHandle;executeBtn.disabled=v||!plans.some(function(p){return p.state==='ready';});colorExcelBtn.disabled=v||(!plans.length&&!extraCodeFolders.length);colorExcelBtnBottom.disabled=v||(!plans.length&&!extraCodeFolders.length);resetBtn.disabled=v;pickFolder.disabled=v;pickWritableExcel.disabled=v;}
+function updateReady(){scanBtn.disabled=isBusy||!records.length||!rootHandle;executeBtn.disabled=isBusy||!plans.some(function(p){return p.state==='ready';});colorExcelBtn.disabled=isBusy||(!plans.length&&!extraCodeFolders.length);colorExcelBtnBottom.disabled=isBusy||(!plans.length&&!extraCodeFolders.length);}
 function log(s){logEl.classList.remove('hidden');logEl.textContent+=(logEl.textContent?'\n':'')+s;logEl.scrollTop=logEl.scrollHeight;}
 function setProgress(done,total){progress.classList.remove('hidden');progressBar.style.width=(total?Math.round(done/total*100):0)+'%';if(done>=total)setTimeout(function(){progress.classList.add('hidden');},500);}
 
@@ -283,7 +293,7 @@ function populatePeopleFilters(){
 }
 function peopleFilterChanged(){
   hideDashboardDetail();
-  plans=[];folderStates=[];
+  plans=[];folderStates=[];extraCodeFolders=[];
   renderRows();renderFolderRows();renderMissingDemands();updateMetrics([]);
   refreshPickerSummary();
   setStatus(scanStatus,'已切换人员筛选，请重新点击“开始扫描预览”。','info');
@@ -367,9 +377,9 @@ function excelStatusText(p){
 }
 async function saveExcelColors(){
   if(!window.FixtureExcel||typeof window.FixtureExcel.applyStatusColumnAndRowFills!=='function'){setStatus(excelStatus,'当前页面仍是旧缓存版本，不能写入“状态”列。请按 Ctrl + F5 强制刷新后再试。','error');return;}
-  if(!plans.length){setStatus(scanStatus,'请先完成一次扫描，再执行上色。','warn');return;}
+  if(!plans.length&&!extraCodeFolders.length){setStatus(scanStatus,'请先完成一次扫描，再执行写入。','warn');return;}
   if(!excelHandle||!currentBook||!currentSheet){var attached=await attachWritableExcelForCurrentScan();if(!attached)return;}
-  var ok=confirm('将直接修改当前原始 Excel：在“需求人”前新增/更新「状态」列，并给对应行上色。\n\n浅绿=已完成\n浅蓝=可整理\n浅黄=不能自动匹配/需人工确认\n浅红=Excel有需求但文件夹没有\n浅橙=其他异常\n\n不会生成下载副本。确认继续吗？');
+  var ok=confirm('将直接修改当前原始 Excel：\n1）在“需求人”前新增/更新「状态」列并上色；\n2）把“文件夹有编码但 Excel 没有”的 '+extraCodeFolders.length+' 项追加到表格底部。\n\n不会生成下载副本。确认继续吗？');
   if(!ok)return;
   setBusy(true);setStatus(excelStatus,'正在生成完整 Excel 并写回原文件…','info');
   try{
@@ -377,15 +387,27 @@ async function saveExcelColors(){
     if(!currentCols||!currentCols.requester)throw new Error('没有找到“需求人”列，无法在其前面插入状态列');
     var rowColors=plans.map(function(p){return[p.row,excelRowColor(p)];});
     var statusValues=plans.map(function(p){return[p.row,excelStatusText(p)];});
-    var blob=window.FixtureExcel.applyStatusColumnAndRowFills(currentBook,currentSheet,currentHeader,currentCols.requester,statusValues,rowColors);
+    var selectedRequesters=selectedPickerValues(requesterOptionsEl),selectedDesigners=selectedPickerValues(designerOptionsEl);
+    var extraRows=extraCodeFolders.map(function(x){
+      return{
+        name:x.name,
+        codeName:x.fullName,
+        status:'文件夹有编码但Excel没有',
+        requester:selectedRequesters.length===1?selectedRequesters[0]:'',
+        designer:selectedDesigners.length===1?selectedDesigners[0]:'',
+        color:'FFE4DFEC'
+      };
+    });
+    var blob=window.FixtureExcel.applyStatusColumnAndRowFills(currentBook,currentSheet,currentHeader,currentCols.requester,statusValues,rowColors,extraRows,currentCols);
     var writable=await excelHandle.createWritable();
     try{await writable.write(blob);await writable.close();}catch(e){try{await writable.abort();}catch(_){}throw e;}
     var fresh=await excelHandle.getFile(),parsed=await parseExcel(fresh);
     var headerRowObj=parsed.sheet.rows.find(function(r){return r.number===parsed.header;});
     var statusValue=headerRowObj&&parsed.cols.requester?normHeader(headerRowObj.cells[parsed.cols.requester-1]||''):'';
     if(statusValue!=='状态')throw new Error('文件已写入，但复核时没有检测到“状态”列，请先关闭 WPS/Excel 后重试');
-    currentBook=parsed.book;currentSheet=parsed.sheet;currentHeader=parsed.header;currentCols=parsed.cols;
-    setStatus(excelStatus,'保存成功：已在“需求人”前写入“状态”列并完成上色。若 WPS/Excel 已打开，请关闭后重新打开文件查看。','ok');
+    currentBook=parsed.book;currentSheet=parsed.sheet;currentHeader=parsed.header;currentCols=parsed.cols;records=parsed.rows;populatePeopleFilters();
+    var appendedCount=extraCodeFolders.length;extraCodeFolders=[];hideDashboardDetail();updateMetrics([]);
+    setStatus(excelStatus,'保存成功：已写入状态并上色'+(appendedCount?'，同时把 '+appendedCount+' 个“文件夹有编码但 Excel 没有”的项目追加到表格底部':'')+'。重新打开 WPS/Excel 查看。','ok');
   }catch(e){
     setStatus(excelStatus,'写回 Excel 失败：'+(e.message||e)+'。如果文件正在 WPS/Excel 中打开，请先关闭后重试。','error');
   }finally{setBusy(false);updateReady();}
@@ -394,7 +416,7 @@ async function saveExcelColors(){
 async function requestRW(handle){if(!handle)return false;if(!handle.requestPermission)return true;var q=handle.queryPermission?await handle.queryPermission({mode:'readwrite'}):'prompt';if(q==='granted')return true;return(await handle.requestPermission({mode:'readwrite'}))==='granted';}
 async function chooseFolder(){
   if(!window.showDirectoryPicker){setStatus(folderStatus,'当前浏览器不支持本地文件夹读写。请使用最新版桌面 Chrome 或 Edge。','error');return;}
-  try{var h=await window.showDirectoryPicker({mode:'readwrite'});rootHandle=h;folderSelected.innerHTML='<b>'+escapeHtml(h.name)+'</b><br>已授权本地文件夹';setStatus(folderStatus,'已选择总文件夹。扫描阶段不会修改文件。','ok');clearFolder.disabled=false;plans=[];folderStates=[];renderRows();renderFolderRows();updateMetrics([]);}
+  try{var h=await window.showDirectoryPicker({mode:'readwrite'});rootHandle=h;folderSelected.innerHTML='<b>'+escapeHtml(h.name)+'</b><br>已授权本地文件夹';setStatus(folderStatus,'已选择总文件夹。扫描阶段不会修改文件。','ok');clearFolder.disabled=false;plans=[];folderStates=[];extraCodeFolders=[];renderRows();renderFolderRows();updateMetrics([]);}
   catch(e){if(e&&e.name!=='AbortError')setStatus(folderStatus,'选择文件夹失败：'+(e.message||e),'error');}
   updateReady();
 }
@@ -464,7 +486,7 @@ async function scanOne(rec,folder){
 }
 
 async function scanAll(){
-  hideDashboardDetail();var scanRecords=currentRecords();if(isBusy||!scanRecords.length||!rootHandle)return;setBusy(true);plans=[];folderStates=[];rowsEl.innerHTML='';folderRowsEl.innerHTML='';logEl.textContent='';logEl.classList.add('hidden');setStatus(scanStatus,'正在递归扫描所有层级文件夹并匹配 Excel…','info');
+  hideDashboardDetail();var scanRecords=currentRecords();if(isBusy||!scanRecords.length||!rootHandle)return;setBusy(true);plans=[];folderStates=[];extraCodeFolders=[];rowsEl.innerHTML='';folderRowsEl.innerHTML='';logEl.textContent='';logEl.classList.add('hidden');setStatus(scanStatus,'正在递归扫描所有层级文件夹并匹配 Excel…','info');
   try{
     var collected=await collectDirectories(rootHandle,10,12000),folderList=collected.folders;scannedFolders=folderList;
     document.getElementById('mFolders').textContent=folderList.length;
@@ -551,6 +573,19 @@ async function scanAll(){
     }
     plans.sort(function(a,b){return a.row-b.row;});
 
+    // 反向检查：文件夹里已经有“编码+名称”，但整个上传 Excel 都没有这个编码。
+    // 使用整个 Excel（不是当前人员筛选）做对比，避免把其他需求人的正常编码误报成“Excel没有”。
+    var excelCodeKeys=new Set(records.map(function(r){
+      var parsed=parseCodedFolderName(r.codeName);return parsed?parsed.codeKey:'';
+    }).filter(Boolean));
+    var seenExtraCodes=new Set();
+    extraCodeFolders=folderList.map(function(folder){
+      var parsed=parseCodedFolderName(folder.name);
+      if(!parsed||excelCodeKeys.has(parsed.codeKey)||seenExtraCodes.has(parsed.codeKey))return null;
+      seenExtraCodes.add(parsed.codeKey);
+      return{path:folder.path,name:parsed.name,code:parsed.code,codeKey:parsed.codeKey,fullName:parsed.fullName,folder:folder};
+    }).filter(Boolean);
+
     // 文件夹视图只列出真正匹配到 Excel 的“治具文件夹”，无论它位于第几层。
     // 普通容器目录（例如“CB封盖”“金属盖板组装”）不会再被误报成“Excel无对应项”。
     folderStates=plans.filter(function(p){return p.folderHandle&&p.folderPath;}).map(function(p){
@@ -558,7 +593,7 @@ async function scanAll(){
     });
     renderRows();renderFolderRows();renderMissingDemands();updateMetrics(folderList);
     var pending=folderStates.filter(function(x){return x.state!=='done';}).length;
-    setStatus(scanStatus,'递归扫描完成：共扫描 '+folderList.length+' 个目录（包含你选择的根目录），匹配到治具文件夹 '+folderStates.length+' 个，其中未处理 '+pending+' 个。下方按完整路径显示。','ok');
+    setStatus(scanStatus,'递归扫描完成：共扫描 '+folderList.length+' 个目录，匹配到治具文件夹 '+folderStates.length+' 个；另发现 '+extraCodeFolders.length+' 个“文件夹有编码但 Excel 没有”的项目。点击看板可查看明细。','ok');
   }catch(e){setStatus(scanStatus,'扫描失败：'+(e.message||e),'error');}
   finally{setBusy(false);updateReady();}
 }
@@ -685,10 +720,11 @@ function dashboardItems(type){
   if(type==='unmatched')return plans.filter(function(p){return !p.folderHandle&&p.state==='ambiguous';}).map(function(p){return{folderPath:p.folderName&&p.folderName!=='—'?p.folderName:'—',plan:p};});
   if(type==='done')return plans.filter(function(p){return p.state==='done';}).map(function(p){return{folderPath:p.folderPath||'—',plan:p};});
   if(type==='missingDemand')return plans.filter(function(p){return !p.folderHandle&&p.state==='missing';}).map(function(p){return{folderPath:'—',plan:p};});
+  if(type==='extraCode')return extraCodeFolders.map(function(x){return{folderPath:x.path,plan:{row:null,name:x.name,codeName:x.fullName,state:'extraCode',note:'文件夹存在编码 '+x.code+'，但上传 Excel 中没有该编码'},extra:x};});
   return[];
 }
 function dashboardTitle(type){
-  return{scanned:'已扫描文件夹明细',matched:'已匹配治具文件夹明细',edit:'需要修改 / 整理明细',unmatched:'不能自动匹配明细',done:'已经完成明细',missingDemand:'Excel 有需求但文件夹没有'}[type]||'明细';
+  return{scanned:'已扫描文件夹明细',matched:'已匹配治具文件夹明细',edit:'需要修改 / 整理明细',unmatched:'不能自动匹配明细',done:'已经完成明细',missingDemand:'Excel 有需求但文件夹没有',extraCode:'文件夹有编码但 Excel 没有'}[type]||'明细';
 }
 function dashboardStatusText(item){
   var p=item.plan;
@@ -739,6 +775,7 @@ function updateMetrics(folderList){
   var unmatched=dashboardItems('unmatched').length;
   var done=dashboardItems('done').length;
   var missingDemand=dashboardItems('missingDemand').length;
+  var extraCode=dashboardItems('extraCode').length;
   var selectedRecords=currentRecords();
   document.getElementById('mExcel').textContent=selectedRecords.length;
   document.getElementById('mMatched').textContent=matched;
@@ -753,10 +790,11 @@ function updateMetrics(folderList){
   document.getElementById('dUnmatched').textContent=unmatched;
   document.getElementById('dDone').textContent=done;
   document.getElementById('dMissingDemand').textContent=missingDemand;
+  document.getElementById('dExtraCode').textContent=extraCode;
   if(activeDashboardDetail)renderDashboardDetail();
   updateReady();
 }
-function resetAll(){hideDashboardDetail();records=[];rootHandle=null;excelHandle=null;currentExcelName='';currentBook=null;currentSheet=null;currentHeader=null;currentCols=null;plans=[];folderStates=[];scannedFolders=[];if(requesterOptionsEl)requesterOptionsEl.innerHTML='';if(designerOptionsEl)designerOptionsEl.innerHTML='';if(requesterSummaryEl)requesterSummaryEl.textContent='全部需求人';if(designerSummaryEl)designerSummaryEl.textContent='全部设计人';excelInput.value='';excelSelected.textContent='尚未选择 Excel';folderSelected.textContent='尚未选择文件夹';clearFolder.disabled=true;setStatus(excelStatus,'','');setStatus(folderStatus,'','');setStatus(scanStatus,'','');setStatus(executeStatus,'','');document.getElementById('mFolders').textContent='0';logEl.textContent='';logEl.classList.add('hidden');renderRows();renderFolderRows();renderMissingDemands();updateMetrics([]);updateReady();}
+function resetAll(){hideDashboardDetail();records=[];rootHandle=null;excelHandle=null;currentExcelName='';currentBook=null;currentSheet=null;currentHeader=null;currentCols=null;plans=[];folderStates=[];scannedFolders=[];extraCodeFolders=[];if(requesterOptionsEl)requesterOptionsEl.innerHTML='';if(designerOptionsEl)designerOptionsEl.innerHTML='';if(requesterSummaryEl)requesterSummaryEl.textContent='全部需求人';if(designerSummaryEl)designerSummaryEl.textContent='全部设计人';excelInput.value='';excelSelected.textContent='尚未选择 Excel';folderSelected.textContent='尚未选择文件夹';clearFolder.disabled=true;setStatus(excelStatus,'','');setStatus(folderStatus,'','');setStatus(scanStatus,'','');setStatus(executeStatus,'','');document.getElementById('mFolders').textContent='0';logEl.textContent='';logEl.classList.add('hidden');renderRows();renderFolderRows();renderMissingDemands();updateMetrics([]);updateReady();}
 
 excelDrop.addEventListener('click',function(){excelInput.click();});excelDrop.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' ')excelInput.click();});excelInput.addEventListener('change',function(e){handleExcel(e.target.files[0],null);});pickWritableExcel.addEventListener('click',chooseWritableExcel);colorExcelBtn.addEventListener('click',saveExcelColors);colorExcelBtnBottom.addEventListener('click',saveExcelColors);
 ['dragenter','dragover'].forEach(function(ev){excelDrop.addEventListener(ev,function(e){e.preventDefault();excelDrop.classList.add('drag');});folderDrop.addEventListener(ev,function(e){e.preventDefault();folderDrop.classList.add('drag');});});
@@ -773,8 +811,8 @@ excelDrop.addEventListener('drop',async function(e){
     var fs=Array.from(e.dataTransfer.files||[]);if(fs[0])await handleExcel(fs[0],null);
   }catch(err){setStatus(excelStatus,'拖入 Excel 失败：'+(err.message||err),'error');}
 });
-folderDrop.addEventListener('click',chooseFolder);pickFolder.addEventListener('click',chooseFolder);clearFolder.addEventListener('click',function(){hideDashboardDetail();rootHandle=null;plans=[];folderStates=[];folderSelected.textContent='尚未选择文件夹';clearFolder.disabled=true;setStatus(folderStatus,'','');renderRows();renderFolderRows();updateMetrics([]);updateReady();});
-folderDrop.addEventListener('drop',async function(e){try{var items=Array.from(e.dataTransfer.items||[]);for(var i=0;i<items.length;i++){if(items[i].getAsFileSystemHandle){var h=await items[i].getAsFileSystemHandle();if(h&&h.kind==='directory'){rootHandle=h;folderSelected.innerHTML='<b>'+escapeHtml(h.name)+'</b><br>已从拖拽读取文件夹';setStatus(folderStatus,'已选择总文件夹。扫描阶段不会修改文件。','ok');clearFolder.disabled=false;plans=[];folderStates=[];renderRows();renderFolderRows();updateMetrics([]);updateReady();return;}}}setStatus(folderStatus,'没有读取到文件夹。请点击“选择总文件夹”。','warn');}catch(err){setStatus(folderStatus,'拖拽文件夹失败：'+(err.message||err),'warn');}});
+folderDrop.addEventListener('click',chooseFolder);pickFolder.addEventListener('click',chooseFolder);clearFolder.addEventListener('click',function(){hideDashboardDetail();rootHandle=null;plans=[];folderStates=[];extraCodeFolders=[];folderSelected.textContent='尚未选择文件夹';clearFolder.disabled=true;setStatus(folderStatus,'','');renderRows();renderFolderRows();updateMetrics([]);updateReady();});
+folderDrop.addEventListener('drop',async function(e){try{var items=Array.from(e.dataTransfer.items||[]);for(var i=0;i<items.length;i++){if(items[i].getAsFileSystemHandle){var h=await items[i].getAsFileSystemHandle();if(h&&h.kind==='directory'){rootHandle=h;folderSelected.innerHTML='<b>'+escapeHtml(h.name)+'</b><br>已从拖拽读取文件夹';setStatus(folderStatus,'已选择总文件夹。扫描阶段不会修改文件。','ok');clearFolder.disabled=false;plans=[];folderStates=[];extraCodeFolders=[];renderRows();renderFolderRows();updateMetrics([]);updateReady();return;}}}setStatus(folderStatus,'没有读取到文件夹。请点击“选择总文件夹”。','warn');}catch(err){setStatus(folderStatus,'拖拽文件夹失败：'+(err.message||err),'warn');}});
 function closePeoplePickers(except){
   [requesterFilterEl,designerFilterEl].forEach(function(el){if(el&&el!==except)el.removeAttribute('open');});
 }
