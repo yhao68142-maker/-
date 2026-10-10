@@ -86,7 +86,7 @@ function matchRows(target,source){
  const results=target.map(t=>({...t,candidates:[],selected:null,reason:null,matchMode:null,status:'missing'}));
  for(const [ti,pair]of ordered){
   const s=source[pair.sourceIndex],candidate={...s,rows:[s.row],sourceIndices:[pair.sourceIndex],count:codeCount(s.code)},hasCode=!!s.code;
-  results[ti]={...target[ti],candidates:hasCode?[candidate]:[],selected:hasCode?0:null,reason:hasCode?'order':null,matchMode:pair.mode,status:hasCode?'matched':'noCode'};
+  results[ti]={...target[ti],candidates:hasCode?[candidate]:[],selected:hasCode?0:null,reason:hasCode?'order':null,matchMode:pair.mode,sourceRows:[s.row],status:hasCode?'matched':'noCode'};
  }
  for(let ti=0;ti<m;ti++){
   if(ordered.has(ti))continue;
@@ -97,9 +97,22 @@ function matchRows(target,source){
   const groups=groupCandidates(hits),candidates=groups.filter(g=>g.code);let selected=candidates.length===1?0:null,reason=selected===0?'fallback':null;
   if(candidates.length>1&&t.quantity!==null&&t.quantity!==undefined){const fitting=candidates.map((candidate,index)=>candidate.count===t.quantity?index:-1).filter(index=>index>=0);if(fitting.length===1){selected=fitting[0];reason='quantity'}}
   if(selected!==null)for(const sourceIndex of candidates[selected].sourceIndices)usedSource.add(sourceIndex);
-  results[ti]={...t,candidates,selected,reason,matchMode:hits.length?matchMode:null,status:candidates.length===1?'matched':candidates.length>1?'ambiguous':hits.length?'noCode':'missing'};
+  results[ti]={...t,candidates,selected,reason,matchMode:hits.length?matchMode:null,sourceRows:hits.map(x=>x.source.row),unavailableRows:!hits.length?source.filter((s,index)=>usedSource.has(index)&&nameMatchMode(t.name,s.name)).map(s=>s.row):[],status:candidates.length===1?'matched':candidates.length>1?'ambiguous':hits.length?'noCode':'missing'};
  }
  return results;
+}
+
+
+function unresolvedReason(r){
+ if(r.selected!==null)return '';
+ if(r.candidates.length)return '存在多个候选，无法唯一确定；请在网页中选择对应编码';
+ if(r.status==='noCode')return '名称匹配到，但审批流程表治工具编号为空'+(r.sourceRows?.length?'（流程表第 '+r.sourceRows.join('、')+' 行）':'');
+ if(r.unavailableRows?.length)return '对应流程记录已分配给其他审核项目，不能自动重复使用（流程表第 '+r.unavailableRows.join('、')+' 行）';
+ return '审批流程表中未找到符合名称匹配规则的记录';
+}
+function resultCodeValue(r){
+ const c=r.selected===null?null:r.candidates[r.selected];
+ return c?c.code+' '+c.name:'未填编码原因：'+unresolvedReason(r);
 }
 
 function shiftRef(s,at,delta=1){return s.replace(/(\$?)([A-Z]{1,3})(\$?\d+)/g,(m,a,b,c)=>colNum(b)>=at?a+colName(colNum(b)+delta)+c:m)}
@@ -284,5 +297,5 @@ function applyRowFills(book,sheet,rowColorEntries){
  }
  entries.set('xl/styles.xml',enc.encode(serialize(stylesDoc)));entries.set(sheet.path,enc.encode(serialize(d)));return zip(entries);
 }
-window.FixtureExcel={codeCount,parseQuantity,readWorkbook,detect,records,matchRows,exportColumn,exportColumns,applyRowFills,applyStatusColumnAndRowFills,colName};
+window.FixtureExcel={unresolvedReason,resultCodeValue,codeCount,parseQuantity,readWorkbook,detect,records,matchRows,exportColumn,exportColumns,applyRowFills,applyStatusColumnAndRowFills,colName};
 })();
