@@ -132,7 +132,7 @@
       <div class="muted" style="margin-top:6px">
         标准化字符 → 提取首个编号/范围编号 → 解析可选 TL/TW/TA 厂区前缀 → 解析 O/T/R/S/M 部门 →
         按当前规则表校验机种代码（RX 包含 Q3、Z01~Z12） → 部门筛选 → 可选高级正则 →
-        支持源目录本身、一级及深层编码目录 → 复制时发生同名目录将自动改为 _2、_3，避免覆盖原目标文件。
+        支持源目录本身、一级及深层编码目录 → 同名及“ - 副本”目录复用；相同文件跳过，不同内容保留副本。数字后缀目录仅在内容完全相同时去重，避免误合并。
       </div>
     </div>
   </div>
@@ -369,26 +369,103 @@
     stat.textContent=`命中编码文件夹：${total} 个 · 已选中：${selected} 个`;
   }
 
-  async function copyFile(srcFileHandle,dstDirHandle){
-    const file=await srcFileHandle.getFile(),dstFileHandle=await dstDirHandle.getFileHandle(srcFileHandle.name,{create:true}),w=await dstFileHandle.createWritable();
-    await w.write(await file.arrayBuffer());await w.close();
+  async function getEntry(parent,name){
+    for await(const [entryName,handle] of parent.entries())if(entryName===name)return handle;
+    return null;
   }
-  async function ensureSubDir(parent,name){return await parent.getDirectoryHandle(name,{create:true})}
-  async function copyDirContents(src,dst){
-    for await(const [name,h] of src.entries()){
-      if(h.kind==='file') await copyFile(h,dst);
-      else if(h.kind==='directory'){const sub=await ensureSubDir(dst,name);await copyDirContents(h,sub)}
+  async function sameFile(a,b){
+    const x=await a.getFile(),y=await b.getFile();
+    if(x.size!==y.size)return false;
+    const chunk=1024*1024;
+    for(let offset=0;offset<x.size;offset+=chunk){
+      const p=new Uint8Array(await x.slice(offset,offset+chunk).arrayBuffer());
+      const q=new Uint8Array(await y.slice(offset,offset+chunk).arrayBuffer());
+      if(p.some((v,i)=>v!==q[i]))return false;
+    }
+    return true;
+  }
+  async function sameContents(a,b){
+    const left=new Map(),right=new Map();
+    for await(const [n,h] of a.entries())left.set(n,h);
+    for await(const [n,h] of b.entries())right.set(n,h);
+    if(left.size!==right.size)return false;
+    for(const [n,h] of left){
+      const other=right.get(n);
+      if(!other||other.kind!==h.kind)return false;
+      if(h.kind==='file'?!await sameFile(h,other):!await sameContents(h,other))return false;
+    }
+    return true;
+  }
+  async function entryExists(parent,name){return !!await getEntry(parent,name)}
+  async function uniqueDirName(parent,name){
+    if(!await entryExists(parent,name))return name;
+    let n=2;while(await entryExists(parent,name+'_'+n))n++;
+    return name+'_'+n;
+  }
+  async function ensureSubDir(parent,name){return parent.getDirectoryHandle(name,{create:true})}
+  async function copyFile(src,dst,report=[]){
+    const name=src.name,existing=await getEntry(dst,name);
+    if(existing?.kind==='file'&&await sameFile(src,existing))return;
+    let target=name;
+    if(existing){
+      const dot=name.lastIndexOf('.'),stem=dot>0?name.slice(0,dot):name,ext=dot>0?name.slice(dot):'';
+      for(let n=2;;n++){
+        target=stem+' (保留副本 '+n+')'+ext;
+        const candidate=await getEntry(dst,target);
+        if(!candidate)break;
+        if(candidate.kind==='file'&&await sameFile(src,candidate))return;
+      }
+      report.push('同名内容不同，保留文件：'+name+' → '+target);
+    }
+    const file=await src.getFile(),out=await dst.getFileHandle(target,{create:true}),w=await out.createWritable();
+    try{await w.write(file);await w.close()}catch(e){try{await w.abort()}catch{}throw e}
+  }
+  async function copyDirContents(src,dst,report=[]){
+    if(await src.isSameEntry(dst))return;
+    // Snapshot before creating entries; never traverse a destination nested in source.
+    const entries=[];for await(const pair of src.entries())entries.push(pair);
+    for(const [name,h] of entries){
+      if(h.kind==='file')await copyFile(h,dst,report);
+      else{
+        const existing=await getEntry(dst,name);
+        const target=existing?.kind==='file'?await uniqueDirName(dst,name):name;
+        if(target!==name)report.push('文件与目录同名，保留目录：'+name+' → '+target);
+        await copyDirContents(h,await ensureSubDir(dst,target),report);
+      }
     }
   }
-  async function entryExists(parent,name){try{await parent.getDirectoryHandle(name);return true}catch{return false}}
-  async function uniqueDirName(parent,name){
-    if(!await entryExists(parent,name)) return name;
-    let n=2;while(await entryExists(parent,`${name}_${n}`))n++;
-    return `${name}_${n}`;
+  function copyIdentity(name){
+    const clean=String(name).normalize('NFKC').trim();
+    const base=clean.replace(/(?:\s*-\s*副本(?:\s*\(\d+\))?)+$/i,'').trim();
+    const numeric=base.match(/^(.*)_([2-9]\d*|1\d+)$/);
+    return {base,numericBase:numeric?.[1],explicit:base!==clean};
   }
-  async function copyDir(srcHandle,dstParent,forcedName){
-    const safeName=await uniqueDirName(dstParent,forcedName||srcHandle.name);
-    const dstHere=await ensureSubDir(dstParent,safeName);await copyDirContents(srcHandle,dstHere);return safeName;
+  async function copyDir(src,dst,forcedName,report=[]){
+    if(await src.isSameEntry(dst))throw new Error('源目录与目标目录相同，已停止');
+    if(await src.resolve(dst)!==null||await dst.resolve(src)!==null)throw new Error('源目录与目标目录存在包含关系，已停止');
+    const name=forcedName||src.name,id=copyIdentity(name);
+    const entries=[];for await(const pair of dst.entries())entries.push(pair);
+    let target=null;
+    for(const [n,h] of entries){
+      if(h.kind!=='directory')continue;
+      const other=copyIdentity(n);
+      if(other.base===id.base){target=h;break}
+    }
+    // Numeric suffixes can be real part names. Only fold them when every byte matches.
+    if(!target){
+      for(const [n,h] of entries){
+        if(h.kind!=='directory')continue;
+        const other=copyIdentity(n);
+        if((id.numericBase||id.base)===(other.numericBase||other.base)){
+          if(await sameContents(src,h)){report.push('内容相同，复用目录：'+name+' → '+n);return n}
+          report.push('数字后缀目录内容不同，保留独立目录：'+name+' / '+n);
+        }
+      }
+    }
+    if(!target)target=await ensureSubDir(dst,await uniqueDirName(dst,id.base));
+    else report.push('复用目录：'+name+' → '+target.name);
+    await copyDirContents(src,target,report);
+    return target.name;
   }
   async function deleteAllEntries(dirHandle){
     const names=[];for await(const [name] of dirHandle.entries())names.push(name);
@@ -449,7 +526,7 @@
     if(lettersSet.size===0){stat.textContent='当前未选择任何部门';return}
 
     function add(item,parentLabel,rootName){
-      const key=`${rootName}::${item.path||item.name}`;if(seen.has(key))return;seen.add(key);
+      if(seen.has(item.handle))return;seen.add(item.handle);
       const lab=document.createElement('label');lab.className='item';
       const cb=document.createElement('input');cb.type='checkbox';cb.checked=true;cb.className='hitcb';cb.dataset.idx=String(idx);cb.onchange=renderHits;
       const span=document.createElement('span');
@@ -506,14 +583,21 @@
     if(!chosen.length)return alert('未选择任何要复制的编码文件夹');
     copyList.innerHTML='';updateProgress(0,chosen.length,'准备中…');stat.textContent='复制中...';
     let done=0,renamedTargets=[];
+    $('#start').disabled=true;
+    try{
+    for(const item of chosen){
+      if(await item.handle.isSameEntry(dstDir)||await item.handle.resolve(dstDir)!==null||await dstDir.resolve(item.handle)!==null)throw new Error('源目录与目标目录相同或存在包含关系，请重新选择目标目录');
+    }
     for(const item of chosen){
       const label=item.targetName||item.displayName||'未命名目录';updateProgress(done,chosen.length,label);
-      const actual=await copyDir(item.handle,dstDir,item.targetName);
+      const actual=await copyDir(item.handle,dstDir,item.targetName,renamedTargets);
       if(actual!==item.targetName)renamedTargets.push(`${item.targetName} → ${actual}`);
       done++;pushRecent(actual);updateProgress(done,chosen.length,actual);stat.textContent=`复制中：${done}/${chosen.length}`;
     }
     stat.textContent=`完成：复制了 ${done} 个编码文件夹`;updateProgress(done,chosen.length,'完成');
-    if(renamedTargets.length)renderIssues([`目标目录存在同名文件夹，为防止覆盖已自动改名：`,...renamedTargets]);
+    if(renamedTargets.length)renderIssues(renamedTargets);
+    }catch(e){stat.textContent=`复制停止：已完成 ${done}/${chosen.length}`;renderIssues([...renamedTargets,'复制失败：'+e.message+'。源文件保留，可重试。'])}
+    finally{$('#start').disabled=false}
   }
 
   function handleDragOver(e){e.preventDefault();if(e.dataTransfer)e.dataTransfer.dropEffect='copy';e.currentTarget.classList.add('dragover')}
