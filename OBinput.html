@@ -78,9 +78,7 @@
   <div class="card">
     <h2>2. 自动整理结果</h2>
     <p class="note">按系统编号或治具名称匹配。未能唯一配对的明细随 Excel 导出到「待核对」。缺少系统编号的单元格标黄。</p>
-    <label class="note">人员列
-      <select id="roleMode"><option value="designer">设计人（按厂区）</option><option value="both">负责人和设计人分别列出</option><option value="owner">负责人（源表值）</option></select>
-    </label>
+    <p class="note">负责人按厂区填写设计人：1000 苏州 · 杨昊，2000 铜陵 · 郭琪，5000 泰国 · ICE。</p>
     <label class="note">缺少请购日期时
       <select id="dateMode"><option value="online">使用图纸表上线日期</option><option value="today">使用生成当天日期</option><option value="blank">留空</option></select>
     </label>
@@ -124,18 +122,15 @@
   let finalRows = [];
 
   const clean = v => String(v == null ? '' : v).trim();
-  const baseHeaders = ['请购日期','请购类型','图纸分类','负责人','厂商','系统编号','描述','数量','评估单价（未税）','总额','请购原因','厂区','需求人','使用人','需求交期','成本中心','使用机种','备注'];
-  const baseWidths = [15,15,18,12,15,28,56,9,16,13,48,10,12,12,15,32,36,52];
-  const roleMode = document.getElementById('roleMode');
-  let headers = [], widths = [];
+  const headers = ['请购日期','请购类型','图纸分类','负责人','厂商','系统编号','描述','数量','评估单价（未税）','总额','请购原因','厂区','需求人','使用人','需求交期','成本中心','使用机种','备注'];
+  const widths = [15,15,18,12,15,28,56,9,16,13,48,10,12,12,15,32,36,52];
   const norm = value => clean(value).normalize('NFKC').replace(/\s/g,'').toUpperCase();
   const normalizeHeader = value => norm(value).replace(/^\*+/, '');
   const hasValue = value => value !== null && value !== undefined && clean(value) !== '';
   const first = (...values) => values.find(hasValue) ?? '';
-  const usable = value => /^[/／-]$/.test(clean(value)) ? '' : clean(value);
   const dateMode = document.getElementById('dateMode');
   const plants = {'1000':'苏州','2000':'铜陵','5000':'泰国'};
-  const designers = {'苏州':'杨昊','铜陵':'郭琦','泰国':'ICE'};
+  const designers = {'苏州':'杨昊','铜陵':'郭琪','泰国':'ICE'};
   let pending = [];
   let pairs = [];
   let revision = 0;
@@ -265,30 +260,21 @@
   }
 
   function buildFinalRows() {
-    headers = baseHeaders.slice(); widths = baseWidths.slice();
-    if (roleMode.value === 'both') {
-      headers.splice(4,0,'设计人'); widths.splice(4,0,12);
-    } else if (roleMode.value !== 'owner') {
-      headers[3] = '设计人';
-    }
     const now = new Date();
     const today = [now.getFullYear(),now.getMonth()+1,now.getDate()].join('/');
     finalRows = pairs.map(([s,t]) => {
       const g = s.get, d = t.get;
       const rawPlant = first(g('厂区'),d('厂区'));
       const plant = plants[norm(rawPlant)] || clean(rawPlant);
-      const owner = usable(d('产品负责人')) || usable(d('负责人')) || usable(g('负责人'));
       const designer = designers[plant] || '';
       const notes = [...new Set([...s.remarks,...t.remarks])].join('；');
       const requestType = first(g('请购类型'),d('请购类型'),/CO[\s_-]*NPI.*加急/i.test(notes)?'CO-NPI加急':/加急/.test(notes)?'加急需求':'正常需求');
       const date = first(formatDate(g('请购日期'),s.info),formatDate(d('请购日期'),t.info),
         dateMode.value === 'online' ? formatDate(d('上线日期'),t.info) : dateMode.value === 'today' ? today : '');
-      const values = [date,requestType,classify(s,t),owner,first(g('厂商','供应商'),d('厂商','供应商')),first(s.code,t.code),
+      const values = [date,requestType,classify(s,t),designer,first(g('厂商','供应商'),d('厂商','供应商')),first(s.code,t.code),
         first(s.name,t.name),first(s.qty,t.qty),g(/^评估单价/),g('总额'),first(g('请购原因'),d('请购原因')),plant,
         first(d('需求人'),g('申请人')),first(g('使用人'),d('使用人'),g('申请人')),formatDate(g('期望交期','需求交期'),s.info),
         clean(first(g('成本中心'),d('成本中心'))),g('使用机种名称','使用机种'),notes];
-      if (roleMode.value === 'both') values.splice(4,0,designer);
-      else if (roleMode.value !== 'owner') values[3] = designer;
       return Object.fromEntries(headers.map((h,i) => [h,values[i]]));
     });
   }
@@ -427,7 +413,7 @@
 
   dropZone.addEventListener('click', () => fileInput.click());
   fileInput.addEventListener('change', e => { const files=Array.from(e.target.files); e.target.value=''; handleFiles(files); });
-  for (const select of [dateMode,roleMode]) select.addEventListener('change', () => { buildFinalRows(); updateUI(); });
+  dateMode.addEventListener('change', () => { buildFinalRows(); updateUI(); });
   resetBtn.addEventListener('click', () => resetAll(true));
 
   downloadSplitBtn.addEventListener('click', () => {
