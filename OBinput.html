@@ -4,7 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>OB 治具文档整理工具</title>
-  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js" onerror="this.onerror=null;this.src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js'"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/cpexcel.js" onerror="this.onerror=null;this.src='https://unpkg.com/xlsx-js-style@1.2.0/dist/cpexcel.js'"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js" onerror="this.onerror=null;this.src='https://unpkg.com/xlsx-js-style@1.2.0/dist/xlsx.bundle.js'"></script>
   <style>
     :root { --primary:#2563eb; --primary2:#4f46e5; --ok:#16a34a; --warn:#d97706; --danger:#b91c1c; --border:#dbe3ef; --muted:#64748b; }
     * { box-sizing:border-box; }
@@ -43,8 +44,8 @@
     .table-wrap { overflow:auto; margin-top:12px; }
     table { border-collapse:collapse; width:100%; font-size:12px; background:#fff; }
     th,td { border:1px solid #e2e8f0; padding:6px 8px; text-align:left; white-space:nowrap; }
-    th { position:sticky; top:0; background:#eff6ff; }
-    tr:nth-child(even) td { background:#f8fafc; }
+    th { position:sticky; top:0; background:#70ad47; color:#101810; }
+    td.missing {background:#fff2cc;} .table-wrap {max-height:65vh;} td {max-width:30em; white-space:pre-wrap; overflow-wrap:anywhere;} th {z-index:1;}
     @media(max-width:760px){ body{padding:12px}.files,.summary{grid-template-columns:1fr}.drop-zone{min-height:160px} }
   </style>
 </head>
@@ -76,7 +77,13 @@
 
   <div class="card">
     <h2>2. 自动整理结果</h2>
-    <p class="note">生成字段：需求人 / 制程段 / 上线日期 / 使用设备型号（附编码） / 治具详细信息 / 需求数量 / 设计人员。设计人员仍按图纸需求表 P 栏判断：苏州→杨昊，铜陵→沈万礼，泰国→陶子俊。</p>
+    <p class="note">按系统编号或治具名称匹配。未能唯一配对的明细随 Excel 导出到「待核对」。缺少系统编号的单元格标黄。</p>
+    <label class="note">人员列
+      <select id="roleMode"><option value="designer">设计人（按厂区）</option><option value="both">负责人和设计人分别列出</option><option value="owner">负责人（源表值）</option></select>
+    </label>
+    <label class="note">缺少请购日期时
+      <select id="dateMode"><option value="online">使用图纸表上线日期</option><option value="today">使用生成当天日期</option><option value="blank">留空</option></select>
+    </label>
     <div class="summary">
       <div class="metric"><strong id="sourceCount">0</strong><span>请购单可用记录</span></div>
       <div class="metric"><strong id="targetCount">0</strong><span>图纸需求记录</span></div>
@@ -117,134 +124,179 @@
   let finalRows = [];
 
   const clean = v => String(v == null ? '' : v).trim();
-  const normalizeHeader = v => clean(v).replace(/\s/g, '').replace(/^\*+/, '');
+  const baseHeaders = ['请购日期','请购类型','图纸分类','负责人','厂商','系统编号','描述','数量','评估单价（未税）','总额','请购原因','厂区','需求人','使用人','需求交期','成本中心','使用机种','备注'];
+  const baseWidths = [15,15,18,12,15,28,56,9,16,13,48,10,12,12,15,32,36,52];
+  const roleMode = document.getElementById('roleMode');
+  let headers = [], widths = [];
+  const norm = value => clean(value).normalize('NFKC').replace(/\s/g,'').toUpperCase();
+  const normalizeHeader = value => norm(value).replace(/^\*+/, '');
+  const hasValue = value => value !== null && value !== undefined && clean(value) !== '';
+  const first = (...values) => values.find(hasValue) ?? '';
+  const usable = value => /^[/／-]$/.test(clean(value)) ? '' : clean(value);
+  const dateMode = document.getElementById('dateMode');
+  const plants = {'1000':'苏州','2000':'铜陵','5000':'泰国'};
+  const designers = {'苏州':'杨昊','铜陵':'郭琦','泰国':'ICE'};
+  let pending = [];
+  let pairs = [];
+  let revision = 0;
 
   function isExcel(file) { return /\.(xlsx|xls)$/i.test(file.name || ''); }
 
   function splitShortText(value) {
-    const text = clean(value).replace(/^﻿/, '');
-    if (!text) return { code:'', detail:'' };
-    const match = text.match(/^(\S+)(?:\s+([\s\S]*))?$/);
-    return { code: match ? clean(match[1]) : text, detail: match ? clean(match[2] || '') : '' };
-  }
-
-  function readFileBuffer(file) {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = e => resolve(e.target.result);
-      reader.onerror = () => reject(new Error('读取文件失败：' + file.name));
-      reader.readAsArrayBuffer(file);
-    });
+    const text = clean(value);
+    // Fixture numbers end in a serial number. Product names such as 8x200G are descriptions.
+    const rx = /^([A-Z][A-Z0-9]*?[A-Z]\d{5,}(?:\s*[~～〜]\s*(?:[A-Z][A-Z0-9]*?[A-Z])?\d+)?)(?=\s|$|[^\x00-\x7F]|[A-Za-z])/i;
+    const match = text.match(rx);
+    return match ? {code:match[1].replace(/\s/g,''), detail:text.slice(match[0].length).trim()} : {code:'', detail:text};
   }
 
   function locateRoleInWorkbook(wb) {
-    let sourceCandidate = null;
-    let targetCandidate = null;
+    let candidate = null;
     for (const sheetName of wb.SheetNames) {
-      const sheet = wb.Sheets[sheetName];
-      const matrix = XLSX.utils.sheet_to_json(sheet, { header:1, defval:'', raw:true });
-      const limit = Math.min(matrix.length, 15);
-      for (let r = 0; r < limit; r++) {
-        const rawHeaders = matrix[r] || [];
-        const headers = rawHeaders.map(normalizeHeader);
-        const hasSourceKey = headers.some(h => h === '短文本' || h.includes('治具名称+型号'));
-        const hasDemandUser = headers.some(h => h === '需求人');
-        const hasProcess = headers.some(h => h === '制程段');
-        const hasQty = headers.some(h => h.includes('需求数量'));
-        if (!sourceCandidate && hasSourceKey) sourceCandidate = { role:'source', sheetName, matrix, headerRow:r, rawHeaders, headers };
-        if (!targetCandidate && hasDemandUser && hasProcess && hasQty) targetCandidate = { role:'target', sheetName, matrix, headerRow:r, rawHeaders, headers };
+      const matrix = XLSX.utils.sheet_to_json(wb.Sheets[sheetName], {header:1, defval:'', raw:true, range:0});
+      for (let r = 0; r < Math.min(matrix.length,15); r++) {
+        const names = matrix[r].map(normalizeHeader);
+        const source = names.includes('短文本') || names.includes('治具名称+型号');
+        const target = names.includes('需求人') && names.includes('制程段') && names.includes('需求数量');
+        if (!source && !target) continue;
+        const info = {role:target?'target':'source',sheetName,matrix,headerRow:r,names,date1904:!!wb.Workbook?.WBProps?.date1904};
+        if (target) return info;
+        candidate ??= info;
+        break;
       }
     }
-    if (targetCandidate) return targetCandidate;
-    if (sourceCandidate) return sourceCandidate;
-    return null;
+    return candidate;
   }
 
   async function inspectFile(file) {
-    if (!window.XLSX) throw new Error('Excel 解析组件加载失败，请刷新页面后重试。');
-    const buffer = await readFileBuffer(file);
-    const wb = XLSX.read(buffer, { type:'array', cellDates:true });
-    const located = locateRoleInWorkbook(wb);
-    if (!located) throw new Error('无法识别文件类型：' + file.name + '。请确认是请购单或 OB 图纸需求表。');
-    return { file, wb, ...located };
+    if (!window.XLSX) throw new Error('Excel 组件尚未加载，请刷新重试。');
+    const wb = XLSX.read(await file.arrayBuffer(), {type:'array'});
+    const info = locateRoleInWorkbook(wb);
+    if (!info) throw new Error('无法识别文件：' + file.name);
+    return {...info,file};
   }
 
-  function idxBy(info, tests) {
-    for (let i = 0; i < info.headers.length; i++) {
-      if (tests.some(fn => fn(info.headers[i], info.rawHeaders[i]))) return i;
+  function field(info,row,...aliases) {
+    for (const alias of aliases) {
+      const index = info.names.findIndex(name => alias instanceof RegExp ? alias.test(name) : name === normalizeHeader(alias));
+      if (index >= 0 && hasValue(row[index])) return row[index];
     }
-    return -1;
-  }
-
-  function parseSource(info) {
-    const col = idxBy(info, [h => h === '短文本', h => h.includes('治具名称+型号')]);
-    if (col < 0) throw new Error('请购单没有找到「短文本」或「治具名称+型号」列。');
-    const out = [];
-    for (let r = info.headerRow + 1; r < info.matrix.length; r++) {
-      const raw = info.matrix[r]?.[col];
-      if (!clean(raw)) continue;
-      const s = splitShortText(raw);
-      if (!s.code && !s.detail) continue;
-      out.push({ 序号:out.length + 1, 原始内容:clean(raw), 拆分_编号:s.code, 拆分_说明:s.detail });
-    }
-    if (!out.length) throw new Error('请购单中没有可整理的治具编码/名称数据。');
-    return out;
-  }
-
-  function parseTarget(info) {
-    const demandIdx = idxBy(info, [h => h === '需求人']);
-    const processIdx = idxBy(info, [h => h === '制程段']);
-    const equipIdx = idxBy(info, [h => h === '使用设备型号', h => h.includes('使用设备型号')]);
-    const qtyIdx = idxBy(info, [h => h.includes('需求数量')]);
-    if (demandIdx < 0 || processIdx < 0 || qtyIdx < 0) throw new Error('图纸需求表缺少需求人 / 制程段 / 需求数量等必要列。');
-    const rows = [];
-    for (let r = info.headerRow + 1; r < info.matrix.length; r++) {
-      const row = info.matrix[r] || [];
-      if (![row[demandIdx], row[processIdx], row[qtyIdx]].some(v => clean(v))) continue;
-      rows.push({ row, excelRow:r + 1, demandIdx, processIdx, equipIdx, qtyIdx });
-    }
-    if (!rows.length) throw new Error('图纸需求表中没有可处理的数据行。');
-    return rows;
-  }
-
-  function getDesignerFromRemark(value) {
-    const s = clean(value);
-    if (s.includes('苏州')) return '杨昊';
-    if (s.includes('铜陵')) return '沈万礼';
-    if (s.includes('泰国')) return '陶子俊';
     return '';
   }
 
-  function todayStr() {
-    const d = new Date();
-    return `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}`;
+  function formatDate(value,info) {
+    const text = clean(value);
+    if (!text) return '';
+    if (/^\d{1,5}(?:\.\d+)?$/.test(text)) {
+      const parts = XLSX.SSF.parse_date_code(Number(text), {date1904:info.date1904});
+      if (parts) return [parts.y,parts.m,parts.d].join('/');
+    }
+    const match = text.match(/^(\d{4})[年./-](\d{1,2})[月./-](\d{1,2})(?:日|$|[ T])/);
+    return match ? [match[1],+match[2],+match[3]].join('/') : text;
+  }
+
+  function parseRows(info) {
+    const result = [];
+    for (let r = info.headerRow+1; r < info.matrix.length; r++) {
+      const row = info.matrix[r];
+      const get = (...aliases) => field(info,row,...aliases);
+      const source = info.role === 'source';
+      const raw = source ? get('短文本','治具名称+型号') : get(/^治具详细信息/,'描述');
+      const idCell = get('系统编号','治具编码',/^治具名称\(治具编码\)/);
+      const split = splitShortText(raw);
+      const explicit = splitShortText(idCell);
+      const code = first(split.code,explicit.code,get('系统编号','治具编码'));
+      const name = first(split.detail,explicit.detail);
+      const qty = get(source ? '数量' : '需求数量','需求数量','数量');
+      if (source ? !hasValue(raw) : ![raw,idCell,qty,get('需求人')].some(hasValue)) continue;
+      const remarks = info.names.flatMap((header,i) => /^备注/.test(header) && hasValue(row[i]) ? [clean(row[i])] : []);
+      result.push({excelRow:r+1,raw,code,name,qty,remarks,get,info});
+    }
+    if (!result.length) throw new Error(info.sheetName+' 没有可整理的明细。');
+    return result;
+  }
+
+  function matchRows() {
+    pairs = []; pending = [];
+    if (!sourceInfo || !targetInfo) return;
+    const used = new Set();
+    const matched = new Map();
+    function pairUnique(key) {
+      const groups = rows => {
+        const map = new Map();
+        for (const row of rows) {
+          const k = key(row);
+          if (k) map.set(k,[...(map.get(k)||[]),row]);
+        }
+        return map;
+      };
+      const left = groups(splitData.filter(row => !matched.has(row)));
+      const right = groups(targetData.filter(row => !used.has(row)));
+      for (const [k,records] of left) {
+        const candidates = right.get(k) || [];
+        if (records.length !== 1 || candidates.length !== 1) continue;
+        const [s] = records, [t] = candidates;
+        if (s.code && t.code && norm(s.code) !== norm(t.code)) continue;
+        matched.set(s,t); used.add(t);
+      }
+    }
+    pairUnique(row => norm(row.code));
+    pairUnique(row => norm(row.name));
+    pairUnique(row => row.name && hasValue(row.qty) ? norm(row.name)+'|'+norm(row.qty) : '');
+    for (const s of splitData) {
+      if (matched.has(s)) pairs.push([s,matched.get(s)]);
+      else pending.push(s);
+    }
+    pending.push(...targetData.filter(row => !used.has(row)));
+  }
+
+  function classify(s,t) {
+    const specified = first(s.get('图纸分类'),t.get('图纸分类'));
+    if (specified) return specified;
+    const remark = [...s.remarks,...t.remarks].join(' ');
+    if (/旧治具复制|(?:^|\s)复制(?:\s|$)|方案COPY/i.test(remark)) return '旧治具复制';
+    const original = norm(t.get(/^治具原图纸/));
+    const change = norm(t.get(/^若有原图纸/));
+    if (['√','✓','有'].includes(original)) {
+      if (['√','✓','是'].includes(change)) return '旧治具改版';
+      if (['X','×','否'].includes(change)) return '旧治具复制';
+    }
+    return '';
   }
 
   function buildFinalRows() {
-    finalRows = [];
-    if (!splitData.length || !targetData.length) return;
-    const count = Math.min(splitData.length, targetData.length);
-    for (let i = 0; i < count; i++) {
-      const t = targetData[i];
-      const s = splitData[i];
-      const originalEquip = t.equipIdx >= 0 ? clean(t.row[t.equipIdx]) : '';
-      const equip = s.拆分_编号 ? [originalEquip, s.拆分_编号].filter(Boolean).join(' ') : originalEquip;
-      finalRows.push({
-        '需求人': t.row[t.demandIdx] ?? '',
-        '制程段': t.row[t.processIdx] ?? '',
-        '上线日期': todayStr(),
-        '使用设备型号': equip,
-        '*治具详细信息（机种全名+治具名称，TX需特别标注）': s.拆分_说明,
-        '*需求\n数量': t.row[t.qtyIdx] ?? '',
-        '设计人员': getDesignerFromRemark(t.row[15])
-      });
+    headers = baseHeaders.slice(); widths = baseWidths.slice();
+    if (roleMode.value === 'both') {
+      headers.splice(4,0,'设计人'); widths.splice(4,0,12);
+    } else if (roleMode.value !== 'owner') {
+      headers[3] = '设计人';
     }
+    const now = new Date();
+    const today = [now.getFullYear(),now.getMonth()+1,now.getDate()].join('/');
+    finalRows = pairs.map(([s,t]) => {
+      const g = s.get, d = t.get;
+      const rawPlant = first(g('厂区'),d('厂区'));
+      const plant = plants[norm(rawPlant)] || clean(rawPlant);
+      const owner = usable(d('产品负责人')) || usable(d('负责人')) || usable(g('负责人'));
+      const designer = designers[plant] || '';
+      const notes = [...new Set([...s.remarks,...t.remarks])].join('；');
+      const requestType = first(g('请购类型'),d('请购类型'),/CO[\s_-]*NPI.*加急/i.test(notes)?'CO-NPI加急':/加急/.test(notes)?'加急需求':'正常需求');
+      const date = first(formatDate(g('请购日期'),s.info),formatDate(d('请购日期'),t.info),
+        dateMode.value === 'online' ? formatDate(d('上线日期'),t.info) : dateMode.value === 'today' ? today : '');
+      const values = [date,requestType,classify(s,t),owner,first(g('厂商','供应商'),d('厂商','供应商')),first(s.code,t.code),
+        first(s.name,t.name),first(s.qty,t.qty),g(/^评估单价/),g('总额'),first(g('请购原因'),d('请购原因')),plant,
+        first(d('需求人'),g('申请人')),first(g('使用人'),d('使用人'),g('申请人')),formatDate(g('期望交期','需求交期'),s.info),
+        clean(first(g('成本中心'),d('成本中心'))),g('使用机种名称','使用机种'),notes];
+      if (roleMode.value === 'both') values.splice(4,0,designer);
+      else if (roleMode.value !== 'owner') values[3] = designer;
+      return Object.fromEntries(headers.map((h,i) => [h,values[i]]));
+    });
   }
 
   function renderPreview() {
     preview.innerHTML = '';
     if (!finalRows.length) return;
-    const shown = finalRows.slice(0,20);
+    const shown = finalRows;
     const headers = Object.keys(shown[0]);
     const table = document.createElement('table');
     const thead = document.createElement('thead');
@@ -252,9 +304,9 @@
     headers.forEach(h => { const th=document.createElement('th'); th.textContent=h; hr.appendChild(th); });
     thead.appendChild(hr); table.appendChild(thead);
     const tbody = document.createElement('tbody');
-    shown.forEach(row => { const tr=document.createElement('tr'); headers.forEach(h => { const td=document.createElement('td'); td.textContent=row[h] == null ? '' : String(row[h]); tr.appendChild(td); }); tbody.appendChild(tr); });
+    shown.forEach(row => { const tr=document.createElement('tr'); headers.forEach(h => { const td=document.createElement('td'); td.textContent=row[h] == null ? '' : String(row[h]); if (h === '系统编号' && !row[h]) { td.className='missing'; td.title='源表缺少系统编号'; } tr.appendChild(td); }); tbody.appendChild(tr); });
     table.appendChild(tbody); preview.appendChild(table);
-    if (finalRows.length > 20) { const p=document.createElement('p'); p.className='note'; p.textContent=`只预览前 20 行，共 ${finalRows.length} 行。`; preview.appendChild(p); }
+
   }
 
   function updateUI() {
@@ -267,11 +319,12 @@
     targetCount.textContent = targetData.length;
     resultCount.textContent = finalRows.length;
     downloadSplitBtn.disabled = !splitData.length;
-    downloadFinalBtn.disabled = !finalRows.length;
+    downloadFinalBtn.disabled = !finalRows.length && !pending.length;
     renderPreview();
   }
 
   function resetAll(clearMessage = true) {
+    revision++; pairs = []; pending = [];
     sourceInfo = null; targetInfo = null; splitData = []; targetData = []; finalRows = [];
     fileInput.value = '';
     if (clearMessage) { status.textContent = ''; resultStatus.textContent = ''; }
@@ -285,30 +338,34 @@
     if (invalid.length) { status.className='status error'; status.textContent='只支持 .xlsx / .xls 文件：' + invalid.map(f=>f.name).join('、'); return; }
     if (files.length > 2) { status.className='status error'; status.textContent='一次最多上传两个 Excel。请拖入“请购单 + 图纸需求表”两个文件。'; return; }
 
+    const request = ++revision;
+    downloadFinalBtn.disabled = downloadSplitBtn.disabled = true;
     status.className='status'; status.textContent='正在识别文件…'; resultStatus.textContent='';
     try {
       const infos = [];
       for (const file of files) infos.push(await inspectFile(file));
-      for (const info of infos) {
-        if (info.role === 'source') sourceInfo = info;
-        if (info.role === 'target') targetInfo = info;
-      }
-      splitData = sourceInfo ? parseSource(sourceInfo) : [];
-      targetData = targetInfo ? parseTarget(targetInfo) : [];
-      buildFinalRows();
-      updateUI();
-
+      if (request !== revision) return;
+      if (infos.length===2 && infos[0].role===infos[1].role) throw new Error('两份文件属于同一类型，请各选一份。');
+      const source = infos.find(info => info.role==='source') || sourceInfo;
+      const target = infos.find(info => info.role==='target') || targetInfo;
+      const left = source ? parseRows(source) : [];
+      const right = target ? parseRows(target) : [];
+      sourceInfo=source; targetInfo=target; splitData=left; targetData=right;
+      matchRows(); buildFinalRows(); updateUI();
       if (sourceInfo && targetInfo) {
-        const mismatch = splitData.length !== targetData.length;
-        status.className = mismatch ? 'status warn' : 'status ok';
-        status.textContent = mismatch
-          ? `两个文件已自动识别。请购单 ${splitData.length} 条，图纸需求表 ${targetData.length} 条；数量不一致，将按顺序生成前 ${finalRows.length} 条，请确认预览。`
-          : `两个文件已自动识别并整理完成，共 ${finalRows.length} 条。确认预览后可直接下载最终结果。`;
+        const missing = finalRows.filter(row => !row['系统编号']).length;
+        const different = pairs.filter(([s,t]) => hasValue(s.qty) && hasValue(t.qty) && norm(s.qty)!==norm(t.qty));
+        status.className = pending.length || missing || different.length ? 'status warn' : 'status ok';
+        status.textContent = `成功配对 ${pairs.length} 条，缺少系统编号 ${missing} 条。` +
+          (pending.length ? `另有 ${pending.length} 条源记录未配对，见导出的「待核对」表。` : '') +
+          (different.length ? ' 数量有差异，已采用请购数量：'+different.map(([s])=>s.name).join('、') : '');
       } else {
         status.className='status warn';
         status.textContent = sourceInfo ? '已识别请购单，请再拖入 OB 图纸需求表。' : '已识别 OB 图纸需求表，请再拖入请购单。';
       }
     } catch (err) {
+      if (request !== revision) return;
+      resetAll(false);
       console.error(err);
       status.className='status error'; status.textContent=err.message || '处理 Excel 失败。';
       updateUI();
@@ -369,30 +426,66 @@
   }, true);
 
   dropZone.addEventListener('click', () => fileInput.click());
-  fileInput.addEventListener('change', e => handleFiles(e.target.files));
+  fileInput.addEventListener('change', e => { const files=Array.from(e.target.files); e.target.value=''; handleFiles(files); });
+  for (const select of [dateMode,roleMode]) select.addEventListener('change', () => { buildFinalRows(); updateUI(); });
   resetBtn.addEventListener('click', () => resetAll(true));
 
   downloadSplitBtn.addEventListener('click', () => {
     if (!splitData.length) return;
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(splitData), '编码拆分结果');
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(splitData.map((s,i) => ({序号:i+1,原始内容:s.raw,拆分_编号:s.code,拆分_说明:s.name}))), '编码拆分结果');
     XLSX.writeFile(wb, '治具编码拆分结果.xlsx');
   });
 
-  downloadFinalBtn.addEventListener('click', () => {
-    if (!finalRows.length) return;
+  function createFinalBook() {
     const wb = XLSX.utils.book_new();
-    const ws = XLSX.utils.json_to_sheet(finalRows);
-    ws['!cols'] = [{wch:14},{wch:10},{wch:12},{wch:32},{wch:52},{wch:12},{wch:12}];
-    XLSX.utils.book_append_sheet(wb, ws, '最终结果表');
-    const filename = 'OB治具需求_最终结果表.xlsx';
-    XLSX.writeFile(wb, filename);
-    resultStatus.className='status ok';
-    resultStatus.textContent=`已生成 ${finalRows.length} 条记录：${filename}`;
-  });
+    const ws = XLSX.utils.json_to_sheet(finalRows,{header:headers});
+    ws['!cols'] = widths.map(wch => ({wch}));
+    ws['!autofilter'] = {ref:ws['!ref']};
+    ws['!rows'] = [{hpt:34}];
+    const line = {style:'thin',color:{rgb:'D9E1D8'}};
+    const border = {top:line,bottom:line,left:line,right:line};
+    headers.forEach((h,c) => {
+      ws[XLSX.utils.encode_cell({r:0,c})].s = {font:{bold:true,color:{rgb:'101810'}},fill:{fgColor:{rgb:'70AD47'}},alignment:{horizontal:'center',vertical:'center',wrapText:true},border};
+    });
+    finalRows.forEach((row,i) => {
+      let lines = 1;
+      headers.forEach((h,c) => {
+        const address = XLSX.utils.encode_cell({r:i+1,c});
+        const cell = ws[address];
+        if (!cell) return;
+        const value = clean(row[h]);
+        const length = str => [...str].reduce((n,ch) => n+(ch.charCodeAt(0)>255?2:1),0);
+        lines = Math.max(lines,value.split('\n').reduce((n,str) => n+Math.max(1,Math.ceil(length(str)/widths[c])),0));
+        if (['请购日期','需求交期'].includes(h) && /^\d{4}\/\d{1,2}\/\d{1,2}$/.test(value)) {
+          const [y,m,d] = value.split('/').map(Number);
+          cell.t='n'; cell.v=(Date.UTC(y,m-1,d)-Date.UTC(1899,11,30))/86400000; cell.z='yyyy/m/d';
+        }
+        cell.s = {alignment:{vertical:'center',wrapText:true},border};
+        if (h==='系统编号' && !value) cell.s.fill={fgColor:{rgb:'FFF2CC'}};
+      });
+      ws['!rows'].push({hpt:Math.min(400,Math.max(23,lines*16+5))});
+    });
+    XLSX.utils.book_append_sheet(wb,ws,'治具请购汇总');
+    if (pending.length) {
+      const issues = pending.map(item => ({来源:item.info.role==='source'?'请购单':'图纸需求表',工作表:item.info.sheetName,原行号:item.excelRow,系统编号:item.code,描述:item.name,数量:item.qty,说明:'未找到唯一对应行，请核对两表编码及名称'}));
+      const sheet = XLSX.utils.json_to_sheet(issues);
+      sheet['!cols']=[14,18,10,26,55,10,45].map(wch=>({wch}));
+      XLSX.utils.book_append_sheet(wb,sheet,'待核对');
+    }
+    return wb;
+  }
 
+  downloadFinalBtn.addEventListener('click', () => {
+    if (!sourceInfo || !targetInfo || (!finalRows.length && !pending.length)) return;
+    const filename = 'OB治具请购汇总.xlsx';
+    XLSX.writeFile(createFinalBook(), filename);
+    resultStatus.className='status ok';
+    resultStatus.textContent='已导出 '+filename;
+  });
   updateUI();
 })();
 </script>
 </body>
 </html>
+
