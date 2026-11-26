@@ -140,7 +140,7 @@
   function splitShortText(value) {
     const text = clean(value);
     // Fixture numbers end in a serial number. Product names such as 8x200G are descriptions.
-    const rx = /^([A-Z][A-Z0-9]*?[A-Z]\d{5,}(?:\s*[~～〜]\s*(?:[A-Z][A-Z0-9]*?[A-Z])?\d+)?)(?=\s|$|[^\x00-\x7F]|[A-Za-z])/i;
+    const rx = /^((?:T\d{6,}|[A-Z][A-Z0-9]*?[A-Z]\d{5,})(?:\s*[~～〜]\s*(?:T|[A-Z][A-Z0-9]*?[A-Z])?\d+)?)(?=\s|$|[^\x00-\x7F]|[A-Za-z-])/i;
     const match = text.match(rx);
     return match ? {code:match[1].replace(/\s/g,''), detail:text.slice(match[0].length).trim()} : {code:'', detail:text};
   }
@@ -214,6 +214,26 @@
   function matchRows() {
     pairs = []; pending = [];
     if (!sourceInfo || !targetInfo) return;
+    // When digits touch the name, use a complete drawing description to locate the boundary.
+    const drawingNames = new Map();
+    for (const t of targetData) {
+      if (t.name) drawingNames.set(norm(t.name),t.name);
+    }
+    for (const s of splitData) {
+      const raw = clean(s.raw);
+      if (!s.code || drawingNames.has(norm(s.name))) continue;
+      const range = raw.match(/^(.+?[~～〜]\s*(?:[a-z][a-z0-9]*?[a-z]|T)?)(\d+)(.*)$/is);
+      if (!range) continue;
+      const [,prefix,digits,rest] = range;
+      const options = [];
+      for (let n=1; n<digits.length; n++) {
+        const name = drawingNames.get(norm(digits.slice(n)+rest));
+        const code = prefix+digits.slice(0,n);
+        const parsed = splitShortText(code);
+        if (name && parsed.code && !parsed.detail) options.push({code:parsed.code,name});
+      }
+      if (options.length === 1) Object.assign(s,options[0]);
+    }
     const used = new Set();
     const matched = new Map();
     function pairUnique(key) {
@@ -351,9 +371,8 @@
       }
     } catch (err) {
       if (request !== revision) return;
-      resetAll(false);
       console.error(err);
-      status.className='status error'; status.textContent=err.message || '处理 Excel 失败。';
+      status.className='status error'; status.textContent=(err.message || '处理 Excel 失败。') + (sourceInfo || targetInfo ? ' 本次文件未导入，仍显示上次成功读取的数据。' : '');
       updateUI();
     }
   }
